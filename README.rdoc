@@ -1,0 +1,39 @@
+#
+#	hl command :
+#	~~~~~~~~~~~~
+#
+#	This command uses regcomp() and regexec() to colorize (highlight) strings from stdin
+#	using options on the command line.
+#
+#	Usage :
+#
+#		Usage: hl [-h|eidDR][-E][-rgybmcw] regexp
+#		  -h : help
+#		  -v : version
+#		  -u : do not bufferize output on stdout
+#		  -e : extended regular expressions
+#		  -i : ignore case
+#		  -E : print on stderr
+#		  -r : red
+#		  -g : green
+#		  -y : yellow
+#		  -b : blue
+#		  -m : magenta
+#		  -c : cyan
+#		  -w : white
+#		  -R : reverse video
+#		  -d : debug
+#		  -D : display regular expressions
+#
+#
+#	Example :
+#	
+#		
+#		
+#		/sbin/ifconfig -a hl -ei	-m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'		\
+#						-b '^(eth|(vir)?br|vnet)[0-9.]*\.[0-9]+\>'		\
+#						-c '([0-9a-f]{2}:){5}[0-9a-f]{2}'			\
+#						-g '\<UP\>|\<RUNNING\>|([0-9]{1,3}\.){3}[0-9]{1,3}\>'	\
+#						-y '^(eth|(vir)?br|vnet)[0-9.:]*\>'
+#		
+#

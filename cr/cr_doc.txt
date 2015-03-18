@@ -1,0 +1,19 @@
+#
+#	@(#)	[MB] cr_doc.txt	Version 1.1 du 14/12/29 - 
+#
+
+Syntaxe :
+	colorize -rgbycmw expr ...
+		-r	: colorize in red
+		-g	: colorize in green
+		-b	: colorize in blue
+		-y	: colorize in yellow
+		-c	: colorize in cyan
+		-m	: colorize in magenta
+		-w	: colorize in high white
+
+		expr	:
+			text
+			^.*text.*$
+			text\P		: colorize until the end of the paragraph
+						 (until next empty line of EOF)

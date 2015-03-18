@@ -1,0 +1,51 @@
+# ============================================================================
+# Copyright (C) 2015 Martial Bornet
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+#	Fichier makefile du module CR
+#	=============================
+#	MKMF Version 2.7 (alpha 1)
+#
+#	%Z%	[%Y%] %M%	Version %I% du %E% - %Q%
+#
+# ============================================================================
+
+include ../makelib1
+
+#	Objets issus de sources "C"
+#	===========================
+#
+OBJ_C    = $(LIB)(cr_gpri.o)         \
+           $(LIB)(cr_main.o)         
+
+#	Liste de tous les objets de la bibliotheque
+#	===========================================
+#
+OBJ_LIB=  $(OBJ_C)
+
+#	Regles de production de la bibliotheque de modules objets
+#	=========================================================
+#
+
+include ../makelib2
+
+#	Liste des dependances des fichiers objets
+#	=========================================
+#
+
+$(LIB)(cr_gpri.o):          cr_epri.h                
+
+$(LIB)(cr_main.o):          cr_epri.h                
