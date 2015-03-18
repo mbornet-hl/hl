@@ -20,7 +20,7 @@
  *
  *	Fichier      :     cr_main.c
  *
- *	@(#)	cr_main.c	1.16	15/03/17	MB	
+ *	@(#)	cr_main.c	1.17	15/03/18	MB	
  *
  *	Liste des fonctions de ce fichier :
  *	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 			break;
 
 		case	'v':
-			fprintf(stderr, "%s: version %s\n", G.prgname, "1.16");
+			fprintf(stderr, "%s: version %s\n", G.prgname, "1.17");
 			exit(1);
 			break;
 
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-	fprintf(stderr, "Usage: %s [-h|eidDR][-E][-rgybmcw] regexp\n", G.prgname);
+	fprintf(stderr, "Usage: %s [-h|-eidDR][-E][-rgybmcw] regexp\n", G.prgname);
 	fprintf(stderr, "  -h : help\n");
 	fprintf(stderr, "  -v : version\n");
 	fprintf(stderr, "  -u : do not bufferize output on stdout\n");
