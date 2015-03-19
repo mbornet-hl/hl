@@ -22,7 +22,7 @@
  *
  *	Fichier      :     cr_cpri.h
  *
- *	@(#)	cr_cpri.h	1.8	15/03/14	MB	
+ *	@(#)	cr_cpri.h	1.9	15/03/19	MB	
  *
  * ============================================================================
  */
@@ -38,10 +38,11 @@
 #define	FALSE					(0)
 #define	TRUE						(1)
 
-#define	CR_NB_COLORS				(7)
+#define	CR_NB_COLORS				(16)
 
 /* Numeros des couleurs
  * ~~~~~~~~~~~~~~~~~~~~ */
+#define	CR_BLACK					(0)
 #define	CR_RED					(1)
 #define	CR_GREEN					(2)
 #define	CR_YELLOW					(3)
@@ -49,7 +50,16 @@
 #define	CR_MAGENTA				(5)
 #define	CR_CYAN					(6)
 #define	CR_WHITE					(7)
+#define	CR_BLACK_REV				(8)
+#define	CR_RED_REV				(9)
+#define	CR_GREEN_REV				(10)
+#define	CR_YELLOW_REV				(11)
+#define	CR_BLUE_REV				(12)
+#define	CR_MAGENTA_REV				(13)
+#define	CR_CYAN_REV				(14)
+#define	CR_WHITE_REV				(15)
 
+#define	CR_C0					"black"
 #define	CR_C1					"red"
 #define	CR_C2					"green"
 #define	CR_C3					"yellow"
@@ -57,16 +67,27 @@
 #define	CR_C5					"magenta"
 #define	CR_C6					"cyan"
 #define	CR_C7					"white"
+#define	CR_C8					"black reverse"
+#define	CR_C9					"red reverse"
+#define	CR_C10					"green reverse"
+#define	CR_C11					"yellow reverse"
+#define	CR_C12					"blue reverse"
+#define	CR_C13					"magenta reverse"
+#define	CR_C14					"cyan reverse"
+#define	CR_C15					"white reverse"
 
-#define	CR_INIT_COL(n)				{ G.color_RE[CR_COLOR_IDX(n)].col_name = CR_C ## n; }
+#define	CR_INIT_COL(n)				{ G.color_RE[CR_COLOR_IDX(n)].col_name = CR_C ## n; \
+								  G.color_RE[CR_COLOR_IDX(n)].col_num  = (n % 8); }
 
 /* Indice de tableau d'une couleur
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define	CR_COLOR_IDX(color)			((color) - 1)
+#define	CR_COLOR_IDX(color)			((color))
 
+#if 0
 /* Code des couleurs pour Linux ANSI
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define	CR_CODE_LINUX(color)		((color) + 30)
+#define	CR_CODE_LINUX(color)		((color) % 8) + 30)
+#endif
 
 /* Taille d'une ligne, nombre d'intervalles differents
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -104,7 +125,6 @@ struct cr_global {
 	struct cr_col_desc				 desc[CR_SIZE + 1];
 	int							 length;
 	bool							 debug;
-	bool							 reverse;
 	bool							 disp_regex;
 	FILE							*out;
 };

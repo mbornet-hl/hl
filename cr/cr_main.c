@@ -20,7 +20,7 @@
  *
  *	Fichier      :     cr_main.c
  *
- *	@(#)	cr_main.c	1.17	15/03/18	MB	
+ *	@(#)	cr_main.c	1.20	15/03/19	MB	
  *
  *	Liste des fonctions de ce fichier :
  *	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
 	/* Analyse des arguments
 	   ~~~~~~~~~~~~~~~~~~~~~ */
-	while ((_opt = getopt(argc, argv, "huvEr:g:y:b:m:c:w:DdeiR")) != -1) {
+	while ((_opt = getopt(argc, argv, "huvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:Ddei")) != -1) {
 		switch (_opt) {
 		case 'h':
 			cr_usage();
@@ -116,6 +116,34 @@ int main(int argc, char *argv[])
 			cr_set_color(CR_WHITE, optarg);
 			break;
 
+		case	'R':
+			cr_set_color(CR_RED_REV, optarg);
+			break;
+
+		case	'G':
+			cr_set_color(CR_GREEN_REV, optarg);
+			break;
+
+		case	'Y':
+			cr_set_color(CR_YELLOW_REV, optarg);
+			break;
+
+		case 'B':
+			cr_set_color(CR_BLUE_REV, optarg);
+			break;
+
+		case	'M':
+			cr_set_color(CR_MAGENTA_REV, optarg);
+			break;
+
+		case	'C':
+			cr_set_color(CR_CYAN_REV, optarg);
+			break;
+
+		case	'W':
+			cr_set_color(CR_WHITE_REV, optarg);
+			break;
+
 		case 'e':
 			G.cflags	|= REG_EXTENDED;
 			break;
@@ -124,16 +152,12 @@ int main(int argc, char *argv[])
 			G.cflags	|= REG_ICASE;
 			break;
 
-		case 'R':
-			G.reverse	 = TRUE;
-			break;
-
 		case	'u':
 			setvbuf(stdout, (char *) 0, _IONBF, 0);
 			break;
 
 		case	'v':
-			fprintf(stderr, "%s: version %s\n", G.prgname, "1.17");
+			fprintf(stderr, "%s: version %s\n", G.prgname, "1.20");
 			exit(1);
 			break;
 
@@ -166,7 +190,8 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-	fprintf(stderr, "Usage: %s [-h|-eidDR][-E][-rgybmcw] regexp\n", G.prgname);
+	fprintf(stderr, "%s: version %s\n", G.prgname, "1.20");
+	fprintf(stderr, "Usage: %s [-h|-eidD][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
 	fprintf(stderr, "  -h : help\n");
 	fprintf(stderr, "  -v : version\n");
 	fprintf(stderr, "  -u : do not bufferize output on stdout\n");
@@ -180,7 +205,13 @@ void cr_usage(void)
 	fprintf(stderr, "  -m : magenta\n");
 	fprintf(stderr, "  -c : cyan\n");
 	fprintf(stderr, "  -w : white\n");
-	fprintf(stderr, "  -R : reverse video\n");
+	fprintf(stderr, "  -R : red     (reverse video)\n");
+	fprintf(stderr, "  -G : green   (reverse video)\n");
+	fprintf(stderr, "  -Y : yellow  (reverse video)\n");
+	fprintf(stderr, "  -B : blue    (reverse video)\n");
+	fprintf(stderr, "  -M : magenta (reverse video)\n");
+	fprintf(stderr, "  -C : cyan    (reverse video)\n");
+	fprintf(stderr, "  -W : white   (reverse video)\n");
 	fprintf(stderr, "  -d : debug\n");
 	fprintf(stderr, "  -D : display regular expressions\n");
 	exit(1);
@@ -208,6 +239,7 @@ void cr_init_list(void)
 ******************************************************************************/
 void cr_init_col_names(void)
 {
+	CR_INIT_COL(0);
 	CR_INIT_COL(1);
 	CR_INIT_COL(2);
 	CR_INIT_COL(3);
@@ -215,6 +247,14 @@ void cr_init_col_names(void)
 	CR_INIT_COL(5);
 	CR_INIT_COL(6);
 	CR_INIT_COL(7);
+	CR_INIT_COL(8);
+	CR_INIT_COL(9);
+	CR_INIT_COL(10);
+	CR_INIT_COL(11);
+	CR_INIT_COL(12);
+	CR_INIT_COL(13);
+	CR_INIT_COL(14);
+	CR_INIT_COL(15);
 }
 
 /******************************************************************************
@@ -325,10 +365,14 @@ void cr_start_color(struct cr_color *col, int color)
 	if (col)	_out = col->out;
 	else		_out = stdout;
 
-	if (G.reverse) {
-		fprintf(_out, "\033[01;30m\033[01;%dm", 40 + color);
+	if (col->col_num > CR_WHITE) {
+		/* Reverse video
+		   ~~~~~~~~~~~~~ */
+		fprintf(_out, "\033[01;30m\033[01;%dm", 40 + (color - 8));
 	}
 	else {
+		/* Normal video
+		   ~~~~~~~~~~~~ */
 		fprintf(_out, "\033[01;%dm", 30 + color);
 	}
 }
