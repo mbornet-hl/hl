@@ -20,7 +20,7 @@
  *
  *	Fichier      :     cr_main.c
  *
- *	@(#)	cr_main.c	1.20	15/03/19	MB	
+ *	@(#)	cr_main.c	1.21	15/03/19	MB	
  *
  *	Liste des fonctions de ce fichier :
  *	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 			break;
 
 		case	'v':
-			fprintf(stderr, "%s: version %s\n", G.prgname, "1.20");
+			fprintf(stderr, "%s: version %s\n", G.prgname, "1.21");
 			exit(1);
 			break;
 
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
-	G.cflags	|= REG_NEWLINE;
+//	G.cflags	|= REG_NEWLINE;
 
 	if (G.disp_regex) {
 		for (_i = 0; _i < G.idx_list; _i++) {
@@ -180,6 +180,8 @@ int main(int argc, char *argv[])
 	}
 
 	cr_read_input();
+
+	cr_free_RE();
 	return 0;
 }
 
@@ -190,7 +192,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-	fprintf(stderr, "%s: version %s\n", G.prgname, "1.20");
+	fprintf(stderr, "%s: version %s\n", G.prgname, "1.21");
 	fprintf(stderr, "Usage: %s [-h|-eidD][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
 	fprintf(stderr, "  -h : help\n");
 	fprintf(stderr, "  -v : version\n");
@@ -294,6 +296,23 @@ void cr_set_color(int color, char *regexp)
 
 /******************************************************************************
 
+					CR_FREE_RE
+
+******************************************************************************/
+void cr_free_RE(void)
+{
+	int					 _i;
+	regex_t				*_reg;
+
+	for (_i = 0; _i < CR_NB_COLORS; _i++) {
+		_reg		= &G.color_RE[_i].RE.reg;
+		if (_reg) {
+			regfree(_reg);
+		}
+	}
+}
+/******************************************************************************
+
 					CR_READ_INPUT
 
 ******************************************************************************/
@@ -365,7 +384,7 @@ void cr_start_color(struct cr_color *col, int color)
 	if (col)	_out = col->out;
 	else		_out = stdout;
 
-	if (col->col_num > CR_WHITE) {
+	if (color > CR_WHITE) {
 		/* Reverse video
 		   ~~~~~~~~~~~~~ */
 		fprintf(_out, "\033[01;30m\033[01;%dm", 40 + (color - 8));

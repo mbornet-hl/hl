@@ -22,7 +22,7 @@
  *
  *	Fichier      :     cr_epri.h
  *
- *	@(#)	cr_epri.h	1.6	15/03/14	MB	
+ *	@(#)	cr_epri.h	1.7	15/03/19	MB	
  *
  * ============================================================================
  */
@@ -40,6 +40,7 @@ void								 cr_usage(void);
 void								 cr_init_list(void);
 void								 cr_init_col_names(void);
 void								 cr_set_color(int, char *);
+void								 cr_free_RE(void);
 void								 cr_read_input(void);
 void								 cr_disp_color(int, char *);
 void								 cr_start_color(struct cr_color *, int);
