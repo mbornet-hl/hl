@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+#    Colorize ethtool output
+#    ~~~~~~~~~~~~~~~~~~~~~~~
+#
+#    @(#)  [MB] cr_hl_ethtool Version 1.1 du 15/03/22 - 
+#
+
+hl -ei    -r 'duplex:.*half|link detected:.*no|speed:.*100?Mb/s'    \
+          -g 'duplex:.*full|link detected:.*yes|speed:.*1000mb/s'

@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+#    Colorize MAC addresses
+#    ~~~~~~~~~~~~~~~~~~~~~~
+#
+#    @(#)  [MB] cr_hl_MAC Version 1.1 du 15/03/22 - 
+#
+
+hl -ei -c '([0-9a-f]{2}:){5}[0-9a-f]{2}'
