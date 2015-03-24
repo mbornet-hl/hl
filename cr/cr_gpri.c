@@ -14,20 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *	(C) Copyright Martial Bornet, 2015.
+ *   (C) Copyright Martial Bornet, 2015.
  *
- *	Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
+ *   Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
  *
- *	Description  :     Globales privees
+ *   Description  :     Globales privees
  *
- *	Fichier      :     cr_gpri.c
+ *   Fichier      :     cr_gpri.c
  *
- *	@(#)	cr_gpri.c	1.3	15/03/14	MB	
+ *   @(#)  cr_gpri.c  1.4  15/03/24  MB  
  *
  * ============================================================================
  */
 
 #include "cr_epri.h"
 
-struct cr_global							G		= { 0 };
+struct cr_global                                  G         = { 0 };
 

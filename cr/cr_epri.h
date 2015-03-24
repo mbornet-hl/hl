@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *	(C) Copyright Martial Bornet, 2015.
+ *   (C) Copyright Martial Bornet, 2015.
  *
- *	Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
+ *   Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
  *
- *	Description  :     Externes privees
+ *   Description  :     Externes privees
  *
- *	Fichier      :     cr_epri.h
+ *   Fichier      :     cr_epri.h
  *
- *	@(#)	cr_epri.h	1.7	15/03/19	MB	
+ *   @(#)  cr_epri.h  1.8  15/03/24  MB  
  *
  * ============================================================================
  */
@@ -32,21 +32,21 @@
 
 #include "cr_cpri.h"
 
-extern struct cr_global							G;
+extern struct cr_global                                G;
 
 /* Fonctions
  * ~~~~~~~~~ */
-void								 cr_usage(void);
-void								 cr_init_list(void);
-void								 cr_init_col_names(void);
-void								 cr_set_color(int, char *);
-void								 cr_free_RE(void);
-void								 cr_read_input(void);
-void								 cr_disp_color(int, char *);
-void								 cr_start_color(struct cr_color *, int);
-void								 cr_end_color(struct cr_color *);
-void								 cr_init_desc(void);
-void								 cr_set_desc(struct cr_color *, int, int, int);
-void								 cr_disp_line(void);
+void                                     cr_usage(void);
+void                                     cr_init_list(void);
+void                                     cr_init_col_names(void);
+void                                     cr_set_color(int, char *);
+void                                     cr_free_RE(void);
+void                                     cr_read_input(void);
+void                                     cr_disp_color(int, char *);
+void                                     cr_start_color(struct cr_color *, int);
+void                                     cr_end_color(struct cr_color *);
+void                                     cr_init_desc(void);
+void                                     cr_set_desc(struct cr_color *, int, int, int);
+void                                     cr_disp_line(void);
 
-#endif	/* CR_EPRI_H */
+#endif    /* CR_EPRI_H */
