@@ -32,16 +32,16 @@
 #    -d : debug
 #    -D : display regular expressions
 #
-# Example :
-# 
-#   
-#   
+# Examples :
+# ~~~~~~~~~~
+#
+#
 #  /sbin/ifconfig -a hl -ei -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'         \
 #                      -b '^(eth|(vir)?br|vnet)[0-9.]*\.[0-9]+\>'             \
 #                      -c '([0-9a-f]{2}:){5}[0-9a-f]{2}'                      \
 #                      -g '\<UP\>|\<RUNNING\>|([0-9]{1,3}\.){3}[0-9]{1,3}\>'  \
 #                      -y '^(eth|(vir)?br|vnet)[0-9.:]*\>'
-# 
+#
 #  cat firewall_rules | hl -e -c INPUT                    \
 #                             -y 'FORWARD|POSTROUTING'    \
 #                             -b '#.*'                    \
