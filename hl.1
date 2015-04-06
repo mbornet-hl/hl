@@ -1,0 +1,117 @@
+.\" 	@(#)	[MB] cr_hl.1	Version 1.2 du 15/04/06 - 
+.TH "HL" "1" "April 2015" "" "User Commands"
+.SH "NAME" 
+hl - Colorize strings matching regular expressions
+.SH "SYNOPSIS" 
+.PP 
+\fBhl\fP [\fBoptions\fP] 
+.SH "DESCRIPTION" 
+.PP 
+\fBhl\fP 
+Colorize strings from standard input with different colors,
+each color being associated with one regular expression.
+.SH "OPTIONS" 
+.IP "\fB-h\fP         " 10 
+display help message
+.IP "\fB-v\fP " 10
+display version information and exit
+.IP "\fB-u\fP " 10
+does not bufferize output on stdout
+.IP "\fB-e\fP " 10
+use extended regular expressions
+.IP "\fB-i\fP " 10
+ignore case
+.IP "\fB-E\fP " 10
+display on stderr every string matching the regular expression
+specified by the next command line color specifier
+.IP "\fB-r\fP " 10
+display strings matching the associated regular expression in red
+.IP "\fB-g\fP " 10
+display strings matching the associated regular expression in green
+.IP "\fB-y\fP " 10
+display strings matching the associated regular expression in yellow
+.IP "\fB-b\fP " 10
+display strings matching the associated regular expression in blue
+.IP "\fB-m\fP " 10
+display strings matching the associated regular expression in magenta
+.IP "\fB-c\fP " 10
+display strings matching the associated regular expression in cyan
+.IP "\fB-w\fP " 10
+display strings matching the associated regular expression in white
+.IP "\fB-R\fP " 10
+display strings matching the associated regular expression in red
+(reverse video)
+.IP "\fB-G\fP " 10
+display strings matching the associated regular expression in green
+(reverse video)
+.IP "\fB-Y\fP " 10
+display strings matching the associated regular expression in yellow
+(reverse video)
+.IP "\fB-B\fP " 10
+display strings matching the associated regular expression in blue
+(reverse video)
+.IP "\fB-M\fP " 10
+display strings matching the associated regular expression in magenta
+(reverse video)
+.IP "\fB-C\fP " 10
+display strings matching the associated regular expression in cyan
+(reverse video)
+.IP "\fB-W\fP " 10
+display strings matching the associated regular expression in white
+(reverse video)
+.IP "\fB-d\fP " 10
+activate debug
+.IP "\fB-D\fP " 10
+display specified regular expressions
+
+.SH "PRIORITIES"
+A color specifier always has a higher priority than the one that follows.
+As an example, the following command :
+
+.B	echo "abababab" | hl -r 'a' -g 'ab'
+
+will colorize each "a" in red and each "b" in green, while the following one :
+
+.B	echo "abababab" | hl -g 'ab' -r 'a'
+
+will colorize each letter in green.
+
+.SH "EXAMPLES"
+.TP
+Example 1 :
+.B	hl -ei -c '([0-9a-f]{2}:){5}[0-9a-f]{2}'
+
+This command colorizes a MAC address in cyan.
+
+.TP
+Example 2 :
+.B	hl -e -g '\<(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\>' -r '[0-9]'
+
+This command colorizes a valid IP address in green and an invalid IP address in red, so
+that the following command :
+
+.B	hl -e -g '\<(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\>' -r '[0-9]' <<-EOF
+.nf
+	192.168.266.1
+	192.168.26.1
+EOF
+.fi
+will display 192.168.266.1 in red and 192.168.26.1 in green.
+
+.TP
+Example 3 :
+.B	dpkg -l | hl -ei -Er '.*systemd\>.*' -Eg '.*(sysvinit|system-v-).*' > /dev/null
+
+On Debian, this command will list lines containing strings containing the word "systemd" in red,
+and lines containing "sysvinit" or "system-v-" in green, whatever the case.
+
+.SH "MAN PAGE VERSION"
+The version of this man page is 1.2.
+It is compatible with hl version 1.22.
+
+.SH "AUTHOR" 
+.PP 
+The original version of this manual page was written by Martial Bornet
+<mbornet (.) pro (at) wanadoo (.) fr> for the \fBGNU/Linux\fP  system.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU GPL.
