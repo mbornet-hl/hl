@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+#	Colorize the output of the df command
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_hl_df	Version 1.1 du 15/04/07 - 
+#
+
+#df -P | hl -e -r '\<(100|9[5-9])%' -y '\<(8[0-9]|9[0-4])%' -g '\<[0-9]+%' -b '^Filesystem.*'
+hl -e -r '\<(100|9[5-9])%' -y '\<(8[0-9]|9[0-4])%' -g '\<[0-9]+%' -b '^Filesystem.*'

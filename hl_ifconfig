@@ -3,7 +3,7 @@
 #    Colorize ifconfig output
 #    ~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#    %Z%  [%Y%] %M% Version %I% du %E% - %Q%
+#    @(#)  [MB] cr_hl_ifconfig Version 1.1 du 15/04/08 - 
 #
 
 hl -ei    -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'                             \

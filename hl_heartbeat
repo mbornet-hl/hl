@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+#    Colorize hearbeat logs
+#    ~~~~~~~~~~~~~~~~~~~~~~
+#
+#    @(#)  [MB] cr_hl_heartbeat Version 1.1 du 15/03/24 - 
+#
+
+hl -ei    -r'stop(|ped)|error|fail\>|failed|dead|disabled?|\<down|\<no\>'            \
+          -g 'success|running|start(ed|ing)?|OK|yes|shutdown complete'               \
+          -y 'warn'                                                                  \
+          -W 'eth[0-9](\.[0-9]+)?(:[0-9]+)'                                          \
+          -b 'info'
