@@ -1,9 +1,0 @@
-#!/bin/bash
-#
-#	Colorize iptables directives
-#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#
-#	@(#)	[MB] cr_hl_FW	Version 1.1 du 15/04/08 - 
-#
-
-hl -e -c INPUT -y 'FORWARD|POSTROUTING' -b '#.*' -W 'OUTPUT' -g '.*ACCEPT.*' -r '.*(DROP|REJECT).*' -m 'iptables.*-F.*' -w '^iptables .*'
