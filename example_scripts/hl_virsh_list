@@ -1,9 +1,12 @@
 #!/bin/bash
 #
-#	Coloration de la commande virsh list --all
-#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#    Colorization of the command "virsh list --all"
+#    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] cr_hl_virsh_list	Version 1.1 du 15/04/07 - 
+#    @(#)  [MB] cr_hl_virsh_list Version 1.2 du 15/04/09 - 
 #
 
-hl -e -c '^ *Id.*|^--*' -g '.*running*' -m '.*shut off' -y '.*paused'
+hl -e -c '^ *Id.*|^--*'  \
+      -g '.*running*'    \
+      -m '.*shut off'    \
+      -y '.*paused'
