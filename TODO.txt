@@ -1,0 +1,26 @@
+#
+#	@(#)	[MB] cr_TODO.txt	Version 1.1 du 15/04/11 - 
+#
+
+#	To do :
+#	~~~~~~~
+#
+#	- implement a configuration file (~/.hl.cfg)
+#	  in which names could define the options passed to hl,
+#	  => no need to write multiple scripts such as those in
+#	     example_scripts
+#
+#	  => write a parser in lex/yacc to parse the config file
+#
+#	- define the syntax for the selection of the configuration
+#	  to use with hl,
+#	  for example :
+#		hl -Kr ip -Kg mac -Kc iface
+#		(-K for Keyword ???)
+#		(-Kr => red, -Kg => green, -Kc => cyan)
+#	  or :
+#		hl -S ifconfig
+#		hl -S diff
+#		hl -S ethtool
+#		(-S for Standard configuration ???)
+#
