@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#	Colorize Samba configuration file smb.conf
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_hl_samba	Version 1.1 du 15/04/13 - 
+#
+
+hl -e -b '=|^[ 	]*[;#].*' -g '.*=' -y '=.*' -m '[][]' -c '\[.*\]'
