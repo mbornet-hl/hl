@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_cpri.h
  *
- *   @(#)  cr_cpri.h  1.10  15/03/24  MB  
+ *   @(#)  cr_cpri.h  1.11  15/04/07  MB  
  *
  * ============================================================================
  */
@@ -127,6 +127,7 @@ struct cr_global {
      bool                                debug;
      bool                                disp_regex;
      FILE                               *out;
+	bool							 newline;
 };
 
 #endif    /* CR_CPRI_H */

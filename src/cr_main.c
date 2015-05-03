@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  cr_main.c  1.22  15/03/24  MB  
+ *   @(#)  cr_main.c  1.24  15/05/03  MB  
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'v':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.22");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.24");
                exit(1);
                break;
 
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.22");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.24");
      fprintf(stderr, "Usage: %s [-h|-eidD][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
      fprintf(stderr, "  -h : help\n");
      fprintf(stderr, "  -v : version\n");
@@ -318,7 +318,7 @@ void cr_free_RE(void)
 ******************************************************************************/
 void cr_read_input(void)
 {
-     int                       _i, _j, _n, _s = 0, _e = 0, _off;
+     int                       _i, _j, _n, _s = 0, _e = 0, _off, _idx_last;
      struct cr_color          *_col;
      size_t                    _nmatch;
      regmatch_t                _pmatch[CR_SIZE + 1];
@@ -333,13 +333,31 @@ void cr_read_input(void)
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
           cr_init_desc();
 
-          G.length       = strlen(G.line);
+          G.length	    	= strlen(G.line);
+		_idx_last		= G.length - 1;
+		if (G.line[_idx_last] == '\n') {
+			G.line[_idx_last]	= 0;
+			G.newline			= TRUE;
+		}
+		else {
+			G.newline			= FALSE;
+		}
+
+		if (G.debug) {
+			fprintf(stderr, "LENGTH : %4d\n", G.length);
+			fprintf(stderr, "LINE   : [%s] :\n", G.line);
+		}
 
           for (_i = 0; _i < G.idx_list; _i++) {
                _col           = &G.color_RE[G.list[_i]];
 
-               for (_off = 0;  regexec(&_col->RE.reg, G.line + _off, _nmatch, _pmatch, _eflags) == 0; _off += _e + 1) {
+               for (_off = 0, _eflags = 0;
+			     regexec(&_col->RE.reg, G.line + _off, _nmatch, _pmatch,
+			     _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+
                     if (G.debug) {
+					fprintf(stderr, "Match for [%s] // [%s]\n",
+					        G.line + _off, _col->RE.regex);
                          fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
                     }
 
@@ -350,7 +368,8 @@ void cr_read_input(void)
                          if (G.debug) {
                               strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
                               _debug_str[_e -_s + 1]   = 0;
-                              fprintf(stderr, "OFFSET = %3d : %3d => %3d [%s] [%s]\n", _off, _s, _e, _col->RE.regex, _debug_str);
+                              fprintf(stderr, "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
+						        _off, _s, _e, _col->RE.regex, _debug_str);
                          }
 
                          cr_set_desc(_col, _off, _s, _e);
@@ -364,6 +383,10 @@ void cr_read_input(void)
 //                       break;
                     }
                }
+			if (G.debug) {
+				fprintf(stderr, "NO MATCH for [%s] // [%s]\n", G.line + _off,
+				        _col->RE.regex);
+			}
           }
 
           cr_disp_line();
@@ -422,7 +445,8 @@ void cr_init_desc(void)
 
      G.length       = 0;
 
-     for (_desc = G.desc; _desc < (&G.desc[sizeof(G.desc) / sizeof(G.desc[0])]);  _desc++) {
+     for (_desc = G.desc; _desc < (&G.desc[sizeof(G.desc) / sizeof(G.desc[0])]);
+	     _desc++) {
           _desc->col          = NULL;
           _desc->used         = FALSE;
      }
@@ -453,17 +477,18 @@ void cr_set_desc(struct cr_color *col, int offset, int s, int e)
 ******************************************************************************/
 void cr_disp_line(void)
 {
-     int                  _i;
+     int                  _i, _c;
      struct cr_col_desc  *_desc;
 
      for (_i = 0, _desc = G.desc; _i < G.length; _i++, _desc++) {
-          if (G.line[_i] == '\n') {
+		_c		= G.line[_i];
+          if (_c == '\n' || (_c == 0 && G.newline)) {
                if (G.curr_col) {
                     cr_end_color(G.curr_col);
-                    putc(G.line[_i], G.curr_col->out);
+                    if (_c) putc(_c, G.curr_col->out);
                }
                else {
-                    putc(G.line[_i], stdout);
+                    if (_c) putc(_c, stdout);
                }
           }
           else if (_desc->used) {
@@ -473,7 +498,7 @@ void cr_disp_line(void)
                     /* Le caractere precedent n'etait pas en couleur
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_start_color(_desc->col, _desc->col->col_num);
-                    putc(G.line[_i], _desc->col->out);
+                    if (_c) putc(_c, _desc->col->out);
                }
                else {
                     /* Le caractere precedent etait en couleur
@@ -481,14 +506,14 @@ void cr_disp_line(void)
                     if (_desc-> col == G.curr_col) {
                          /* Pas de changement de couleur
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                         putc(G.line[_i], G.curr_col->out);
+                         if (_c) putc(_c, G.curr_col->out);
                     }
                     else {
                          /* Changement de couleur
                             ~~~~~~~~~~~~~~~~~~~~~ */
                          cr_end_color(G.curr_col);
                          cr_start_color(_desc->col, _desc->col->col_num);
-                         putc(G.line[_i], _desc->col->out);
+                         if (_c) putc(_c, _desc->col->out);
                     }
                }
           }
@@ -498,20 +523,34 @@ void cr_disp_line(void)
                if (G.curr_col == NULL) {
                     /* Le caractere precedent n'etait pas en couleur
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                    putc(G.line[_i], stdout);
+                    if (_c) putc(_c, stdout);
                }
                else {
                     /* Le caractere precedent etait en couleur
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_end_color(G.curr_col);
-                    putc(G.line[_i], G.curr_col->out);
+                    if (_c) putc(_c, G.curr_col->out);
                }
           }
           G.curr_col     = _desc->col;
-          if (G.line[_i] == '\n') {
+          if (_c == '\n') {
+//X
                G.curr_col     = NULL;
           }
      }
+
+	if (G.newline) {
+		if (G.curr_col) {
+			cr_end_color(G.curr_col);
+//X
+			putc('\n', G.curr_col->out);
+		}
+		else {
+//X
+			putc('\n', stdout);
+		}
+	}
+
      _desc--;
      if (_desc->used) {
           cr_end_color(G.curr_col);
