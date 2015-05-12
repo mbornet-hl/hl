@@ -7,7 +7,7 @@
 #
 # Usage :
 #
-#  hl: version 1.22
+#  hl: version 1.24
 #  Usage: hl [-h|-eidD][-E][-rgybmcwRGYBMCW] regexp ...
 #    -h : help
 #    -v : version
