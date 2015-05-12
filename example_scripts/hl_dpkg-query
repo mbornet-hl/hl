@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+#	@(#)	[MB] cr_hl_dpkg-query	Version 1.1 du 15/05/11 - 
+#
+
+hl -e -b '^(Package|Essential|Priority|Section|Installed-Size|Maintainer|Architecture|Version|Depends|Pre-Depends|Filename|Size|MD5sum|Description|Homepage|Description-md5|Tag|SHA1|SHA256):' -g '^Package:.*' -c '^(Version|Size):.*' -y '^Section:.*'
+

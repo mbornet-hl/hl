@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+#	@(#)	[MB] cr_aptc-get	Version 1.1 du 15/05/12 - 
+#
+
+apt-get "$@" 2>&1 | hl_apt -u

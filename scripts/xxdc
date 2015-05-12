@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#	Colorized xxd command
+#	~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_xxdc	Version 1.1 du 15/05/12 - 
+#
+
+xxd "$@" | hl_xxd

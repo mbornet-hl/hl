@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#	Colorized df command
+#	~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_dfc	Version 1.1 du 15/05/12 - 
+#
+
+df "$@" | hl_df

@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+#	@(#)	[MB] cr_hl_apt	Version 1.1 du 15/05/12 - 
+#
+
+hl -ei -r 'systemd|breaks?|.*\<unmet\>.*|.*\<unable\>.*' -y '.*is not going.*' -c '.*is to be .*' -g '.*is already the newest.*'
