@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  cr_main.c  1.27  15/05/24  MB  
+ *   @(#)  cr_main.c  1.28  15/05/30  MB  
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'v':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.27");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.28");
                exit(1);
                break;
 
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.27");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.28");
      fprintf(stderr, "Usage: %s [-h|-eidD][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
      fprintf(stderr, "  -h : help\n");
      fprintf(stderr, "  -v : version\n");
@@ -413,7 +413,10 @@ void cr_start_color(struct cr_color *col, int color)
      else {
           /* Normal video
              ~~~~~~~~~~~~ */
-          fprintf(_out, "\033[01;%dm", 30 + color);
+//          fprintf(_out, "\033[02;%dm", 30 + color);	// Half-bright
+          fprintf(_out, "\033[%dm", 30 + color);
+//          fprintf(_out, "\033[01;%dm", 30 + color);
+//          fprintf(_out, "\033[04;%dm", 30 + color);	// Underscore
      }
 }
 
