@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_cpri.h
  *
- *   @(#)  cr_cpri.h  1.11  15/04/07  MB  
+ *   @(#)  cr_cpri.h  1.12  15/05/31  MB  
  *
  * ============================================================================
  */
@@ -39,6 +39,8 @@
 #define   TRUE                          (1)
 
 #define   CR_NB_COLORS                  (16)
+
+#define	CR_DEFLT_INTENSITY			(2)
 
 /* Numeros des couleurs
  * ~~~~~~~~~~~~~~~~~~~~ */
@@ -128,6 +130,7 @@ struct cr_global {
      bool                                disp_regex;
      FILE                               *out;
 	bool							 newline;
+	int							 intensity;
 };
 
 #endif    /* CR_CPRI_H */

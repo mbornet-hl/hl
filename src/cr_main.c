@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  cr_main.c  1.28  15/05/30  MB  
+ *   @(#)  cr_main.c  1.29  15/05/31  MB  
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -67,10 +67,11 @@ int main(int argc, char *argv[])
 
      cr_init_list();
      cr_init_col_names();
+     G.intensity    = CR_DEFLT_INTENSITY;
 
      /* Analyse des arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
-     while ((_opt = getopt(argc, argv, "huvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:Ddei")) != -1) {
+     while ((_opt = getopt(argc, argv, "huvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:Ddei1234")) != -1) {
           switch (_opt) {
           case 'h':
                cr_usage();
@@ -157,8 +158,15 @@ int main(int argc, char *argv[])
                break;
 
           case 'v':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.28");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.29");
                exit(1);
+               break;
+
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+               G.intensity    = _opt - '0';
                break;
 
           default:
@@ -191,8 +199,8 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.28");
-     fprintf(stderr, "Usage: %s [-h|-eidD][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.29");
+     fprintf(stderr, "Usage: %s [-h|-eidD1234][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
      fprintf(stderr, "  -h : help\n");
      fprintf(stderr, "  -v : version\n");
      fprintf(stderr, "  -u : do not bufferize output on stdout\n");
@@ -215,6 +223,10 @@ void cr_usage(void)
      fprintf(stderr, "  -W : white   (reverse video)\n");
      fprintf(stderr, "  -d : debug\n");
      fprintf(stderr, "  -D : display regular expressions\n");
+     fprintf(stderr, "  -1 : color brightness (half-bright)\n");
+     fprintf(stderr, "  -2 : color brightness (normal : default)\n");
+     fprintf(stderr, "  -3 : color brightness (bright)\n");
+     fprintf(stderr, "  -4 : color brightness (underscore)\n");
      exit(1);
 }
 
@@ -332,31 +344,31 @@ void cr_read_input(void)
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
           cr_init_desc();
 
-          G.length	    	= strlen(G.line);
-		_idx_last		= G.length - 1;
-		if (G.line[_idx_last] == '\n') {
-			G.line[_idx_last]	= 0;
-			G.newline			= TRUE;
-		}
-		else {
-			G.newline			= FALSE;
-		}
+          G.length       = strlen(G.line);
+          _idx_last      = G.length - 1;
+          if (G.line[_idx_last] == '\n') {
+               G.line[_idx_last]   = 0;
+               G.newline           = TRUE;
+          }
+          else {
+               G.newline           = FALSE;
+          }
 
-		if (G.debug) {
-			fprintf(stderr, "LENGTH : %4d\n", G.length);
-			fprintf(stderr, "LINE   : [%s] :\n", G.line);
-		}
+          if (G.debug) {
+               fprintf(stderr, "LENGTH : %4d\n", G.length);
+               fprintf(stderr, "LINE   : [%s] :\n", G.line);
+          }
 
           for (_i = 0; _i < G.idx_list; _i++) {
                _col           = &G.color_RE[G.list[_i]];
 
                for (_off = 0, _eflags = 0;
-			     regexec(&_col->RE.reg, G.line + _off, _nmatch, _pmatch,
-			     _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+                    regexec(&_col->RE.reg, G.line + _off, _nmatch, _pmatch,
+                    _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
 
                     if (G.debug) {
-					fprintf(stderr, "Match for [%s] // [%s]\n",
-					        G.line + _off, _col->RE.regex);
+                         fprintf(stderr, "Match for [%s] // [%s]\n",
+                                 G.line + _off, _col->RE.regex);
                          fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
                     }
 
@@ -368,7 +380,7 @@ void cr_read_input(void)
                               strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
                               _debug_str[_e -_s + 1]   = 0;
                               fprintf(stderr, "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-						        _off, _s, _e, _col->RE.regex, _debug_str);
+                                      _off, _s, _e, _col->RE.regex, _debug_str);
                          }
 
                          cr_set_desc(_col, _off, _s, _e);
@@ -381,10 +393,10 @@ void cr_read_input(void)
                          exit(1);
                     }
                }
-			if (G.debug) {
-				fprintf(stderr, "NO MATCH for [%s] // [%s]\n", G.line + _off,
-				        _col->RE.regex);
-			}
+               if (G.debug) {
+                    fprintf(stderr, "NO MATCH for [%s] // [%s]\n", G.line + _off,
+                            _col->RE.regex);
+               }
           }
 
           cr_disp_line();
@@ -408,15 +420,54 @@ void cr_start_color(struct cr_color *col, int color)
      if (color > CR_WHITE) {
           /* Reverse video
              ~~~~~~~~~~~~~ */
-          fprintf(_out, "\033[01;30m\033[01;%dm", 40 + (color - 8));
+          switch (G.intensity) {
+
+          case 1:
+               fprintf(_out, "\033[30m\033[02;%dm", 40 + (color - 8));
+               break;
+
+          case 2:
+               fprintf(_out, "\033[30m\033[%dm", 40 + (color - 8));
+               break;
+
+          case 3:
+               fprintf(_out, "\033[01;30m\033[01;%dm", 40 + (color - 8));
+               break;
+
+          case 4:
+               fprintf(_out, "\033[30m\033[04;%dm", 40 + (color - 8));
+               break;
+
+          default:
+               fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
+               exit(1);
+          }
      }
      else {
           /* Normal video
              ~~~~~~~~~~~~ */
-//          fprintf(_out, "\033[02;%dm", 30 + color);	// Half-bright
-          fprintf(_out, "\033[%dm", 30 + color);
-//          fprintf(_out, "\033[01;%dm", 30 + color);
-//          fprintf(_out, "\033[04;%dm", 30 + color);	// Underscore
+          switch (G.intensity) {
+
+          case 1:
+               fprintf(_out, "\033[02;%dm", 30 + color);    // Half-bright
+               break;
+
+          case 2:
+               fprintf(_out, "\033[%dm", 30 + color);       // Normal
+               break;
+
+          case 3:
+               fprintf(_out, "\033[01;%dm", 30 + color);    // Bold
+               break;
+
+          case 4:
+               fprintf(_out, "\033[04;%dm", 30 + color);    // Underscore
+               break;
+
+          default:
+               fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
+               exit(1);
+          }
      }
 }
 
@@ -447,7 +498,7 @@ void cr_init_desc(void)
      G.length       = 0;
 
      for (_desc = G.desc; _desc < (&G.desc[sizeof(G.desc) / sizeof(G.desc[0])]);
-	     _desc++) {
+          _desc++) {
           _desc->col          = NULL;
           _desc->used         = FALSE;
      }
@@ -482,7 +533,7 @@ void cr_disp_line(void)
      struct cr_col_desc  *_desc;
 
      for (_i = 0, _desc = G.desc; _i < G.length; _i++, _desc++) {
-		_c		= G.line[_i];
+          _c        = G.line[_i];
           if (_c == '\n' || (_c == 0 && G.newline)) {
                if (G.curr_col) {
                     putc('\n', G.curr_col->out);
@@ -539,11 +590,11 @@ void cr_disp_line(void)
           }
      }
 
-	if (G.newline) {
-		if (G.curr_col) {
-			cr_end_color(G.curr_col);
-		}
-	}
+     if (G.newline) {
+          if (G.curr_col) {
+               cr_end_color(G.curr_col);
+          }
+     }
 
      _desc--;
      if (_desc->used) {
