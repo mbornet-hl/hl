@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  cr_main.c  1.29  15/05/31  MB  
+ *   @(#)  cr_main.c  1.30  15/06/07  MB  
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'v':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.29");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.30");
                exit(1);
                break;
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(void)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.29");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.30");
      fprintf(stderr, "Usage: %s [-h|-eidD1234][-E][-rgybmcwRGYBMCW] regexp ...\n", G.prgname);
      fprintf(stderr, "  -h : help\n");
      fprintf(stderr, "  -v : version\n");
@@ -423,19 +423,19 @@ void cr_start_color(struct cr_color *col, int color)
           switch (G.intensity) {
 
           case 1:
-               fprintf(_out, "\033[30m\033[02;%dm", 40 + (color - 8));
+               fprintf(_out, "\033[07;02;%dm", 30 + color - 8);
                break;
 
           case 2:
-               fprintf(_out, "\033[30m\033[%dm", 40 + (color - 8));
+               fprintf(_out, "\033[07;%dm", 30 + color - 8);
                break;
 
           case 3:
-               fprintf(_out, "\033[01;30m\033[01;%dm", 40 + (color - 8));
+               fprintf(_out, "\033[07;01;%dm", 30 + color - 8);
                break;
 
           case 4:
-               fprintf(_out, "\033[30m\033[04;%dm", 40 + (color - 8));
+               fprintf(_out, "\033[07;04;%dm", 30 + color - 8);
                break;
 
           default:
