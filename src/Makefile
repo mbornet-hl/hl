@@ -2,7 +2,7 @@
 #	Makefile
 #
 
-hl	: cr_main.o cr_gpri.o
-	@ $(CC) -o hl cr_main.o cr_gpri.o
+hl	: cr_main.o cr_gpri.o cr_lex.o
+	@ $(CC) -o hl cr_main.o cr_gpri.o cr_lex.o
 	@ strip hl
-	-@ ./hl -v || :
+	-@ ./hl -V || :

@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_cpri.h
  *
- *   @(#)  cr_cpri.h  1.12  15/05/31  MB  
+ *   @(#)  cr_cpri.h  1.15  15/07/08  MB  
  *
  * ============================================================================
  */
@@ -34,13 +34,15 @@
 #include <sys/types.h>
 #include <regex.h>
 
+#define   CR_CONFIG_FILENAME            ".hl.cfg"
+
 #define   bool                          int
 #define   FALSE                         (0)
 #define   TRUE                          (1)
 
 #define   CR_NB_COLORS                  (16)
 
-#define	CR_DEFLT_INTENSITY			(2)
+#define   CR_DEFLT_INTENSITY            (2)
 
 /* Numeros des couleurs
  * ~~~~~~~~~~~~~~~~~~~~ */
@@ -85,16 +87,37 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_COLOR_IDX(color)           ((color))
 
-#if 0
-/* Code des couleurs pour Linux ANSI
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_CODE_LINUX(color)          ((color) % 8) + 30)
-#endif
-
 /* Taille d'une ligne, nombre d'intervalles differents
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SIZE                       (1024)
 
+//#define   CR_DISP_LEX(...)			fprintf(stderr, __VA_ARGS__)
+#define   CR_DISP_LEX(...)			
+
+#define   CR_NEW(name)                                                     \
+struct cr_##name *cr_new_##name(void)                                      \
+{                                                                          \
+     struct cr_##name              *_##name;                               \
+                                                                           \
+     if ((_##name = (struct cr_##name *) malloc(sizeof(*_##name))) == 0) { \
+          fprintf(stderr, cr_err_malloc, G.prgname);                       \
+          exit(1);                                                         \
+     }                                                                     \
+     bzero(_##name, sizeof(*_##name));                                     \
+                                                                           \
+     return _##name;                                                       \
+}
+#define   CR_DECL_NEW(name)             struct cr_##name *cr_new_##name(void)
+
+#if ! defined(yyin)
+//#define   yyin                          CR_in
+#endif
+#if ! defined(yylex)
+#define   yylex                         CR_lex
+#endif
+
+/* Structures
+   ~~~~~~~~~~ */
 struct cr_RE {
      regex_t                             reg;
      char                               *regex;
@@ -115,6 +138,44 @@ struct cr_col_desc {
      struct cr_color                    *col;
 };
 
+struct cr_arg {
+     char                               *value;
+     struct cr_arg                      *next;
+};
+
+struct cr_config {
+     char                               *name;
+     bool                                visited;
+     struct cr_config                   *next;
+     struct cr_arg                      *extract,
+                                        *insert;
+     int                                 argc;
+     char                              **argv;
+};
+
+struct cr_configs {
+     struct cr_config                   *extract,
+                                        *insert;
+};
+
+struct cr_ptrs {
+     int                                 argc;
+     char                              **argv;
+     char                              **curr_argv;
+     char                               *curr_arg;
+     int                                 curr_idx;
+     char                               *next_arg;
+     struct cr_ptrs                     *prev;
+     struct cr_config                   *config;
+};
+
+struct cr_args {
+     char                               *opts;
+     char                               *optarg;
+     struct cr_ptrs                     *curr_ptrs;
+     struct cr_configs                  *configs;
+};
+
 struct cr_global {
      char                               *prgname;
 
@@ -126,11 +187,14 @@ struct cr_global {
      char                                line[CR_SIZE + 1];
      struct cr_col_desc                  desc[CR_SIZE + 1];
      int                                 length;
-     bool                                debug;
-     bool                                disp_regex;
+     bool                                debug,
+                                         verbose,
+                                         disp_regex,
+								 config_file_read;
      FILE                               *out;
-	bool							 newline;
-	int							 intensity;
+     bool                                newline;
+     int                                 intensity;
+     struct cr_configs                   configs;
 };
 
 #endif    /* CR_CPRI_H */

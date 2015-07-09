@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_gpri.c
  *
- *   @(#)  cr_gpri.c  1.4  15/03/24  MB  
+ *   @(#)  cr_gpri.c  1.5  15/07/01  MB  
  *
  * ============================================================================
  */
@@ -31,3 +31,6 @@
 
 struct cr_global                                  G         = { 0 };
 
+/* Error messages
+   ~~~~~~~~~~~~~~ */
+char				*cr_err_malloc		= "%s: cannot allocate memory !\n";
