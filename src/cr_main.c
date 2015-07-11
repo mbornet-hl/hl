@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  cr_main.c  1.35  15/07/09  MB  
+ *   @(#)  cr_main.c  1.36  15/07/11  MB  
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -102,11 +102,11 @@ void cr_lists2argv(struct cr_configs *configs)
                               CR_READ_CONFIG_FILE
 
 ******************************************************************************/
-void cr_read_config_file(bool *already_done)
+void cr_read_config_file()
 {
      char                     *_home, _cfg_file[1024];
 
-     if (*already_done == TRUE) {
+     if (G.config_file_read) {
           return;
      }
 
@@ -133,7 +133,7 @@ void cr_read_config_file(bool *already_done)
 
      cr_lists2argv(&G.configs);
 
-     *already_done  = TRUE;
+     G.config_file_read  = TRUE;
 }
 
 /******************************************************************************
@@ -198,6 +198,10 @@ struct cr_config *cr_get_config(char *config_name, struct cr_args *args)
 {
      struct cr_config         *_config;
 
+	if (!G.config_file_read) {
+		cr_read_config_file();
+	}
+
      for (_config = args->configs->extract; _config != 0;
           _config = _config->next) {
           if (!strcmp(config_name, _config->name)) {
@@ -257,24 +261,23 @@ int cr_getopt(struct cr_args *args)
           if (!(_ptrs = args->curr_ptrs)) {
                /* Plus d'arguments a traiter
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//fprintf(stderr, "NO MORE ARGS.\n");
+			CR_DEBUG("NO MORE ARGS.\n");
                return -1;
           }
-//X
+
           if (*(_ptrs->curr_argv) == 0) {
                /* Plus d'argument pour ce niveau
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//fprintf(stderr, "No more args for this level\n");
+			CR_DEBUG("No more args for this level\n");
                args->curr_ptrs     = _ptrs->prev;
                free(_ptrs);
 			continue;
           }
 
-//fprintf(stderr, "Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+		CR_DEBUG("Current arg = %p \"%s\" idx = %d\n",
+		         _ptrs->curr_arg, _ptrs->curr_arg, _ptrs->curr_idx);
 
-//fprintf(stderr, "curr_idx = %d\n", _ptrs->curr_idx);
           if (_ptrs->curr_idx == 0) {
-//X
                /* Traitement d'un nouvel argument
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                if (_ptrs->curr_arg[0] != '-') {
@@ -295,24 +298,21 @@ int cr_getopt(struct cr_args *args)
                     else {
                          /* Nom de configuration
                             ~~~~~~~~~~~~~~~~~~~~ */
-//X
                          _config_name        = _ptrs->curr_arg + 2;
-//fprintf(stderr, "CONFIG : \"%s\"\n", _config_name);
+					CR_DEBUG("==> CONFIG : \"%s\"\n", _config_name);
 					_ptrs->curr_argv++;
-//X
+					_ptrs->curr_idx	= 0;
 					_ptrs->curr_arg	= *_ptrs->curr_argv;
-//X
-//fprintf(stderr, "Apres incrementation pointeur CONFIG :\n");
-//fprintf(stderr, "Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+					CR_DEBUG("Apres incrementation pointeur CONFIG :\n");
+					CR_DEBUG("Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
 
                          _config             = cr_get_config(_config_name, args);
                          if (_config == 0) {
-                              fprintf(stderr, "%s: undefined configuration (%s) !\n",
+                                  fprintf(stderr, "%s: undefined configuration (%s) !\n",
                                       G.prgname, _config_name);
                               exit(1);
                          }
 
-//X
                          /* Recherche de boucle recursive
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                          if (_config->visited) {
@@ -331,28 +331,23 @@ int cr_getopt(struct cr_args *args)
                          _new_ptrs->config        = _config;          // Utilite ???
                          args->curr_ptrs          = _new_ptrs;
 
-//X
                          continue;
                     }
                }
           }
           else {
-//X
                break;
           }
      }
-//X
 
      /* Options
         ~~~~~~~ */
-//X
      _c        = _ptrs->curr_arg[_ptrs->curr_idx];
-//X
-//fprintf(stderr, "OPTION : %c\n", _c);
+	CR_DEBUG("==> OPTION : '%c'\n", _c);
      _ptrs->curr_idx++;
      _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
      if (cr_needs_arg(_c, args)) {
-//fprintf(stderr, "  argument needed.\n");
+		CR_DEBUG("    (argument needed)\n");
           _arg      = *(_ptrs->curr_argv + 1);
           if (_arg[0] == '-' || _next_char != 0) {
                fprintf(stderr, "%s: missing argument for \"-%c\" !\n",
@@ -360,27 +355,24 @@ int cr_getopt(struct cr_args *args)
                cr_dump_args(args);
                exit(1);
           }
-//X
 
           args->optarg      = _arg;
-//fprintf(stderr, "  OPTARG = \"%s\"\n", args->optarg);
+		CR_DEBUG("    OPTARG = \"%s\"\n", args->optarg);
           _ptrs->curr_argv++;
           _ptrs->curr_arg     = *_ptrs->curr_argv;
      }
      else {
-//fprintf(stderr, "  no argument needed.\n");
+		CR_DEBUG("    no argument needed.\n");
           args->optarg      = 0;
      }
 
-//X
      if (_next_char == 0) {
-//fprintf(stderr, "  no more 1 letter option\n");
-//X
-//fprintf(stderr, "Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+		CR_DEBUG("    No more 1 letter option\n");
+		CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
           if (*(_ptrs->curr_argv + 1) == 0) {
                /* Plus d'argument pour ce niveau
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//fprintf(stderr, "No more args for this level\n");
+			CR_DEBUG("No more args for this level\n");
                args->curr_ptrs     = _ptrs->prev;
                free(_ptrs);
           }
@@ -388,10 +380,10 @@ int cr_getopt(struct cr_args *args)
                _ptrs->curr_argv++;
                _ptrs->curr_arg     = *_ptrs->curr_argv;
                _ptrs->curr_idx     = 0;
-//fprintf(stderr, "  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+			CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
           }
      }
-//X
+
      return _c;
 }
 
@@ -448,19 +440,10 @@ int main(int argc, char *argv[])
      cr_init_col_names();
      G.intensity    = CR_DEFLT_INTENSITY;
 
-     /* Scan des arguments a la recherche d'une configuration (--...)
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-     for (_i = 1; _i < argc; _i++) {
-          if (argv[_i][0] == '-' &&  argv[_i][1] == '-' &&  argv[_i][2] != 0) {
-               cr_read_config_file(&G.config_file_read);
-               break;
-          }
-     }
-
      /* Analyse des arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(argc, argv,
-                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:Ddei1234",
+                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:DLdei1234",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -469,7 +452,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'H':
-               cr_read_config_file(&G.config_file_read);
+               cr_read_config_file();
                cr_usage(TRUE);
                break;
 
@@ -484,6 +467,11 @@ int main(int argc, char *argv[])
           case 'D' :
                G.disp_regex   = TRUE;
                break;
+
+		case	'L' :
+			G.disp_lex	= TRUE;
+fprintf(stderr, "DISP_LEX = TRUE\n");
+			break;
 
           case 'r':
                cr_set_color(CR_RED, _args->optarg);
@@ -558,7 +546,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.35");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.36");
                exit(1);
                break;
 
@@ -599,8 +587,8 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.35");
-     fprintf(stderr, "Usage: %s [-h|-H|-eidD1234][-E][-rgybmcwRGYBMCW|--config_name] regexp ...\n",
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.36");
+     fprintf(stderr, "Usage: %s [-h|-H|-eidDL1234][-E][-rgybmcwRGYBMCW|--config_name] regexp ...\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
      fprintf(stderr, "  -H : help + configuration names\n");
@@ -626,6 +614,7 @@ void cr_usage(bool disp_config)
      fprintf(stderr, "  -W : white   (reverse video)\n");
      fprintf(stderr, "  -d : debug\n");
      fprintf(stderr, "  -D : display regular expressions\n");
+     fprintf(stderr, "  -L : lex debug\n");
      fprintf(stderr, "  -1 : color brightness (half-bright)\n");
      fprintf(stderr, "  -2 : color brightness (normal : default)\n");
      fprintf(stderr, "  -3 : color brightness (bright)\n");

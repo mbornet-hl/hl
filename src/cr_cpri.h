@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_cpri.h
  *
- *   @(#)  cr_cpri.h  1.15  15/07/08  MB  
+ *   @(#)  cr_cpri.h  1.16  15/07/11  MB  - MODIFIE
  *
  * ============================================================================
  */
@@ -91,8 +91,11 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SIZE                       (1024)
 
-//#define   CR_DISP_LEX(...)			fprintf(stderr, __VA_ARGS__)
-#define   CR_DISP_LEX(...)			
+#define   CR_DISP_LEX(...)			if (G.disp_lex) fprintf(stderr, __VA_ARGS__)
+#define	CR_DEBUG(...)				if (G.debug) {										\
+									fprintf(stderr, "%-15s (%4d) ", __func__, __LINE__);	\
+									fprintf(stderr, __VA_ARGS__);						\
+								}
 
 #define   CR_NEW(name)                                                     \
 struct cr_##name *cr_new_##name(void)                                      \
@@ -109,9 +112,6 @@ struct cr_##name *cr_new_##name(void)                                      \
 }
 #define   CR_DECL_NEW(name)             struct cr_##name *cr_new_##name(void)
 
-#if ! defined(yyin)
-//#define   yyin                          CR_in
-#endif
 #if ! defined(yylex)
 #define   yylex                         CR_lex
 #endif
@@ -190,6 +190,7 @@ struct cr_global {
      bool                                debug,
                                          verbose,
                                          disp_regex,
+								 disp_lex,
 								 config_file_read;
      FILE                               *out;
      bool                                newline;
