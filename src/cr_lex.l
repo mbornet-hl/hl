@@ -8,7 +8,7 @@
  *
  *	Fichier      :     cr_lex.l
  *
- *	@(#)	cr_lex.l	1.2	15/07/08	MB	
+ *	@(#)	cr_lex.l	1.3	15/07/27	MB	
  *
  * ============================================================================
  */
@@ -18,11 +18,11 @@
 
 %}
 
-config				([a-zA-Z][-._a-zA-Z0-9]*)
+config				([a-zA-Z][-._a-zA-Z0-9_]*)
 options				(-[a-zA-Z0-9]+)
 args					('.*')
 space				([ \t]+)
-call_config			(--[a-zA-Z0-9]+)
+call_config			(--[a-zA-Z][-.a-zA-Z0-9_]*)
 sep					(:)
 
 %s					CONFIG ARGS
