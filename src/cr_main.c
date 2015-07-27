@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  cr_main.c  1.36  15/07/11  MB  
+ *   @(#)  [MB] cr_main.c Version 1.42 du 15/07/27 - 
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,7 +29,8 @@
  *   - cr_usage
  *   - cr_init_list
  *   - cr_init_col_names
- *   - cr_set_color
+ *   - cr_add_regexp
+ *   / cr_set_color
  *   - cr_read_input
  *   - cr_start_color
  *   - cr_end_color
@@ -166,6 +167,13 @@ CR_NEW(ptrs)
 
 /******************************************************************************
 
+                         CR_NEW_RE_DESC
+
+******************************************************************************/
+CR_NEW(re_desc)
+
+/******************************************************************************
+
                          CR_NEEDS_ARG
 
 ******************************************************************************/
@@ -198,9 +206,9 @@ struct cr_config *cr_get_config(char *config_name, struct cr_args *args)
 {
      struct cr_config         *_config;
 
-	if (!G.config_file_read) {
-		cr_read_config_file();
-	}
+     if (!G.config_file_read) {
+          cr_read_config_file();
+     }
 
      for (_config = args->configs->extract; _config != 0;
           _config = _config->next) {
@@ -261,21 +269,21 @@ int cr_getopt(struct cr_args *args)
           if (!(_ptrs = args->curr_ptrs)) {
                /* Plus d'arguments a traiter
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-			CR_DEBUG("NO MORE ARGS.\n");
+               CR_DEBUG("NO MORE ARGS.\n");
                return -1;
           }
 
           if (*(_ptrs->curr_argv) == 0) {
                /* Plus d'argument pour ce niveau
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-			CR_DEBUG("No more args for this level\n");
+               CR_DEBUG("No more args for this level\n");
                args->curr_ptrs     = _ptrs->prev;
                free(_ptrs);
-			continue;
+               continue;
           }
 
-		CR_DEBUG("Current arg = %p \"%s\" idx = %d\n",
-		         _ptrs->curr_arg, _ptrs->curr_arg, _ptrs->curr_idx);
+          CR_DEBUG("Current arg = %p \"%s\" idx = %d\n",
+                   _ptrs->curr_arg, _ptrs->curr_arg, _ptrs->curr_idx);
 
           if (_ptrs->curr_idx == 0) {
                /* Traitement d'un nouvel argument
@@ -299,12 +307,12 @@ int cr_getopt(struct cr_args *args)
                          /* Nom de configuration
                             ~~~~~~~~~~~~~~~~~~~~ */
                          _config_name        = _ptrs->curr_arg + 2;
-					CR_DEBUG("==> CONFIG : \"%s\"\n", _config_name);
-					_ptrs->curr_argv++;
-					_ptrs->curr_idx	= 0;
-					_ptrs->curr_arg	= *_ptrs->curr_argv;
-					CR_DEBUG("Apres incrementation pointeur CONFIG :\n");
-					CR_DEBUG("Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+                         CR_DEBUG("==> CONFIG : \"%s\"\n", _config_name);
+                         _ptrs->curr_argv++;
+                         _ptrs->curr_idx     = 0;
+                         _ptrs->curr_arg     = *_ptrs->curr_argv;
+                         CR_DEBUG("Apres incrementation pointeur CONFIG :\n");
+                         CR_DEBUG("Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
 
                          _config             = cr_get_config(_config_name, args);
                          if (_config == 0) {
@@ -343,11 +351,11 @@ int cr_getopt(struct cr_args *args)
      /* Options
         ~~~~~~~ */
      _c        = _ptrs->curr_arg[_ptrs->curr_idx];
-	CR_DEBUG("==> OPTION : '%c'\n", _c);
+     CR_DEBUG("==> OPTION : '%c'\n", _c);
      _ptrs->curr_idx++;
      _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
      if (cr_needs_arg(_c, args)) {
-		CR_DEBUG("    (argument needed)\n");
+          CR_DEBUG("    (argument needed)\n");
           _arg      = *(_ptrs->curr_argv + 1);
           if (_arg[0] == '-' || _next_char != 0) {
                fprintf(stderr, "%s: missing argument for \"-%c\" !\n",
@@ -357,22 +365,22 @@ int cr_getopt(struct cr_args *args)
           }
 
           args->optarg      = _arg;
-		CR_DEBUG("    OPTARG = \"%s\"\n", args->optarg);
+          CR_DEBUG("    OPTARG = \"%s\"\n", args->optarg);
           _ptrs->curr_argv++;
           _ptrs->curr_arg     = *_ptrs->curr_argv;
      }
      else {
-		CR_DEBUG("    no argument needed.\n");
+          CR_DEBUG("    no argument needed.\n");
           args->optarg      = 0;
      }
 
      if (_next_char == 0) {
-		CR_DEBUG("    No more 1 letter option\n");
-		CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+          CR_DEBUG("    No more 1 letter option\n");
+          CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
           if (*(_ptrs->curr_argv + 1) == 0) {
                /* Plus d'argument pour ce niveau
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-			CR_DEBUG("No more args for this level\n");
+               CR_DEBUG("No more args for this level\n");
                args->curr_ptrs     = _ptrs->prev;
                free(_ptrs);
           }
@@ -380,7 +388,7 @@ int cr_getopt(struct cr_args *args)
                _ptrs->curr_argv++;
                _ptrs->curr_arg     = *_ptrs->curr_argv;
                _ptrs->curr_idx     = 0;
-			CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+               CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
           }
      }
 
@@ -420,14 +428,57 @@ struct cr_args *cr_set_args(int argc, char **argv, char *opts,
 
 /******************************************************************************
 
+                         CR_ADD_TO_LIST
+
+******************************************************************************/
+void cr_add_to_list(struct cr_re_desc *re)
+{
+     if (G.extract_RE == 0) {
+          G.extract_RE   =
+          G.insert_RE    = re;
+     }
+     else {
+          G.insert_RE->next   = re;
+          G.insert_RE         = re;
+     }
+}
+
+/******************************************************************************
+
+                         CR_ADD_REGEXP
+
+******************************************************************************/
+void cr_add_regexp(int color, char *regexp)
+{
+     struct cr_re_desc        *_re;
+
+     _re            = cr_new_re_desc();
+
+     _re->regex               = regexp;
+     _re->cflags              = G.cflags;
+     _re->col.col_num         = color;
+     _re->col.intensity       = G.intensity;
+     _re->col.out             = G.out;
+     G.out                    = stdout;
+
+     if (regcomp(&_re->reg, regexp, _re->cflags) != 0) {
+          fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
+          exit(1);
+     }
+
+     cr_add_to_list(_re);
+}
+
+/******************************************************************************
+
                               MAIN
 
 ******************************************************************************/
 int main(int argc, char *argv[])
 {
      int                       _opt, _i;
-     struct cr_color          *_col;
      struct cr_args           *_args;
+     struct cr_re_desc        *_re;
 
      G.prgname      = argv[0];
      G.out          = stdout;
@@ -437,7 +488,7 @@ int main(int argc, char *argv[])
      }
 
      cr_init_list();
-     cr_init_col_names();
+//     cr_init_col_names();
      G.intensity    = CR_DEFLT_INTENSITY;
 
      /* Analyse des arguments
@@ -468,65 +519,64 @@ int main(int argc, char *argv[])
                G.disp_regex   = TRUE;
                break;
 
-		case	'L' :
-			G.disp_lex	= TRUE;
-fprintf(stderr, "DISP_LEX = TRUE\n");
-			break;
+          case 'L' :
+               G.disp_lex     = TRUE;
+               break;
 
           case 'r':
-               cr_set_color(CR_RED, _args->optarg);
+               cr_add_regexp(CR_RED, _args->optarg);
                break;
 
           case 'g':
-               cr_set_color(CR_GREEN, _args->optarg);
+               cr_add_regexp(CR_GREEN, _args->optarg);
                break;
 
           case 'y':
-               cr_set_color(CR_YELLOW, _args->optarg);
+               cr_add_regexp(CR_YELLOW, _args->optarg);
                break;
 
           case 'b':
-               cr_set_color(CR_BLUE, _args->optarg);
+               cr_add_regexp(CR_BLUE, _args->optarg);
                break;
 
           case 'm':
-               cr_set_color(CR_MAGENTA, _args->optarg);
+               cr_add_regexp(CR_MAGENTA, _args->optarg);
                break;
 
           case 'c':
-               cr_set_color(CR_CYAN, _args->optarg);
+               cr_add_regexp(CR_CYAN, _args->optarg);
                break;
 
           case 'w':
-               cr_set_color(CR_WHITE, _args->optarg);
+               cr_add_regexp(CR_WHITE, _args->optarg);
                break;
 
           case 'R':
-               cr_set_color(CR_RED_REV, _args->optarg);
+               cr_add_regexp(CR_RED_REV, _args->optarg);
                break;
 
           case 'G':
-               cr_set_color(CR_GREEN_REV, _args->optarg);
+               cr_add_regexp(CR_GREEN_REV, _args->optarg);
                break;
 
           case 'Y':
-               cr_set_color(CR_YELLOW_REV, _args->optarg);
+               cr_add_regexp(CR_YELLOW_REV, _args->optarg);
                break;
 
           case 'B':
-               cr_set_color(CR_BLUE_REV, _args->optarg);
+               cr_add_regexp(CR_BLUE_REV, _args->optarg);
                break;
 
           case 'M':
-               cr_set_color(CR_MAGENTA_REV, _args->optarg);
+               cr_add_regexp(CR_MAGENTA_REV, _args->optarg);
                break;
 
           case 'C':
-               cr_set_color(CR_CYAN_REV, _args->optarg);
+               cr_add_regexp(CR_CYAN_REV, _args->optarg);
                break;
 
           case 'W':
-               cr_set_color(CR_WHITE_REV, _args->optarg);
+               cr_add_regexp(CR_WHITE_REV, _args->optarg);
                break;
 
           case 'e':
@@ -546,7 +596,7 @@ fprintf(stderr, "DISP_LEX = TRUE\n");
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.36");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.42");
                exit(1);
                break;
 
@@ -565,11 +615,10 @@ fprintf(stderr, "DISP_LEX = TRUE\n");
      }
 
      if (G.disp_regex) {
-          for (_i = 0; _i < G.idx_list; _i++) {
-               _col           = &G.color_RE[G.list[_i]];
-               printf("[%2d] ", _i + 1);
-               cr_start_color(NULL, _col->col_num);
-               printf("%s\n", _col->RE.regex);
+          for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
+               printf("[%2d] ", ++_i);
+               cr_start_color(&_re->col);
+               printf("%s\n", _re->regex);
                cr_end_color(NULL);
           }
      }
@@ -587,7 +636,7 @@ fprintf(stderr, "DISP_LEX = TRUE\n");
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.36");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.42");
      fprintf(stderr, "Usage: %s [-h|-H|-eidDL1234][-E][-rgybmcwRGYBMCW|--config_name] regexp ...\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
@@ -691,31 +740,6 @@ void cr_init_list(void)
 
 /******************************************************************************
 
-                         CR_INIT_COL_NAMES
-
-******************************************************************************/
-void cr_init_col_names(void)
-{
-     CR_INIT_COL(0);
-     CR_INIT_COL(1);
-     CR_INIT_COL(2);
-     CR_INIT_COL(3);
-     CR_INIT_COL(4);
-     CR_INIT_COL(5);
-     CR_INIT_COL(6);
-     CR_INIT_COL(7);
-     CR_INIT_COL(8);
-     CR_INIT_COL(9);
-     CR_INIT_COL(10);
-     CR_INIT_COL(11);
-     CR_INIT_COL(12);
-     CR_INIT_COL(13);
-     CR_INIT_COL(14);
-     CR_INIT_COL(15);
-}
-
-/******************************************************************************
-
                          CR_ADD_CONFIG
 
 ******************************************************************************/
@@ -755,40 +779,6 @@ void cr_add_arg(struct cr_arg *arg)
      _config->argc++;
 
 }
-/******************************************************************************
-
-                         CR_SET_COLOR
-
-******************************************************************************/
-void cr_set_color(int color, char *regexp)
-{
-     int                       _idx;
-     struct cr_color          *_col;
-
-     _idx           = CR_COLOR_IDX(color);
-
-     _col           = &G.color_RE[_idx];
-
-     if (_col->used) {
-          /* Couleur deja specifiee
-             ~~~~~~~~~~~~~~~~~~~~~~ */
-          fprintf(stderr, "%s: duplicated color (%s)\n", G.prgname, _col->col_name);
-          exit(1);
-     }
-     G.list[G.idx_list++]     = _idx;
-
-     _col->used               = TRUE;
-     _col->col_num            = color;
-     _col->RE.cflags          = G.cflags;
-     _col->RE.regex           = regexp;
-     _col->out                = G.out;
-     G.out                    = stdout;
-
-     if (regcomp(&_col->RE.reg, regexp, _col->RE.cflags) != 0) {
-          fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
-          exit(1);
-     }
-}
 
 /******************************************************************************
 
@@ -797,16 +787,13 @@ void cr_set_color(int color, char *regexp)
 ******************************************************************************/
 void cr_free_RE(void)
 {
-     int                       _i;
-     regex_t                  *_reg;
+     struct cr_re_desc        *_re;
 
-     for (_i = 0; _i < CR_NB_COLORS; _i++) {
-          _reg      = &G.color_RE[_i].RE.reg;
-          if (_reg) {
-               regfree(_reg);
-          }
+     for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
+          regfree(&_re->reg);
      }
 }
+
 /******************************************************************************
 
                          CR_READ_INPUT
@@ -814,8 +801,8 @@ void cr_free_RE(void)
 ******************************************************************************/
 void cr_read_input(void)
 {
-     int                       _i, _j, _n, _s = 0, _e = 0, _off, _idx_last;
-     struct cr_color          *_col;
+     int                       _j, _n, _s = 0, _e = 0, _off, _idx_last;
+     struct cr_re_desc        *_re;
      size_t                    _nmatch;
      regmatch_t                _pmatch[CR_SIZE + 1];
      int                       _eflags = 0;
@@ -844,16 +831,14 @@ void cr_read_input(void)
                fprintf(stderr, "LINE   : [%s] :\n", G.line);
           }
 
-          for (_i = 0; _i < G.idx_list; _i++) {
-               _col           = &G.color_RE[G.list[_i]];
-
+          for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
                for (_off = 0, _eflags = 0;
-                    regexec(&_col->RE.reg, G.line + _off, _nmatch, _pmatch,
+                    regexec(&_re->reg, G.line + _off, _nmatch, _pmatch,
                     _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
 
                     if (G.debug) {
                          fprintf(stderr, "Match for [%s] // [%s]\n",
-                                 G.line + _off, _col->RE.regex);
+                                 G.line + _off, _re->regex);
                          fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
                     }
 
@@ -869,10 +854,10 @@ void cr_read_input(void)
                               strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
                               _debug_str[_e -_s + 1]   = 0;
                               fprintf(stderr, "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-                                      _off, _s, _e, _col->RE.regex, _debug_str);
+                                      _off, _s, _e, _re->regex, _debug_str);
                          }
 
-                         cr_set_desc(_col, _off, _s, _e);
+                         cr_set_desc(&_re->col, _off, _s, _e);
                     }
 
                     /* Pour traiter les chaines vides
@@ -884,7 +869,7 @@ void cr_read_input(void)
                }
                if (G.debug) {
                     fprintf(stderr, "NO MATCH for [%s] // [%s]\n", G.line + _off,
-                            _col->RE.regex);
+                            _re->regex);
                }
           }
 
@@ -899,32 +884,38 @@ void cr_read_input(void)
                          CR_START_COLOR
 
 ******************************************************************************/
-void cr_start_color(struct cr_color *col, int color)
+void cr_start_color(struct cr_color *col)
 {
+     int                       _col_num;
      FILE                     *_out;
 
      if (col)  _out = col->out;
      else      _out = stdout;
 
-     if (color > CR_WHITE) {
+     _col_num       = col->col_num;
+
+     if (_col_num > CR_WHITE) {
           /* Reverse video
              ~~~~~~~~~~~~~ */
-          switch (G.intensity) {
+          switch (col->intensity) {
 
           case 1:
-               fprintf(_out, "\033[07;02;%dm", 30 + color - 8);
+			fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
+               fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][0]);
                break;
 
           case 2:
-               fprintf(_out, "\033[07;%dm", 30 + color - 8);
+			fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
+               fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][1]);
                break;
 
           case 3:
-               fprintf(_out, "\033[07;01;%dm", 30 + color - 8);
+			fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
+               fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][2]);
                break;
 
           case 4:
-               fprintf(_out, "\033[07;04;%dm", 30 + color - 8);
+               fprintf(_out, "\033[07;04;%dm", 30 + _col_num - 8);
                break;
 
           default:
@@ -935,22 +926,22 @@ void cr_start_color(struct cr_color *col, int color)
      else {
           /* Normal video
              ~~~~~~~~~~~~ */
-          switch (G.intensity) {
+          switch (col->intensity) {
 
           case 1:
-               fprintf(_out, "\033[02;%dm", 30 + color);    // Half-bright
+               fprintf(_out, "\033[02;%dm", 30 + _col_num);    // Half-bright
                break;
 
           case 2:
-               fprintf(_out, "\033[%dm", 30 + color);       // Normal
+               fprintf(_out, "\033[%dm", 30 + _col_num);       // Normal
                break;
 
           case 3:
-               fprintf(_out, "\033[01;%dm", 30 + color);    // Bold
+               fprintf(_out, "\033[01;%dm", 30 + _col_num);    // Bold
                break;
 
           case 4:
-               fprintf(_out, "\033[04;%dm", 30 + color);    // Underscore
+               fprintf(_out, "\033[04;%dm", 30 + _col_num);    // Underscore
                break;
 
           default:
@@ -1025,8 +1016,8 @@ void cr_disp_line(void)
           _c        = G.line[_i];
           if (_c == '\n' || (_c == 0 && G.newline)) {
                if (G.curr_col) {
-                    putc('\n', G.curr_col->out);
                     cr_end_color(G.curr_col);
+                    putc('\n', G.curr_col->out);
                }
                else {
                     putc('\n', stdout);
@@ -1038,7 +1029,7 @@ void cr_disp_line(void)
                if (G.curr_col == NULL) {
                     /* Le caractere precedent n'etait pas en couleur
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                    cr_start_color(_desc->col, _desc->col->col_num);
+                    cr_start_color(_desc->col);
                     putc(_c, _desc->col->out);
                }
                else {
@@ -1053,7 +1044,7 @@ void cr_disp_line(void)
                          /* Changement de couleur
                             ~~~~~~~~~~~~~~~~~~~~~ */
                          cr_end_color(G.curr_col);
-                         cr_start_color(_desc->col, _desc->col->col_num);
+                         cr_start_color(_desc->col);
                          putc(_c, _desc->col->out);
                     }
                }

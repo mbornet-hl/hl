@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_cpri.h
  *
- *   @(#)  cr_cpri.h  1.16  15/07/11  MB  - MODIFIE
+ *	@(#)	[MB] cr_cpri.h	Version 1.18 du 15/07/27 - 	
  *
  * ============================================================================
  */
@@ -97,6 +97,8 @@
 									fprintf(stderr, __VA_ARGS__);						\
 								}
 
+/* Macros de definition et declaraction d'une fonction "new"
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_NEW(name)                                                     \
 struct cr_##name *cr_new_##name(void)                                      \
 {                                                                          \
@@ -112,25 +114,26 @@ struct cr_##name *cr_new_##name(void)                                      \
 }
 #define   CR_DECL_NEW(name)             struct cr_##name *cr_new_##name(void)
 
-#if ! defined(yylex)
+#if defined(CDD)
 #define   yylex                         CR_lex
+#define	yyin						CR_in
 #endif
 
 /* Structures
    ~~~~~~~~~~ */
-struct cr_RE {
+struct cr_color {
+     int                                 col_num;
+	int							 intensity;
+     int                                 linux_code;
+     FILE                               *out;
+};
+
+struct cr_re_desc {
      regex_t                             reg;
      char                               *regex;
      int                                 cflags;
-};
-
-struct cr_color {
-     bool                                used;
-     char                               *col_name;
-     int                                 col_num;
-     struct cr_RE                        RE;
-     int                                 linux_code;
-     FILE                               *out;
+	struct cr_color				 col;
+	struct cr_re_desc				*next;
 };
 
 struct cr_col_desc {
@@ -196,6 +199,8 @@ struct cr_global {
      bool                                newline;
      int                                 intensity;
      struct cr_configs                   configs;
+	struct cr_re_desc				*extract_RE,
+								*insert_RE;
 };
 
 #endif    /* CR_CPRI_H */

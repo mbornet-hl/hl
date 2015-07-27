@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_epri.h
  *
- *   @(#)  cr_epri.h  1.11  15/07/08  MB  
+ *	@(#)	[MB] cr_epri.h	Version 1.14 du 15/07/26 - 
  *
  * ============================================================================
  */
@@ -40,6 +40,9 @@ extern FILE									*yyin;
    ~~~~~~~~~~~~~~ */
 extern char									*cr_err_malloc;
 
+extern int                                              cr_col_codes[8][3];
+extern char									*cr_best_fg[8][3];
+
 /* Fonctions
  * ~~~~~~~~~ */
 void                                     cr_usage(bool);
@@ -55,7 +58,7 @@ void                                     cr_set_color(int, char *);
 void                                     cr_free_RE(void);
 void                                     cr_read_input(void);
 void                                     cr_disp_color(int, char *);
-void                                     cr_start_color(struct cr_color *, int);
+void                                     cr_start_color(struct cr_color *);
 void                                     cr_end_color(struct cr_color *);
 void                                     cr_init_desc(void);
 void                                     cr_set_desc(struct cr_color *, int, int, int);
