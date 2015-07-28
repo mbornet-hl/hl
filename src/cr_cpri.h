@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_cpri.h
  *
- *	@(#)	[MB] cr_cpri.h	Version 1.18 du 15/07/27 - 	
+ *   @(#)  [MB] cr_cpri.h Version 1.19 du 15/07/28 -  
  *
  * ============================================================================
  */
@@ -91,11 +91,11 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SIZE                       (1024)
 
-#define   CR_DISP_LEX(...)			if (G.disp_lex) fprintf(stderr, __VA_ARGS__)
-#define	CR_DEBUG(...)				if (G.debug) {										\
-									fprintf(stderr, "%-15s (%4d) ", __func__, __LINE__);	\
-									fprintf(stderr, __VA_ARGS__);						\
-								}
+#define   CR_DISP_LEX(...)              if (G.disp_lex) fprintf(stderr, __VA_ARGS__)
+#define   CR_DEBUG(...)                 if (G.debug) {                                              \
+                                             fprintf(stderr, "%-15s (%4d) ", __func__, __LINE__);   \
+                                             fprintf(stderr, __VA_ARGS__);                          \
+                                        }
 
 /* Macros de definition et declaraction d'une fonction "new"
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -116,14 +116,14 @@ struct cr_##name *cr_new_##name(void)                                      \
 
 #if defined(CDD)
 #define   yylex                         CR_lex
-#define	yyin						CR_in
+#define   yyin                          CR_in
 #endif
 
 /* Structures
    ~~~~~~~~~~ */
 struct cr_color {
      int                                 col_num;
-	int							 intensity;
+     int                                 intensity;
      int                                 linux_code;
      FILE                               *out;
 };
@@ -132,8 +132,8 @@ struct cr_re_desc {
      regex_t                             reg;
      char                               *regex;
      int                                 cflags;
-	struct cr_color				 col;
-	struct cr_re_desc				*next;
+     struct cr_color                     col;
+     struct cr_re_desc                  *next;
 };
 
 struct cr_col_desc {
@@ -193,14 +193,14 @@ struct cr_global {
      bool                                debug,
                                          verbose,
                                          disp_regex,
-								 disp_lex,
-								 config_file_read;
+                                         disp_lex,
+                                         config_file_read;
      FILE                               *out;
      bool                                newline;
      int                                 intensity;
      struct cr_configs                   configs;
-	struct cr_re_desc				*extract_RE,
-								*insert_RE;
+     struct cr_re_desc                  *extract_RE,
+                                        *insert_RE;
 };
 
 #endif    /* CR_CPRI_H */

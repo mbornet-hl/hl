@@ -22,7 +22,7 @@
  *
  *   Fichier      :     cr_epri.h
  *
- *	@(#)	[MB] cr_epri.h	Version 1.14 du 15/07/26 - 
+ *   @(#)  [MB] cr_epri.h Version 1.15 du 15/07/28 - 
  *
  * ============================================================================
  */
@@ -34,26 +34,26 @@
 
 extern struct cr_global                                G;
 
-extern FILE									*yyin;
+extern FILE                                            *yyin;
 
 /* Error messages
    ~~~~~~~~~~~~~~ */
-extern char									*cr_err_malloc;
+extern char                                            *cr_err_malloc;
 
 extern int                                              cr_col_codes[8][3];
-extern char									*cr_best_fg[8][3];
+extern char                                            *cr_best_fg[8][3];
 
 /* Fonctions
  * ~~~~~~~~~ */
 void                                     cr_usage(bool);
-void								 cr_display_args(struct cr_config *);
-void								 cr_display_config(void);
+void                                     cr_display_args(struct cr_config *);
+void                                     cr_display_config(void);
 void                                     cr_init_list(void);
 void                                     cr_init_col_names(void);
 CR_DECL_NEW(config);
 CR_DECL_NEW(arg);
-void								 cr_add_config(struct cr_config *);
-void								 cr_add_arg(struct cr_arg *);
+void                                     cr_add_config(struct cr_config *);
+void                                     cr_add_arg(struct cr_arg *);
 void                                     cr_set_color(int, char *);
 void                                     cr_free_RE(void);
 void                                     cr_read_input(void);
@@ -64,6 +64,6 @@ void                                     cr_init_desc(void);
 void                                     cr_set_desc(struct cr_color *, int, int, int);
 void                                     cr_disp_line(void);
 
-int								 yylex(void);
+int                                      yylex(void);
 
 #endif    /* CR_EPRI_H */

@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.43 du 15/07/28 - 
+ *   @(#)  [MB] cr_main.c Version 1.44 du 15/07/28 - 
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -591,7 +591,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.43");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.44");
                exit(1);
                break;
 
@@ -631,7 +631,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.43");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.44");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
@@ -895,17 +895,17 @@ void cr_start_color(struct cr_color *col)
           switch (col->intensity) {
 
           case 1:
-			fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
+               fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
                fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][0]);
                break;
 
           case 2:
-			fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
+               fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
                fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][1]);
                break;
 
           case 3:
-			fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
+               fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
                fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][2]);
                break;
 
