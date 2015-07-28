@@ -2,13 +2,13 @@
 /* ============================================================================
  *   (C) Copyright Martial Bornet, 2015.
  *
- *   Auteur       :     Martial BORNET (MB) - 17 Juin 2015
+ *   Author       :     Martial BORNET (MB) - 17th of June, 2015
  *
- *   Description  :     Analyseur lexical
+ *   Description  :     Lexical analyzer
  *
- *   Fichier      :     cr_lex.l
+ *   File         :     cr_lex.l
  *
- *   @(#)  cr_lex.l  1.4  15/07/28  MB  
+ *   @(#)  cr_lex.l  1.5  15/07/28  MB  
  *
  * ============================================================================
  */
@@ -52,7 +52,7 @@ sep                      (:)
 
 <CONFIG>{sep}{space}$    {
                               BEGIN ARGS;
-                              CR_DISP_LEX("Espaces apres separateur !\n");
+                              CR_DISP_LEX("Spaces after delimiter !\n");
                          }
 
 <ARGS>{call_config}      {

@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015 Martial Bornet
+ * Copyright (C) 2015, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,23 +14,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
+ *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
- *   Description  :     Programme de colorisation  de chaines
+ *   Description  :     String colorization
  *
- *   Fichier      :     cr_main.c
+ *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.44 du 15/07/28 - 
+ *   @(#)  [MB] cr_main.c Version 1.45 du 15/07/28 - 
  *
- *   Liste des fonctions de ce fichier :
- *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *   Functions in this file :
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~
+ *   - cr_list2argv
+ *   - cr_lists2argv
  *   - cr_read_config_file
+ *   - cr_new_config
+ *   - cr_new_arg
+ *   - cr_new_args
+ *   - cr_new_ptrs
+ *   - cr_new_re_desc
+ *   - cr_needs_arg
+ *   - cr_get_config
+ *   - cr_dump_ptrs
+ *   - cr_dump_args
+ *   - cr_getopt
+ *   - cr_set_args
+ *   - cr_add_to_list
+ *   - cr_add_regexp
  *   - main
  *   - cr_usage
+ *   - cr_display_args_list
+ *   - cr_display_args
+ *   - cr_display_config
  *   - cr_init_list
- *   - cr_init_col_names
- *   - cr_add_regexp
- *   / cr_set_color
+ *   - cr_add_config
+ *   - cr_add_arg
+ *   - cr_free_re
  *   - cr_read_input
  *   - cr_start_color
  *   - cr_end_color
@@ -254,24 +272,23 @@ void cr_dump_args(struct cr_args *args)
 ******************************************************************************/
 int cr_getopt(struct cr_args *args)
 {
-     /* Les pointeurs sont toujours positionnes sur
-      * l'argument / option a traiter
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     /* Pointers always point to the arg or option to treat
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      char                 _c, *_arg, *_config_name, _next_char;
      struct cr_ptrs      *_ptrs, *_new_ptrs;
      struct cr_config    *_config;
 
      for ( ; ; ) {
           if (!(_ptrs = args->curr_ptrs)) {
-               /* Plus d'arguments a traiter
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* No more argument to treat
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
                CR_DEBUG("NO MORE ARGS.\n");
                return -1;
           }
 
           if (*(_ptrs->curr_argv) == 0) {
-               /* Plus d'argument pour ce niveau
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* No more argument for this level
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                CR_DEBUG("No more args for this level\n");
                args->curr_ptrs     = _ptrs->prev;
                free(_ptrs);
@@ -282,8 +299,8 @@ int cr_getopt(struct cr_args *args)
                    _ptrs->curr_arg, _ptrs->curr_arg, _ptrs->curr_idx);
 
           if (_ptrs->curr_idx == 0) {
-               /* Traitement d'un nouvel argument
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* Treatment of a new argument
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                if (_ptrs->curr_arg[0] != '-') {
                     fprintf(stderr, "%s: argument with no associated option (\"%s\") ! \n",
                             G.prgname, _ptrs->curr_arg);
@@ -291,17 +308,17 @@ int cr_getopt(struct cr_args *args)
                     exit(1);
                }
                else {
-                    /* Suite du traitement d'un argument
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    /* Continuation of the treatment of an argument
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     _ptrs->curr_idx++;
                     if (_ptrs->curr_arg[1] != '-') {
-                         /* Suite des options a une lettre
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         /* Continuation of the one letter options
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                          break;
                     }
                     else {
-                         /* Nom de configuration
-                            ~~~~~~~~~~~~~~~~~~~~ */
+                         /* Configuration name
+                            ~~~~~~~~~~~~~~~~~~ */
                          _config_name        = _ptrs->curr_arg + 2;
                          CR_DEBUG("==> CONFIG : \"%s\"\n", _config_name);
                          _ptrs->curr_argv++;
@@ -317,8 +334,8 @@ int cr_getopt(struct cr_args *args)
                               exit(1);
                          }
 
-                         /* Recherche de boucle recursive
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         /* Detection of recursive loop
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                          if (_config->visited) {
                               fprintf(stderr, "%s: configuration loop for \"%s\" !\n",
                                       G.prgname, _config->name);
@@ -332,7 +349,7 @@ int cr_getopt(struct cr_args *args)
                          _new_ptrs->argv          = _config->argv;
                          _new_ptrs->curr_argv     = _new_ptrs->argv + 1;
                          _new_ptrs->curr_arg      = _new_ptrs->argv[1];
-                         _new_ptrs->config        = _config;          // Utilite ???
+                         _new_ptrs->config        = _config;          // Usefullness ???
                          args->curr_ptrs          = _new_ptrs;
 
                          continue;
@@ -374,8 +391,8 @@ int cr_getopt(struct cr_args *args)
           CR_DEBUG("    No more 1 letter option\n");
           CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
           if (*(_ptrs->curr_argv + 1) == 0) {
-               /* Plus d'argument pour ce niveau
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* No more argument for this level
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                CR_DEBUG("No more args for this level\n");
                args->curr_ptrs     = _ptrs->prev;
                free(_ptrs);
@@ -486,7 +503,7 @@ int main(int argc, char *argv[])
      cr_init_list();
      G.intensity    = CR_DEFLT_INTENSITY;
 
-     /* Analyse des arguments
+     /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(argc, argv,
                                        "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:DLdei1234",
@@ -591,7 +608,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.44");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.45");
                exit(1);
                break;
 
@@ -631,7 +648,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.44");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.45");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
@@ -807,8 +824,8 @@ void cr_read_input(void)
      _nmatch        = sizeof(_pmatch) / sizeof(_pmatch[0]);
 
      for (_n = sizeof(G.line); fgets(G.line, _n, stdin) != 0; _n = sizeof(G.line)) {
-          /* Reinitialisation des descripteurs de couleurs
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          /* Reset of color descriptors
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
           cr_init_desc();
 
           G.length       = strlen(G.line);
@@ -855,8 +872,8 @@ void cr_read_input(void)
                          cr_set_desc(&_re->col, _off, _s, _e);
                     }
 
-                    /* Pour traiter les chaines vides
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    /* To handle empty strings
+                       ~~~~~~~~~~~~~~~~~~~~~~~ */
                     if (_e < 0) {
                          fprintf(stderr, "%s: warning : empty match !\n", G.prgname);
                          exit(1);
@@ -1019,25 +1036,25 @@ void cr_disp_line(void)
                }
           }
           else if (_desc->used) {
-               /* Le caractere est en couleur
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* Character was in color
+                  ~~~~~~~~~~~~~~~~~~~~~~ */
                if (G.curr_col == NULL) {
-                    /* Le caractere precedent n'etait pas en couleur
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    /* Previous character was not in color
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_start_color(_desc->col);
                     putc(_c, _desc->col->out);
                }
                else {
-                    /* Le caractere precedent etait en couleur
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    /* Previous character was in color
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     if (_desc-> col == G.curr_col) {
-                         /* Pas de changement de couleur
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         /* No color change
+                            ~~~~~~~~~~~~~~~ */
                          putc(_c, G.curr_col->out);
                     }
                     else {
-                         /* Changement de couleur
-                            ~~~~~~~~~~~~~~~~~~~~~ */
+                         /* Color change
+                            ~~~~~~~~~~~~ */
                          cr_end_color(G.curr_col);
                          cr_start_color(_desc->col);
                          putc(_c, _desc->col->out);
@@ -1045,16 +1062,16 @@ void cr_disp_line(void)
                }
           }
           else {
-               /* Le caractere n'est pas en couleur
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* Character was not in color
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                if (G.curr_col == NULL) {
-                    /* Le caractere precedent n'etait pas en couleur
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    /* Previous character was not in color
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     putc(_c, stdout);
                }
                else {
-                    /* Le caractere precedent etait en couleur
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    /* Previous character was in color
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_end_color(G.curr_col);
                     putc(_c, G.curr_col->out);
                }

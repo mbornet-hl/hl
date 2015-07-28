@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015 Martial Bornet
+ * Copyright (C) 2015, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
  *
  *   (C) Copyright Martial Bornet, 2015.
  *
- *   Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
+ *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
- *   Description  :     Constantes privees
+ *   Description  :     Private constants
  *
- *   Fichier      :     cr_cpri.h
+ *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.19 du 15/07/28 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.20 du 15/07/28 -  
  *
  * ============================================================================
  */

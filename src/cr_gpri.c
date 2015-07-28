@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015 Martial Bornet
+ * Copyright (C) 2015, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,13 +16,13 @@
  *
  *   (C) Copyright Martial Bornet, 2015.
  *
- *   Auteur       :     Martial BORNET (MB) - 3 Janvier 2015
+ *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
- *   Description  :     Globales privees
+ *   Description  :     Private global variables
  *
- *   Fichier      :     cr_gpri.c
+ *   File         :     cr_gpri.c
  *
- *   @(#)  cr_gpri.c  1.9  15/07/28  MB  
+ *   @(#)  cr_gpri.c  1.10  15/07/28  MB  
  *
  * ============================================================================
  */
