@@ -22,7 +22,7 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.16 du 15/07/28 - 
+ *   @(#)  [MB] cr_epri.h Version 1.17 du 15/07/28 - 
  *
  * ============================================================================
  */
@@ -43,7 +43,7 @@ extern char                                            *cr_err_malloc;
 extern int                                              cr_col_codes[8][3];
 extern char                                            *cr_best_fg[8][3];
 
-/* Fonctions
+/* Functions
  * ~~~~~~~~~ */
 void                                     cr_usage(bool);
 void                                     cr_display_args(struct cr_config *);

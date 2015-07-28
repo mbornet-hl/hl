@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.20 du 15/07/28 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.21 du 15/07/28 -  
  *
  * ============================================================================
  */
@@ -44,8 +44,8 @@
 
 #define   CR_DEFLT_INTENSITY            (2)
 
-/* Numeros des couleurs
- * ~~~~~~~~~~~~~~~~~~~~ */
+/* Color numbers
+ * ~~~~~~~~~~~~~ */
 #define   CR_BLACK                      (0)
 #define   CR_RED                        (1)
 #define   CR_GREEN                      (2)
@@ -80,15 +80,8 @@
 #define   CR_C14                        "cyan reverse"
 #define   CR_C15                        "white reverse"
 
-#define   CR_INIT_COL(n)                { G.color_RE[CR_COLOR_IDX(n)].col_name = CR_C ## n; \
-                                          G.color_RE[CR_COLOR_IDX(n)].col_num  = (n % 8); }
-
-/* Indice de tableau d'une couleur
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_COLOR_IDX(color)           ((color))
-
-/* Taille d'une ligne, nombre d'intervalles differents
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Line size, number of different intervals
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SIZE                       (1024)
 
 #define   CR_DISP_LEX(...)              if (G.disp_lex) fprintf(stderr, __VA_ARGS__)
@@ -97,8 +90,8 @@
                                              fprintf(stderr, __VA_ARGS__);                          \
                                         }
 
-/* Macros de definition et declaraction d'une fonction "new"
- * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Macros to define and declare a "new" function
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_NEW(name)                                                     \
 struct cr_##name *cr_new_##name(void)                                      \
 {                                                                          \
