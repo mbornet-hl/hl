@@ -20,7 +20,7 @@
  *
  *   Fichier      :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.42 du 15/07/27 - 
+ *   @(#)  [MB] cr_main.c Version 1.43 du 15/07/28 - 
  *
  *   Liste des fonctions de ce fichier :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,11 +181,9 @@ bool cr_needs_arg(char opt, struct cr_args *args)
 {
      int                  _i;
 
-//printf("needs_args(%c, %s) ...\n", opt, args->opts);
      for (_i = 0; args->opts[_i] != 0; _i++) {
           if (args->opts[_i] != opt) continue;
           if (args->opts[_i + 1] == ':') {
-//               printf("   => YES\n");
                return TRUE;
           }
           else {
@@ -193,7 +191,6 @@ bool cr_needs_arg(char opt, struct cr_args *args)
           }
      }
 
-//     printf("   => NO\n");
      return FALSE;
 }
 
@@ -213,7 +210,6 @@ struct cr_config *cr_get_config(char *config_name, struct cr_args *args)
      for (_config = args->configs->extract; _config != 0;
           _config = _config->next) {
           if (!strcmp(config_name, _config->name)) {
-//               fprintf(stderr, "Config found !\n");
                break;
           }
      }
@@ -488,7 +484,6 @@ int main(int argc, char *argv[])
      }
 
      cr_init_list();
-//     cr_init_col_names();
      G.intensity    = CR_DEFLT_INTENSITY;
 
      /* Analyse des arguments
@@ -596,7 +591,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.42");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.43");
                exit(1);
                break;
 
@@ -636,8 +631,8 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.42");
-     fprintf(stderr, "Usage: %s [-h|-H|-eidDL1234][-E][-rgybmcwRGYBMCW|--config_name] regexp ...\n",
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.43");
+     fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
      fprintf(stderr, "  -H : help + configuration names\n");
