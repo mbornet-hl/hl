@@ -7,8 +7,9 @@
 #
 # Usage :
 #
-# hl: version 1.42
-# Usage: hl [-h|-H|-eidDL1234][-E][-rgybmcwRGYBMCW|--config_name] regexp ...
+#
+# hl: version 1.45
+# Usage: hl [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]
 #   -h : help
 #   -H : help + configuration names
 #   -V : version
@@ -51,7 +52,6 @@
 #     --ifconfig
 #     --ip
 #     --IP
-#     --IP
 #     --eth
 #     --iptables
 #     --ls_doc
@@ -78,7 +78,6 @@
 #     --colors42
 #     --col_dupl
 #     --man
-#
 #
 # Examples :
 # ~~~~~~~~~~
