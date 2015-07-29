@@ -7,7 +7,6 @@
 #
 # Usage :
 #
-#
 # hl: version 1.45
 # Usage: hl [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]
 #   -h : help
@@ -78,6 +77,7 @@
 #     --colors42
 #     --col_dupl
 #     --man
+#
 #
 # Examples :
 # ~~~~~~~~~~
