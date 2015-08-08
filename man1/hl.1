@@ -1,4 +1,4 @@
-.\" 	@(#)	[MB] cr_hl.1	Version 1.4 du 15/07/28 - 
+.\" 	@(#)	[MB] cr_hl.1	Version 1.5 du 15/08/08 - 
 .TH "HL" "1" "July 2015" "" "User Commands"
 .SH "NAME" 
 hl - Colorize strings matching regular expressions
@@ -150,8 +150,70 @@ Colorize the output of the ifconfig command according to the configurations \fBI
 .TP
 The \fBhl\fP command can use a configuration file named \fB$HOME/.hl.cfg\fP .
 
+Its recognized syntax is :
+
+- comment lines (beginning with a '#'),
+
+- configuration definition (a name, eventually followed by spaces or tabs, and a ':'),
+
+- configuration options for this configuration (a tab, followed by the options)
+
+- an empty line acts as a separator between configurations
+
+.TP
+Example :
+
+.EX
+#
+#	Example of .hl.cfg configuration file
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+
+cal		:
+	-e
+	-g '[1-9][0-9][0-9][0-9]'
+	-y 'January|February|March|April|May|June|July|August|September|October|November|December'
+	-c 'Su|Mo|Tu|We|Th|Fr|Sa'
+	-b '[0-9]'
+
+df		:
+	-e
+	-r '\<((100|9[5-9])%.*)'	
+	-y '\<((8[0-9]|9[0-4])%.*)'
+	-c '\<[0-4][0-9]?%.*'
+	-g '\<[0-9]+%.*'
+	-b '^Filesystem.*'
+
+diff		:
+	-e
+	-y '^<.*'
+	-g '^>.*'
+	-c '^([0-9]+(,[0-9]+)?[a-z][0-9]+(,[0-9]+)?)'
+
+hl		:
+	-ei
+	-2B '^hl: version.*'
+	-1g 'Usage'
+	-2
+	-R  ' +(.*\<red\>....).*reverse video.*'
+	-G  ' +(.*\<green\>..).*reverse video.*'
+	-Y  ' +(.*\<yellow\>.).*reverse video.*'
+	-B  ' +(.*\<blue\>...).*reverse video.*'
+	-M  ' +(.*\<magenta\>).*reverse video.*'
+	-C  ' +(.*\<cyan\>...).*reverse video.*'
+	-W  ' +(.*\<white\>..).*reverse video.*'
+	-w  '(\(reverse video\))'
+	-r  '.*\<red\>.*'
+	-g  '.*\<green\>.*'
+	-y  '.*\<yellow\>.*'
+	-b  '.*\<blue\>.*'
+	-m  '.*\<magenta\>.*'
+	-c  '.*\<cyan\>.*'
+	-w  '.*\<white\>.*'
+.EE
+
 .SH "MAN PAGE VERSION"
-The version of this man page is 1.4.
+The version of this man page is 1.5.
 It is compatible with hl version 1.42 and upper.
 
 .SH "AUTHOR" 
