@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.46 du 15/07/31 - 
+ *   @(#)  [MB] cr_main.c Version 1.47 du 15/08/22 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -370,7 +370,7 @@ int cr_getopt(struct cr_args *args)
      if (cr_needs_arg(_c, args)) {
           CR_DEBUG("    (argument needed)\n");
           _arg      = *(_ptrs->curr_argv + 1);
-          if (_arg[0] == '-' || _next_char != 0) {
+          if (_arg == 0 || _arg[0] == '-' || _next_char != 0) {
                fprintf(stderr, "%s: missing argument for \"-%c\" !\n",
                        G.prgname, _c);
                cr_dump_args(args);
@@ -608,7 +608,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.46");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.47");
                exit(1);
                break;
 
@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.46");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.47");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
