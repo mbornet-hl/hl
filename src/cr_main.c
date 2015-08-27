@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.49 du 15/08/26 - 
+ *   @(#)  [MB] cr_main.c Version 1.50 du 15/08/27 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -643,7 +643,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.49");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.50");
                exit(1);
                break;
 
@@ -714,7 +714,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.49");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.50");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
@@ -1042,6 +1042,7 @@ void cr_read_input(void)
 							cr_set_desc(_re, _off, _s, _e, _marker);
 						}
 
+#if 0
 						/* To handle empty strings
 						   ~~~~~~~~~~~~~~~~~~~~~~~ */
 						if (_e < 0) {
@@ -1049,6 +1050,7 @@ void cr_read_input(void)
 							        G.prgname);
 							exit(1);
 						}
+#endif
 					}
 
 					if (G.debug) {
