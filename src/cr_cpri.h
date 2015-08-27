@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.21 du 15/07/28 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.23 du 15/08/26 -  
  *
  * ============================================================================
  */
@@ -122,9 +122,10 @@ struct cr_color {
 };
 
 struct cr_re_desc {
-     regex_t                             reg;
-     char                               *regex;
+     regex_t                             reg[2];
+     char                               *regex[2];
      int                                 cflags;
+	int							 curr_level;
      struct cr_color                     col;
      struct cr_re_desc                  *next;
 };
@@ -132,6 +133,7 @@ struct cr_re_desc {
 struct cr_col_desc {
      bool                                used;
      struct cr_color                    *col;
+	int							 marker;
 };
 
 struct cr_arg {
@@ -190,10 +192,14 @@ struct cr_global {
                                          config_file_read;
      FILE                               *out;
      bool                                newline;
+	bool							 begin_specified,
+								 end_specified;
      int                                 intensity;
      struct cr_configs                   configs;
      struct cr_re_desc                  *extract_RE,
-                                        *insert_RE;
+                                        *insert_RE,
+								*last_RE;
+	int							 last_color;
 };
 
 #endif    /* CR_CPRI_H */

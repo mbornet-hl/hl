@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.47 du 15/08/22 - 
+ *   @(#)  [MB] cr_main.c Version 1.49 du 15/08/26 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +69,9 @@
 #include "cr_epri.h"
 
 #define   X      if (G.debug) fprintf(stderr, "%s(%d)\n", __FILE__, __LINE__);
+#define   SC     if (G.debug) fprintf(stderr, "==> %s(%d) Start color : [%c]\n", __FILE__, __LINE__, _c);
+#define   NC     if (G.debug) fprintf(stderr, "==> %s(%d) No color    : [%c]\n", __FILE__, __LINE__, _c);
+#define   EC     if (G.debug) fprintf(stderr, "==> %s(%d) End color\n", __FILE__, __LINE__);
 
 /******************************************************************************
 
@@ -458,6 +461,17 @@ void cr_add_to_list(struct cr_re_desc *re)
 
 /******************************************************************************
 
+                              CR_CLEAR_MARKER_FLAGS
+
+******************************************************************************/
+inline void cr_clear_marker_flags(void)
+{
+     G.begin_specified        = FALSE;
+     G.end_specified          = FALSE;
+}
+
+/******************************************************************************
+
                          CR_ADD_REGEXP
 
 ******************************************************************************/
@@ -465,21 +479,40 @@ void cr_add_regexp(int color, char *regexp)
 {
      struct cr_re_desc        *_re;
 
-     _re            = cr_new_re_desc();
+     if (!G.end_specified) {
+          _re                      = cr_new_re_desc();
+     
+          _re->regex[0]            = regexp;
+          _re->cflags              = G.cflags;
+          _re->col.col_num         = color;
+          _re->col.intensity       = G.intensity;
+          _re->col.out             = G.out;
+          G.out                    = stdout;
 
-     _re->regex               = regexp;
-     _re->cflags              = G.cflags;
-     _re->col.col_num         = color;
-     _re->col.intensity       = G.intensity;
-     _re->col.out             = G.out;
-     G.out                    = stdout;
+          if (regcomp(&_re->reg[0], regexp, _re->cflags) != 0) {
+               fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
+               exit(1);
+          }
 
-     if (regcomp(&_re->reg, regexp, _re->cflags) != 0) {
-          fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
-          exit(1);
+          cr_add_to_list(_re);
+          G.last_RE                = _re;
+		G.last_color			= color;
      }
+     else {
+          _re                      = G.last_RE;
+          _re->regex[1]            = regexp;
 
-     cr_add_to_list(_re);
+          if (_re->regex[1]) {
+               if (regcomp(&_re->reg[1], regexp, _re->cflags) != 0) {
+                    fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
+                    exit(1);
+               }
+          }
+
+          cr_clear_marker_flags();
+          G.last_RE                = 0;
+		G.last_color			= 0;
+     }
 }
 
 /******************************************************************************
@@ -503,10 +536,12 @@ int main(int argc, char *argv[])
      cr_init_list();
      G.intensity    = CR_DEFLT_INTENSITY;
 
+     cr_clear_marker_flags();
+
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(argc, argv,
-                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:DLdei1234",
+                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:DLdei1234%.:",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -608,7 +643,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.47");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.49");
                exit(1);
                break;
 
@@ -617,6 +652,29 @@ int main(int argc, char *argv[])
           case '3':
           case '4':
                G.intensity    = _opt - '0';
+               break;
+
+          case '%':
+               /* Begin marker
+                  ~~~~~~~~~~~~ */
+               if (G.begin_specified) {
+                    fprintf(stderr, "%s: begin marker without end marker !\n",
+                            G.prgname);
+                    exit(1);
+               }
+               G.begin_specified    = TRUE;
+               break;
+
+          case '.':
+               /* End marker
+                  ~~~~~~~~~~ */
+               if (!G.begin_specified) {
+                    fprintf(stderr, "%s: end marker without begin marker !\n",
+                            G.prgname);
+                    exit(1);
+               }
+               G.end_specified      = TRUE;
+               cr_add_regexp(G.last_color, _args->optarg);
                break;
 
           default:
@@ -630,8 +688,16 @@ int main(int argc, char *argv[])
           for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
                printf("[%2d] ", ++_i);
                cr_start_color(&_re->col);
-               printf("%s\n", _re->regex);
+               printf("%s", _re->regex[0]);
                cr_end_color(NULL);
+			printf("\n");
+               if (_re->regex[1]) {
+                    printf("     => ");
+                    cr_start_color(&_re->col);
+                    printf("%s", _re->regex[1]);
+                    cr_end_color(NULL);
+				printf("\n");
+               }
           }
      }
 
@@ -648,7 +714,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.47");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.49");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
@@ -802,8 +868,105 @@ void cr_free_RE(void)
      struct cr_re_desc        *_re;
 
      for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
-          regfree(&_re->reg);
+          regfree(&_re->reg[0]);
      }
+}
+
+/******************************************************************************
+
+					CR_MARKER2COLOR
+
+******************************************************************************/
+void cr_marker2color( struct cr_re_desc *re)
+{
+     int                  _i = 0, _curr_level;
+     struct cr_col_desc  *_desc;
+
+	_curr_level		= re->curr_level;
+//fprintf(stderr, "[%2d] >>> curr_level : %d\n", _i, _curr_level);
+     for (_i = 0, _desc = G.desc; _i < G.length; _i++, _desc++) {
+		switch (_desc->marker) {
+		case	 1:
+			_curr_level++;
+//fprintf(stderr, "[%2d] +++ curr_level : %d\n", _i, _curr_level);
+			break;
+
+		case	-1:
+			if (_curr_level > 0) {
+				_curr_level--;
+			}
+//fprintf(stderr, "[%2d] --- curr_level : %d\n", _i, _curr_level);
+			break;
+
+		case	 0:
+//fprintf(stderr, "[%2d] === curr_level : %d\n", _i, _curr_level);
+			break;
+
+		default:
+			fprintf(stderr, "%s: internal error\n", G.prgname);
+			exit(1);
+			break;
+		}
+		if (!_desc->used) {
+			if (_curr_level > 0) {
+//				fprintf(stderr, "==> [%2d] [%c] Color set. Col num = %d\n",
+//				        _i, G.line[_i], re->col.col_num);
+				_desc->used    = TRUE;
+				_desc->col     = &re->col;
+			}
+			else {
+//				fprintf(stderr, "==> [%2d] [%c] NO COLOR.\n", _i, G.line[_i]);
+			}
+		}
+		else {
+//			fprintf(stderr, "==> [%2d] [%c] Already colorized.\n", _i, G.line[_i]);
+		}
+	}
+
+	re->curr_level	= _curr_level;
+//fprintf(stderr, "[%2d] <<< curr_level : %d\n", _i, _curr_level);
+}
+
+/******************************************************************************
+
+                         CR_SET_DESC
+
+******************************************************************************/
+void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
+{
+     int                  _i;
+     struct cr_col_desc  *_desc;
+
+//fprintf(stderr, "SET_DESC : s = %3d  e = %3d  marker = %d\n", s, e, marker);
+	if (re->regex[1] == 0) {
+		/* RE descriptor does not define a range
+		   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
+			if (!_desc->used) {
+				_desc->used    = TRUE;
+				_desc->col     = &re->col;
+			}
+		}
+	}
+	else {
+		switch (marker) {
+
+		case	 1:
+			_desc		= &G.desc[offset + s];
+			break;
+
+		case	-1:
+			_desc		= &G.desc[offset + e + 1];	// XXX : ATTENTION AU SEGV
+			break;
+
+		default:
+			fprintf(stderr, "%s: erreur interne, marker = %d\n",
+			        G.prgname, marker);
+			exit(1);
+		}
+
+		_desc->marker	= marker;
+	}
 }
 
 /******************************************************************************
@@ -813,7 +976,8 @@ void cr_free_RE(void)
 ******************************************************************************/
 void cr_read_input(void)
 {
-     int                       _j, _n, _s = 0, _e = 0, _off, _idx_last;
+     int                       _i, _j, _n, _s = 0, _e = 0, _off, _idx_last,
+						 _marker;
      struct cr_re_desc        *_re;
      size_t                    _nmatch;
      regmatch_t                _pmatch[CR_SIZE + 1];
@@ -844,45 +1008,59 @@ void cr_read_input(void)
           }
 
           for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
-               for (_off = 0, _eflags = 0;
-                    regexec(&_re->reg, G.line + _off, _nmatch, _pmatch,
-                    _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+			for (_i = 0; _i < 2; _i++) {
+				if (_re->regex[_i]) {
+					for (_off = 0, _eflags = 0;
+						regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+						_eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
 
-                    if (G.debug) {
-                         fprintf(stderr, "Match for [%s] // [%s]\n",
-                                 G.line + _off, _re->regex);
-                         fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
-                    }
+						if (G.debug) {
+							fprintf(stderr, "Match for [%s] // [%s]\n",
+								   G.line + _off, _re->regex[_i]);
+							fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
+						}
 
-                    for (_j = 0; _pmatch[_j].rm_so != -1; _j++) {
-                         if (_j == 0 && _pmatch[1].rm_so != -1) {
-                              continue;
-                         }
+						for (_j = 0; _pmatch[_j].rm_so != -1; _j++) {
+							if (_j == 0 && _pmatch[1].rm_so != -1) {
+								continue;
+							}
 
-                         _s   = _pmatch[_j].rm_so;
-                         _e   = _pmatch[_j].rm_eo - 1;
+							_s   = _pmatch[_j].rm_so;
+							_e   = _pmatch[_j].rm_eo - 1;
 
-                         if (G.debug) {
-                              strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
-                              _debug_str[_e -_s + 1]   = 0;
-                              fprintf(stderr, "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-                                      _off, _s, _e, _re->regex, _debug_str);
-                         }
+							if (G.debug) {
+								strncpy(_debug_str,
+								        G.line + _off + _s, _e - _s + 1);
+								_debug_str[_e -_s + 1]   = 0;
+								fprintf(stderr,
+									   "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
+									   _off, _s, _e, _re->regex[_i], _debug_str);
+							}
 
-                         cr_set_desc(&_re->col, _off, _s, _e);
-                    }
+							if (_i == 0)	_marker	=  1;
+							else			_marker	= -1;
+							cr_set_desc(_re, _off, _s, _e, _marker);
+						}
 
-                    /* To handle empty strings
-                       ~~~~~~~~~~~~~~~~~~~~~~~ */
-                    if (_e < 0) {
-                         fprintf(stderr, "%s: warning : empty match !\n", G.prgname);
-                         exit(1);
-                    }
-               }
-               if (G.debug) {
-                    fprintf(stderr, "NO MATCH for [%s] // [%s]\n", G.line + _off,
-                            _re->regex);
-               }
+						/* To handle empty strings
+						   ~~~~~~~~~~~~~~~~~~~~~~~ */
+						if (_e < 0) {
+							fprintf(stderr, "%s: warning : empty match !\n",
+							        G.prgname);
+							exit(1);
+						}
+					}
+
+					if (G.debug) {
+						fprintf(stderr, "NO MATCH for [%s] // [%s]\n",
+						        G.line + _off, _re->regex[_i]);
+					}
+				}
+			}
+
+			if (_re->regex[1]) {
+				cr_marker2color(_re);
+			}
           }
 
           cr_disp_line();
@@ -991,24 +1169,7 @@ void cr_init_desc(void)
           _desc++) {
           _desc->col          = NULL;
           _desc->used         = FALSE;
-     }
-}
-
-/******************************************************************************
-
-                         CR_SET_DESC
-
-******************************************************************************/
-void cr_set_desc(struct cr_color *col, int offset, int s, int e)
-{
-     int                  _i;
-     struct cr_col_desc  *_desc;
-
-     for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
-          if (!_desc->used) {
-               _desc->used    = TRUE;
-               _desc->col     = col;
-          }
+		_desc->marker		= 0;
      }
 }
 
@@ -1026,20 +1187,24 @@ void cr_disp_line(void)
           _c        = G.line[_i];
           if (_c == '\n' || (_c == 0 && G.newline)) {
                if (G.curr_col) {
+//EC
                     cr_end_color(G.curr_col);
+//NC
                     putc('\n', G.curr_col->out);
                }
                else {
+//NC
                     putc('\n', stdout);
                }
           }
           else if (_desc->used) {
-               /* Character was in color
-                  ~~~~~~~~~~~~~~~~~~~~~~ */
+               /* Character is in color
+                  ~~~~~~~~~~~~~~~~~~~~~ */
                if (G.curr_col == NULL) {
                     /* Previous character was not in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_start_color(_desc->col);
+//SC
                     putc(_c, _desc->col->out);
                }
                else {
@@ -1048,13 +1213,16 @@ void cr_disp_line(void)
                     if (_desc-> col == G.curr_col) {
                          /* No color change
                             ~~~~~~~~~~~~~~~ */
+//NC
                          putc(_c, G.curr_col->out);
                     }
                     else {
                          /* Color change
                             ~~~~~~~~~~~~ */
+//EC
                          cr_end_color(G.curr_col);
                          cr_start_color(_desc->col);
+//SC
                          putc(_c, _desc->col->out);
                     }
                }
@@ -1065,12 +1233,15 @@ void cr_disp_line(void)
                if (G.curr_col == NULL) {
                     /* Previous character was not in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//NC
                     putc(_c, stdout);
                }
                else {
                     /* Previous character was in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//EC
                     cr_end_color(G.curr_col);
+//NC
                     putc(_c, G.curr_col->out);
                }
           }
@@ -1082,12 +1253,16 @@ void cr_disp_line(void)
 
      if (G.newline) {
           if (G.curr_col) {
+//EC
                cr_end_color(G.curr_col);
           }
      }
 
      _desc--;
      if (_desc->used) {
+//EC
           cr_end_color(G.curr_col);
      }
+
+	G.curr_col	= NULL;
 }

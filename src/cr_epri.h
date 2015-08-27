@@ -22,7 +22,7 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.17 du 15/07/28 - 
+ *   @(#)  [MB] cr_epri.h Version 1.18 du 15/08/26 - 
  *
  * ============================================================================
  */
@@ -61,7 +61,6 @@ void                                     cr_disp_color(int, char *);
 void                                     cr_start_color(struct cr_color *);
 void                                     cr_end_color(struct cr_color *);
 void                                     cr_init_desc(void);
-void                                     cr_set_desc(struct cr_color *, int, int, int);
 void                                     cr_disp_line(void);
 
 int                                      yylex(void);
