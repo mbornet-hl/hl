@@ -1,0 +1,106 @@
+#!/bin/bash
+#
+#	Quality Assurance script for hl
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_hl_QA	Version 1.2 du 15/09/01 - 
+#
+#	TODO : Comparer les resultats a des fichiers de reference (verifies manuellement)
+#
+#	Creer fichier de configuration de tests :
+#		nom_fichier_input options
+#	=> comparer output avec fichier_output de reference
+#	Si resultat OK :
+#		=> afficher "test numero_du_test : OK" (en vert)
+#	Sinon :
+#		=> afficher "test numero_du_test : KO" (en rouge)
+#		   et afficher les differences en hexadecimal (avec les differences en rouge)
+#	Afficher message de synthese :
+#		Si tout est OK : "nb_tests tests successfully passed" (en vert)
+#		Si erreur      : "nb_errors tests unsuccessful
+#
+
+color_names()
+{
+	echo 'red green yellow blue magenta cyan white' 
+}
+
+cat_script()
+{
+	cat <<-\EOF
+		for color in $(color_names)
+		do
+		     echo "$color"
+		done
+
+		exit 0
+	EOF
+}
+
+lines()
+{
+	cat <<-EOF
+		red
+		green
+		yellow
+		blue
+		magenta
+		cyan
+		white
+	EOF
+}
+
+if [ "$1" = "" ]; then
+	HL="hl"
+else
+	HL="$1"
+fi
+
+echo "=== QA test for $("$HL" -V 2>&1) ==="
+echo
+
+echo    'abababababababab' | "$HL" -r 'a' -g 'b'
+echo -n 'abababababababab' | "$HL" -r 'a' -g 'b'
+echo "END OF LINE"
+echo
+
+echo    'abababababababab' | "$HL" -r 'a' -g 'ab'
+echo    'abababababababab' | "$HL" -g 'ab' -r 'a'
+echo
+
+color_names | "$HL" -r 'red' -g 'green' -y 'yellow' -b 'blue' -m 'magenta' -c 'cyan' -w 'white'
+color_names | "$HL" --color_names
+color_names | "$HL" -1 --color_names
+color_names | "$HL" -2 --color_names
+color_names | "$HL" -3 --color_names
+color_names | "$HL" -4 --color_names
+echo
+
+color_names | "$HL" -R 'red' -G 'green' -Y 'yellow' -B 'blue' -M 'magenta' -C 'cyan' -W 'white'
+color_names | "$HL" --rev_color_names
+color_names | "$HL" -1 --rev_color_names
+color_names | "$HL" -2 --rev_color_names
+color_names | "$HL" -3 --rev_color_names
+color_names | "$HL" -4 --rev_color_names
+echo
+
+cat_script | "$HL" -e -g '\<(for|in|exit)\>' -c 'echo' -%y '\<do\>' -. '\<done\>'
+echo
+
+# Bug a corriger : newline affiche sur stderr au lieu de stdout
+lines | "$HL" -Eb 'blue' -Ec 'cyan' > /dev/null
+echo
+
+lines | "$HL" -Eb 'blue' -Ec 'cyan' -y '.' > /dev/null
+echo
+
+lines | "$HL" -Eb '.*blue.*' -Ec '.*cyan.*' > /dev/null
+echo
+
+lines | "$HL" -EB '.*blue.*' -EC '.*cyan.*' > /dev/null
+echo
+
+# Bug a corriger : boucle infinie sur match vide !
+#color_names | "$HL" -EB 'blue' -EC 'cyan' -ER '$' > /dev/null
+
+color_names | "$HL" -EB 'blue' -EC 'cyan' > /dev/null
