@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.50 du 15/08/27 - 
+ *   @(#)  [MB] cr_main.c Version 1.51 du 15/09/02 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -643,7 +643,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.50");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.51");
                exit(1);
                break;
 
@@ -714,7 +714,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.50");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.51");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h : help\n");
@@ -1189,13 +1189,11 @@ void cr_disp_line(void)
           _c        = G.line[_i];
           if (_c == '\n' || (_c == 0 && G.newline)) {
                if (G.curr_col) {
-//EC
                     cr_end_color(G.curr_col);
-//NC
                     putc('\n', G.curr_col->out);
+				G.curr_col	= NULL;
                }
                else {
-//NC
                     putc('\n', stdout);
                }
           }
@@ -1206,8 +1204,8 @@ void cr_disp_line(void)
                     /* Previous character was not in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_start_color(_desc->col);
-//SC
                     putc(_c, _desc->col->out);
+				G.curr_col	= _desc->col;
                }
                else {
                     /* Previous character was in color
@@ -1215,54 +1213,46 @@ void cr_disp_line(void)
                     if (_desc-> col == G.curr_col) {
                          /* No color change
                             ~~~~~~~~~~~~~~~ */
-//NC
                          putc(_c, G.curr_col->out);
                     }
                     else {
                          /* Color change
                             ~~~~~~~~~~~~ */
-//EC
                          cr_end_color(G.curr_col);
                          cr_start_color(_desc->col);
-//SC
                          putc(_c, _desc->col->out);
+					G.curr_col	= _desc->col;
                     }
                }
           }
           else {
-               /* Character was not in color
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-               if (G.curr_col == NULL) {
-                    /* Previous character was not in color
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//NC
-                    putc(_c, stdout);
-               }
-               else {
+               /* Character is not in color
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               if (G.curr_col) {
                     /* Previous character was in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//EC
                     cr_end_color(G.curr_col);
-//NC
                     putc(_c, G.curr_col->out);
+				G.curr_col	= NULL;
                }
-          }
-          G.curr_col     = _desc->col;
-          if (_c == '\n') {
-               G.curr_col     = NULL;
+               else {
+                    /* Previous character was not in color
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    putc(_c, stdout);
+               }
           }
      }
 
+#if 0
      if (G.newline) {
           if (G.curr_col) {
-//EC
                cr_end_color(G.curr_col);
           }
      }
+#endif
 
      _desc--;
      if (_desc->used) {
-//EC
           cr_end_color(G.curr_col);
      }
 
