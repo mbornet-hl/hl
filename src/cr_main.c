@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.51 du 15/09/02 - 
+ *   @(#)  [MB] cr_main.c Version 1.52 du 15/09/04 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -643,7 +643,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.51");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.52");
                exit(1);
                break;
 
@@ -714,38 +714,40 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.51");
-     fprintf(stderr, "Usage: %s [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.52");
+     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
-     fprintf(stderr, "  -h : help\n");
-     fprintf(stderr, "  -H : help + configuration names\n");
-     fprintf(stderr, "  -V : version\n");
-     fprintf(stderr, "  -v : verbose\n");
-     fprintf(stderr, "  -u : do not bufferize output on stdout\n");
-     fprintf(stderr, "  -e : extended regular expressions\n");
-     fprintf(stderr, "  -i : ignore case\n");
-     fprintf(stderr, "  -E : print on stderr\n");
-     fprintf(stderr, "  -r : red\n");
-     fprintf(stderr, "  -g : green\n");
-     fprintf(stderr, "  -y : yellow\n");
-     fprintf(stderr, "  -b : blue\n");
-     fprintf(stderr, "  -m : magenta\n");
-     fprintf(stderr, "  -c : cyan\n");
-     fprintf(stderr, "  -w : white\n");
-     fprintf(stderr, "  -R : red     (reverse video)\n");
-     fprintf(stderr, "  -G : green   (reverse video)\n");
-     fprintf(stderr, "  -Y : yellow  (reverse video)\n");
-     fprintf(stderr, "  -B : blue    (reverse video)\n");
-     fprintf(stderr, "  -M : magenta (reverse video)\n");
-     fprintf(stderr, "  -C : cyan    (reverse video)\n");
-     fprintf(stderr, "  -W : white   (reverse video)\n");
-     fprintf(stderr, "  -d : debug\n");
-     fprintf(stderr, "  -D : display regular expressions\n");
-     fprintf(stderr, "  -L : lex debug\n");
-     fprintf(stderr, "  -1 : color brightness (half-bright)\n");
-     fprintf(stderr, "  -2 : color brightness (normal : default)\n");
-     fprintf(stderr, "  -3 : color brightness (bright)\n");
-     fprintf(stderr, "  -4 : color brightness (underscore)\n");
+     fprintf(stderr, "  -h  : help\n");
+     fprintf(stderr, "  -H  : help + configuration names\n");
+     fprintf(stderr, "  -V  : version\n");
+     fprintf(stderr, "  -v  : verbose\n");
+     fprintf(stderr, "  -u  : do not bufferize output on stdout\n");
+     fprintf(stderr, "  -e  : extended regular expressions\n");
+     fprintf(stderr, "  -i  : ignore case\n");
+     fprintf(stderr, "  -E  : print on stderr\n");
+     fprintf(stderr, "  -r  : red\n");
+     fprintf(stderr, "  -g  : green\n");
+     fprintf(stderr, "  -y  : yellow\n");
+     fprintf(stderr, "  -b  : blue\n");
+     fprintf(stderr, "  -m  : magenta\n");
+     fprintf(stderr, "  -c  : cyan\n");
+     fprintf(stderr, "  -w  : white\n");
+     fprintf(stderr, "  -R  : red     (reverse video)\n");
+     fprintf(stderr, "  -G  : green   (reverse video)\n");
+     fprintf(stderr, "  -Y  : yellow  (reverse video)\n");
+     fprintf(stderr, "  -B  : blue    (reverse video)\n");
+     fprintf(stderr, "  -M  : magenta (reverse video)\n");
+     fprintf(stderr, "  -C  : cyan    (reverse video)\n");
+     fprintf(stderr, "  -W  : white   (reverse video)\n");
+     fprintf(stderr, "  -%%c : specifies the beginning of a range colorized in color 'c'\n");
+     fprintf(stderr, "  -.  : specifies the end of the previous range\n");
+     fprintf(stderr, "  -d  : debug\n");
+     fprintf(stderr, "  -D  : display regular expressions\n");
+     fprintf(stderr, "  -L  : lex debug\n");
+     fprintf(stderr, "  -1  : color brightness (half-bright)\n");
+     fprintf(stderr, "  -2  : color brightness (normal : default)\n");
+     fprintf(stderr, "  -3  : color brightness (bright)\n");
+     fprintf(stderr, "  -4  : color brightness (underscore)\n");
 
      if (disp_config) {
           cr_display_config();
