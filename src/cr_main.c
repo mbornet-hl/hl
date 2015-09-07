@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.53 du 15/09/04 - 
+ *   @(#)  [MB] cr_main.c Version 1.55 du 15/09/07 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -643,7 +643,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.53");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.55");
                exit(1);
                break;
 
@@ -714,7 +714,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.53");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.55");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1013,6 +1013,7 @@ void cr_read_input(void)
 			for (_i = 0; _i < 2; _i++) {
 				if (_re->regex[_i]) {
 					for (_off = 0, _eflags = 0;
+						_off < G.length &&
 						regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
 						_eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
 
@@ -1044,15 +1045,11 @@ void cr_read_input(void)
 							cr_set_desc(_re, _off, _s, _e, _marker);
 						}
 
-#if 0
 						/* To handle empty strings
 						   ~~~~~~~~~~~~~~~~~~~~~~~ */
 						if (_e < 0) {
-							fprintf(stderr, "%s: warning : empty match !\n",
-							        G.prgname);
-							exit(1);
+							_e	= 0;
 						}
-#endif
 					}
 
 					if (G.debug) {
@@ -1179,6 +1176,17 @@ void cr_init_desc(void)
 
 /******************************************************************************
 
+					CR_SAME_COLORS
+
+******************************************************************************/
+inline bool cr_same_colors(struct cr_color *col1, struct cr_color *col2)
+{
+	return (col1->col_num   == col2->col_num)
+	    && (col1->intensity == col2->intensity);
+}
+
+/******************************************************************************
+
                          CR_DISP_LINE
 
 ******************************************************************************/
@@ -1212,7 +1220,7 @@ void cr_disp_line(void)
                else {
                     /* Previous character was in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                    if (_desc-> col == G.curr_col) {
+                    if (cr_same_colors(_desc-> col, G.curr_col)) {
                          /* No color change
                             ~~~~~~~~~~~~~~~ */
                          putc(_c, G.curr_col->out);
