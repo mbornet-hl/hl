@@ -20,13 +20,14 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.55 du 15/09/07 - 
+ *   @(#)  [MB] cr_main.c Version 1.57 du 15/09/10 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
  *   - cr_list2argv
  *   - cr_lists2argv
  *   - cr_read_config_file
+ *   - cr_read_config_files
  *   - cr_new_config
  *   - cr_new_arg
  *   - cr_new_args
@@ -39,6 +40,7 @@
  *   - cr_getopt
  *   - cr_set_args
  *   - cr_add_to_list
+ *   - cr_clear_marker_flags
  *   - cr_add_regexp
  *   - main
  *   - cr_usage
@@ -49,11 +51,13 @@
  *   - cr_add_config
  *   - cr_add_arg
  *   - cr_free_re
+ *   - cr_marker2color
+ *   - cr_set_desc
  *   - cr_read_input
  *   - cr_start_color
  *   - cr_end_color
  *   - cr_init_desc
- *   - cr_set_desc
+ *   - cr_same_colors
  *   - cr_disp_line
  * ============================================================================
  */
@@ -124,9 +128,39 @@ void cr_lists2argv(struct cr_configs *configs)
                               CR_READ_CONFIG_FILE
 
 ******************************************************************************/
-void cr_read_config_file()
+void cr_read_config_file(char *cfg_file)
 {
-     char                     *_home, _cfg_file[1024];
+     if (access(cfg_file, 0) != 0) {
+#if 0
+          fprintf(stderr, "%s: config file \"%s\" does not exist !\n",
+                  G.prgname, cfg_file);
+          exit(1);
+#else
+		return;
+#endif
+     }
+
+     if ((yyin = fopen(cfg_file, "r")) == NULL) {
+          fprintf(stderr, "%s: cannot open \"%s\" !\n",
+                  G.prgname, cfg_file);
+          perror("fopen");
+          exit(1);
+     }
+
+     yylex();
+
+//     cr_lists2argv(&G.configs);
+}
+
+/******************************************************************************
+
+                              CR_READ_CONFIG_FILES
+
+******************************************************************************/
+void cr_read_config_files(void)
+{
+     int                       _size;
+     char                     *_home, *_cfg_file;
 
      if (G.config_file_read) {
           return;
@@ -137,21 +171,17 @@ void cr_read_config_file()
           exit(1);
      }
 
+     _size     = strlen(_home) + 1 + sizeof(CR_CONFIG_FILENAME);
+     if ((_cfg_file = malloc(_size)) == NULL) {
+          fprintf(stderr, cr_err_malloc, G.prgname);
+          exit(1);
+     }
+
      sprintf(_cfg_file, "%s/%s", _home, CR_CONFIG_FILENAME);
-     if (access(_cfg_file, 0) != 0) {
-          fprintf(stderr, "%s: config file \"%s\" does not exist !\n",
-                  G.prgname, _cfg_file);
-          exit(1);
-     }
 
-     if ((yyin = fopen(_cfg_file, "r")) == NULL) {
-          fprintf(stderr, "%s: cannot open \"%s\" !\n",
-                  G.prgname, _cfg_file);
-          perror("fopen");
-          exit(1);
-     }
+     cr_read_config_file(_cfg_file);
 
-     yylex();
+     cr_read_config_file(CR_DEFLT_CONFIG_FILE);
 
      cr_lists2argv(&G.configs);
 
@@ -225,7 +255,7 @@ struct cr_config *cr_get_config(char *config_name, struct cr_args *args)
      struct cr_config         *_config;
 
      if (!G.config_file_read) {
-          cr_read_config_file();
+          cr_read_config_files();
      }
 
      for (_config = args->configs->extract; _config != 0;
@@ -461,7 +491,7 @@ void cr_add_to_list(struct cr_re_desc *re)
 
 /******************************************************************************
 
-                              CR_CLEAR_MARKER_FLAGS
+                         CR_CLEAR_MARKER_FLAGS
 
 ******************************************************************************/
 inline void cr_clear_marker_flags(void)
@@ -496,7 +526,7 @@ void cr_add_regexp(int color, char *regexp)
 
           cr_add_to_list(_re);
           G.last_RE                = _re;
-		G.last_color			= color;
+          G.last_color             = color;
      }
      else {
           _re                      = G.last_RE;
@@ -511,7 +541,7 @@ void cr_add_regexp(int color, char *regexp)
 
           cr_clear_marker_flags();
           G.last_RE                = 0;
-		G.last_color			= 0;
+          G.last_color             = 0;
      }
 }
 
@@ -550,7 +580,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'H':
-               cr_read_config_file();
+               cr_read_config_files();
                cr_usage(TRUE);
                break;
 
@@ -643,7 +673,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.55");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.57");
                exit(1);
                break;
 
@@ -690,13 +720,13 @@ int main(int argc, char *argv[])
                cr_start_color(&_re->col);
                printf("%s", _re->regex[0]);
                cr_end_color(NULL);
-			printf("\n");
+               printf("\n");
                if (_re->regex[1]) {
                     printf("     => ");
                     cr_start_color(&_re->col);
                     printf("%s", _re->regex[1]);
                     cr_end_color(NULL);
-				printf("\n");
+                    printf("\n");
                }
           }
      }
@@ -714,7 +744,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.55");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.57");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -876,7 +906,7 @@ void cr_free_RE(void)
 
 /******************************************************************************
 
-					CR_MARKER2COLOR
+                         CR_MARKER2COLOR
 
 ******************************************************************************/
 void cr_marker2color( struct cr_re_desc *re)
@@ -884,48 +914,48 @@ void cr_marker2color( struct cr_re_desc *re)
      int                  _i = 0, _curr_level;
      struct cr_col_desc  *_desc;
 
-	_curr_level		= re->curr_level;
+    _curr_level          = re->curr_level;
 //fprintf(stderr, "[%2d] >>> curr_level : %d\n", _i, _curr_level);
      for (_i = 0, _desc = G.desc; _i < G.length; _i++, _desc++) {
-		switch (_desc->marker) {
-		case	 1:
-			_curr_level++;
+          switch (_desc->marker) {
+          case  1:
+               _curr_level++;
 //fprintf(stderr, "[%2d] +++ curr_level : %d\n", _i, _curr_level);
-			break;
+               break;
 
-		case	-1:
-			if (_curr_level > 0) {
-				_curr_level--;
-			}
+          case -1:
+               if (_curr_level > 0) {
+                    _curr_level--;
+               }
 //fprintf(stderr, "[%2d] --- curr_level : %d\n", _i, _curr_level);
-			break;
+               break;
 
-		case	 0:
+          case  0:
 //fprintf(stderr, "[%2d] === curr_level : %d\n", _i, _curr_level);
-			break;
+               break;
 
-		default:
-			fprintf(stderr, "%s: internal error\n", G.prgname);
-			exit(1);
-			break;
-		}
-		if (!_desc->used) {
-			if (_curr_level > 0) {
-//				fprintf(stderr, "==> [%2d] [%c] Color set. Col num = %d\n",
-//				        _i, G.line[_i], re->col.col_num);
-				_desc->used    = TRUE;
-				_desc->col     = &re->col;
-			}
-			else {
-//				fprintf(stderr, "==> [%2d] [%c] NO COLOR.\n", _i, G.line[_i]);
-			}
-		}
-		else {
-//			fprintf(stderr, "==> [%2d] [%c] Already colorized.\n", _i, G.line[_i]);
-		}
-	}
+          default:
+               fprintf(stderr, "%s: internal error\n", G.prgname);
+               exit(1);
+               break;
+          }
+          if (!_desc->used) {
+               if (_curr_level > 0) {
+//                  fprintf(stderr, "==> [%2d] [%c] Color set. Col num = %d\n",
+//                          _i, G.line[_i], re->col.col_num);
+                    _desc->used    = TRUE;
+                    _desc->col     = &re->col;
+               }
+               else {
+//                  fprintf(stderr, "==> [%2d] [%c] NO COLOR.\n", _i, G.line[_i]);
+               }
+          }
+          else {
+//             fprintf(stderr, "==> [%2d] [%c] Already colorized.\n", _i, G.line[_i]);
+          }
+     }
 
-	re->curr_level	= _curr_level;
+     re->curr_level = _curr_level;
 //fprintf(stderr, "[%2d] <<< curr_level : %d\n", _i, _curr_level);
 }
 
@@ -940,35 +970,35 @@ void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
      struct cr_col_desc  *_desc;
 
 //fprintf(stderr, "SET_DESC : s = %3d  e = %3d  marker = %d\n", s, e, marker);
-	if (re->regex[1] == 0) {
-		/* RE descriptor does not define a range
-		   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
-			if (!_desc->used) {
-				_desc->used    = TRUE;
-				_desc->col     = &re->col;
-			}
-		}
-	}
-	else {
-		switch (marker) {
+     if (re->regex[1] == 0) {
+          /* RE descriptor does not define a range
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
+               if (!_desc->used) {
+                    _desc->used    = TRUE;
+                    _desc->col     = &re->col;
+               }
+          }
+     }
+     else {
+          switch (marker) {
 
-		case	 1:
-			_desc		= &G.desc[offset + s];
-			break;
+          case  1:
+               _desc          = &G.desc[offset + s];
+               break;
 
-		case	-1:
-			_desc		= &G.desc[offset + e + 1];	// XXX : ATTENTION AU SEGV
-			break;
+          case -1:
+               _desc          = &G.desc[offset + e + 1];    // XXX : ATTENTION AU SEGV
+               break;
 
-		default:
-			fprintf(stderr, "%s: erreur interne, marker = %d\n",
-			        G.prgname, marker);
-			exit(1);
-		}
+          default:
+               fprintf(stderr, "%s: erreur interne, marker = %d\n",
+                       G.prgname, marker);
+               exit(1);
+          }
 
-		_desc->marker	= marker;
-	}
+          _desc->marker  = marker;
+     }
 }
 
 /******************************************************************************
@@ -979,7 +1009,7 @@ void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
 void cr_read_input(void)
 {
      int                       _i, _j, _n, _s = 0, _e = 0, _off, _idx_last,
-						 _marker;
+                               _marker;
      struct cr_re_desc        *_re;
      size_t                    _nmatch;
      regmatch_t                _pmatch[CR_SIZE + 1];
@@ -1010,58 +1040,58 @@ void cr_read_input(void)
           }
 
           for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
-			for (_i = 0; _i < 2; _i++) {
-				if (_re->regex[_i]) {
-					for (_off = 0, _eflags = 0;
-						_off < G.length &&
-						regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
-						_eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+               for (_i = 0; _i < 2; _i++) {
+                    if (_re->regex[_i]) {
+                         for (_off = 0, _eflags = 0;
+                              _off < G.length &&
+                              regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
 
-						if (G.debug) {
-							fprintf(stderr, "Match for [%s] // [%s]\n",
-								   G.line + _off, _re->regex[_i]);
-							fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
-						}
+                              if (G.debug) {
+                                   fprintf(stderr, "Match for [%s] // [%s]\n",
+                                           G.line + _off, _re->regex[_i]);
+                                   fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
+                              }
 
-						for (_j = 0; _pmatch[_j].rm_so != -1; _j++) {
-							if (_j == 0 && _pmatch[1].rm_so != -1) {
-								continue;
-							}
+                              for (_j = 0; _pmatch[_j].rm_so != -1; _j++) {
+                                   if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                        continue;
+                                   }
 
-							_s   = _pmatch[_j].rm_so;
-							_e   = _pmatch[_j].rm_eo - 1;
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
 
-							if (G.debug) {
-								strncpy(_debug_str,
-								        G.line + _off + _s, _e - _s + 1);
-								_debug_str[_e -_s + 1]   = 0;
-								fprintf(stderr,
-									   "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-									   _off, _s, _e, _re->regex[_i], _debug_str);
-							}
+                                   if (G.debug) {
+                                        strncpy(_debug_str,
+                                                G.line + _off + _s, _e - _s + 1);
+                                        _debug_str[_e -_s + 1]   = 0;
+                                        fprintf(stderr,
+                                                "OFFSET = %3d : %3d => %3d [%s] [%s]\n",
+                                                _off, _s, _e, _re->regex[_i], _debug_str);
+                                   }
 
-							if (_i == 0)	_marker	=  1;
-							else			_marker	= -1;
-							cr_set_desc(_re, _off, _s, _e, _marker);
-						}
+                                   if (_i == 0)   _marker   =  1;
+                                   else           _marker   = -1;
+                                   cr_set_desc(_re, _off, _s, _e, _marker);
+                              }
 
-						/* To handle empty strings
-						   ~~~~~~~~~~~~~~~~~~~~~~~ */
-						if (_e < 0) {
-							_e	= 0;
-						}
-					}
+                              /* To handle empty strings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if (_e < 0) {
+                                   _e   = 0;
+                              }
+                         }
 
-					if (G.debug) {
-						fprintf(stderr, "NO MATCH for [%s] // [%s]\n",
-						        G.line + _off, _re->regex[_i]);
-					}
-				}
-			}
+                         if (G.debug) {
+                              fprintf(stderr, "NO MATCH for [%s] // [%s]\n",
+                                      G.line + _off, _re->regex[_i]);
+                         }
+                    }
+               }
 
-			if (_re->regex[1]) {
-				cr_marker2color(_re);
-			}
+               if (_re->regex[1]) {
+                    cr_marker2color(_re);
+               }
           }
 
           cr_disp_line();
@@ -1170,19 +1200,19 @@ void cr_init_desc(void)
           _desc++) {
           _desc->col          = NULL;
           _desc->used         = FALSE;
-		_desc->marker		= 0;
+          _desc->marker       = 0;
      }
 }
 
 /******************************************************************************
 
-					CR_SAME_COLORS
+                         CR_SAME_COLORS
 
 ******************************************************************************/
 inline bool cr_same_colors(struct cr_color *col1, struct cr_color *col2)
 {
-	return (col1->col_num   == col2->col_num)
-	    && (col1->intensity == col2->intensity);
+     return (col1->col_num   == col2->col_num)
+         && (col1->intensity == col2->intensity);
 }
 
 /******************************************************************************
@@ -1201,7 +1231,7 @@ void cr_disp_line(void)
                if (G.curr_col) {
                     cr_end_color(G.curr_col);
                     putc('\n', G.curr_col->out);
-				G.curr_col	= NULL;
+                    G.curr_col     = NULL;
                }
                else {
                     putc('\n', stdout);
@@ -1215,7 +1245,7 @@ void cr_disp_line(void)
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_start_color(_desc->col);
                     putc(_c, _desc->col->out);
-				G.curr_col	= _desc->col;
+                    G.curr_col     = _desc->col;
                }
                else {
                     /* Previous character was in color
@@ -1231,7 +1261,7 @@ void cr_disp_line(void)
                          cr_end_color(G.curr_col);
                          cr_start_color(_desc->col);
                          putc(_c, _desc->col->out);
-					G.curr_col	= _desc->col;
+                         G.curr_col     = _desc->col;
                     }
                }
           }
@@ -1243,7 +1273,7 @@ void cr_disp_line(void)
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_end_color(G.curr_col);
                     putc(_c, G.curr_col->out);
-				G.curr_col	= NULL;
+                    G.curr_col     = NULL;
                }
                else {
                     /* Previous character was not in color
@@ -1266,5 +1296,5 @@ void cr_disp_line(void)
           cr_end_color(G.curr_col);
      }
 
-	G.curr_col	= NULL;
+     G.curr_col     = NULL;
 }

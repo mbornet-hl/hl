@@ -1,5 +1,5 @@
-.\" 	@(#)	[MB] cr_hl.1	Version 1.7 du 15/09/04 - 
-.TH "HL" "1" "July 2015" "" "User Commands"
+.\" 	@(#)	[MB] cr_hl.1	Version 1.9 du 15/09/10 - 
+.TH "HL" "1" "September 2015" "" "User Commands"
 .SH "NAME" 
 hl - Colorize strings matching regular expressions
 .SH "SYNOPSIS" 
@@ -159,9 +159,11 @@ Colorize the output of the \fBcal\fP command with the first three month in brigh
 
 .SH "FILES"
 .TP
-The \fBhl\fP command can use a configuration file named \fB$HOME/.hl.cfg\fP .
+Since version 1.57, the default configuration for \fBhl\fP is \fB/etc/default/hl\fP . This configuration file is common to all users.
+But each user can define his own configurations in his own \fB$HOME/.hl.cfg\fP configuration file.
+Users' configurations have the precedence over default configurations.
 
-Its recognized syntax is :
+Their recognized syntax is :
 
 - comment lines (beginning with a '#'),
 
@@ -224,13 +226,15 @@ hl		:
 .EE
 
 .SH "MAN PAGE VERSION"
-The version of this man page is 1.7.
-It is compatible with hl version 1.42 and upper.
+The version of this man page is 1.9.
+It is compatible with hl version 1.57 and upper.
 
 .SH "AUTHOR" 
 .PP 
 The original version of this manual page was written by Martial Bornet
 <mbornet (.) pro (at) wanadoo (.) fr> for the \fBGNU/Linux\fP  system.
+
+The author also can be contacted with <man (.) flashnux (at) gmail (.) com>.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU GPL.

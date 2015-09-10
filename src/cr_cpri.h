@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.23 du 15/08/26 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.24 du 15/09/10 -  
  *
  * ============================================================================
  */
@@ -35,6 +35,7 @@
 #include <regex.h>
 
 #define   CR_CONFIG_FILENAME            ".hl.cfg"
+#define   CR_DEFLT_CONFIG_FILE          "/etc/default/hl"
 
 #define   bool                          int
 #define   FALSE                         (0)
