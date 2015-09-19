@@ -2,9 +2,9 @@
 #    Default configuration file for the "hl" command
 #    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#    @(#)	[MB] cr_hl.default	Version 1.6 du 15/09/19 - 
+#    @(#)	[MB] cr_hl.default	Version 1.10 du 15/09/19 - 
 #
-#    /etc/default/hl  version 1.6
+#    /etc/default/hl  version 1.10
 #
 
 acl            :
@@ -270,8 +270,8 @@ hl             :
 hl_conf   :
      -e
      -2b '^#.*'
-     -3c '^([a-zA-Z_][a-zA-Z_0-9]*)[ 	]*:'
-     -3C '^[ 	]+(--[a-zA-Z_][a-zA-Z_0-9]+)\>'
+     -3c '^([a-zA-Z_][-a-zA-Z_0-9]*)[ 	]*:'
+     -3C '^[ 	]+(--[a-zA-Z_][-a-zA-Z_0-9]*)\>'
      -2w '^[ 	]+-[1234%]*[rgybmcwRGYBMCWeiEDd]*'
      -1r '^[ 	]+-%?1r[ 	]+(.*)'
      -1g '^[ 	]+-%?1g[ 	]+(.*)'
