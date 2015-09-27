@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.57 du 15/09/10 - 
+ *   @(#)  [MB] cr_main.c Version 1.59 du 15/09/26 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -508,6 +508,8 @@ inline void cr_clear_marker_flags(void)
 void cr_add_regexp(int color, char *regexp)
 {
      struct cr_re_desc        *_re;
+	int					 _error;
+	char					 _errbuf[256];
 
      if (!G.end_specified) {
           _re                      = cr_new_re_desc();
@@ -519,8 +521,10 @@ void cr_add_regexp(int color, char *regexp)
           _re->col.out             = G.out;
           G.out                    = stdout;
 
-          if (regcomp(&_re->reg[0], regexp, _re->cflags) != 0) {
-               fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
+          if ((_error = regcomp(&_re->reg[0], regexp, _re->cflags)) != 0) {
+			(void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+               fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+			        G.prgname, regexp, _errbuf);
                exit(1);
           }
 
@@ -673,7 +677,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.57");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.59");
                exit(1);
                break;
 
@@ -744,7 +748,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.57");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.59");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
