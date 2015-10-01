@@ -3,7 +3,7 @@
 #	Script for the creation of command substitutes
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] cr_make_hl_links	Version 1.1 du 15/09/28 - 
+#	@(#)	[MB] cr_make_hl_links	Version 1.2 du 15/10/01 - 
 #
 
 HL_BIN="hl_bin"
@@ -23,6 +23,11 @@ if [ "$CURR_DIR_BASE" != "$HL_BIN" ]; then
 fi
 
 HL_GENERIC="hl_generic"
+if [ ! -e "$HL_GENERIC" ]; then
+	echo "$%: \"$HL_GENERIC\" does not exist !" >&2
+	exit 1
+fi
+INUM_HL_GENERIC=$(stat -c "%i" "$HL_GENERIC")
 
 egrep -v '^#|^[ 	]*$' <<-EOF | while read cmd
 	cal
@@ -59,8 +64,8 @@ do
 	if [ ! -e "$cmd" ]; then
 		ln "$HL_GENERIC" "$cmd"
 	else
-		cmp -s "$cmd" "$HL_GENERIC"
-		if [ $? != 0 ]; then
+		INUM=$(stat -c "%i" "$cmd")
+		if [ "$INUM" != "$INUM_HL_GENERIC" ]; then
 			rm -f "$cmd"
 			run_command ln "$HL_GENERIC" "$cmd"
 		fi
