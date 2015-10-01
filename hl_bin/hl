@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+#	Script for command output colorization
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_hl_generic	Version 1.7 du 15/09/26 - 
+#
+#	This script call the original programme with all the arguments
+#	it received, and  pipe it to "hl" using its name as the "hl"
+#	configuration.
+#
+#	In case the user doesn't want the output of the command to
+#	be colorized, the following syntax must be used :
+#	USE_HL=no cmd [args ...]
+#
+
+case "$USE_HL" in
+	n|N|no|NO|0)	USE_HL="no"
+				;;
+esac
+
+progname="$(basename $0)"
+pathname="$(type -p "$progname")"
+dirname="$(dirname "$pathname")"
+
+PATH="$(echo "$PATH" | sed "s|^$dirname:||;s|:$dirname:|:|g")"
+export PATH
+
+if [ "$USE_HL" = "no" ]; then
+	# No colorization
+	# ~~~~~~~~~~~~~~~
+	"$progname" "$@"
+	rc=$?
+else
+	# Default behaviour : colorization
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	"$progname" "$@" | hl --"$progname"
+	rc=${PIPESTATUS[0]}
+fi
+
+exit $rc
