@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.24 du 15/09/10 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.25 du 15/10/04 -  
  *
  * ============================================================================
  */
@@ -63,6 +63,7 @@
 #define   CR_MAGENTA_REV                (13)
 #define   CR_CYAN_REV                   (14)
 #define   CR_WHITE_REV                  (15)
+#define   CR_NO_COLOR                   (16)
 
 #define   CR_C0                         "black"
 #define   CR_C1                         "red"
@@ -80,6 +81,7 @@
 #define   CR_C13                        "magenta reverse"
 #define   CR_C14                        "cyan reverse"
 #define   CR_C15                        "white reverse"
+#define   CR_C16                        "no color"
 
 /* Line size, number of different intervals
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

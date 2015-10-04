@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.59 du 15/09/26 - 
+ *   @(#)  [MB] cr_main.c Version 1.60 du 15/10/04 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -575,7 +575,7 @@ int main(int argc, char *argv[])
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(argc, argv,
-                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:DLdei1234%.:",
+                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:n:DLdei1234%.:",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -660,6 +660,10 @@ int main(int argc, char *argv[])
                cr_add_regexp(CR_WHITE_REV, _args->optarg);
                break;
 
+          case 'n':
+               cr_add_regexp(CR_NO_COLOR, _args->optarg);
+               break;
+
           case 'e':
                G.cflags  |= REG_EXTENDED;
                break;
@@ -677,7 +681,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.59");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.60");
                exit(1);
                break;
 
@@ -748,8 +752,8 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.59");
-     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]\n",
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.60");
+     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
      fprintf(stderr, "  -H  : help + configuration names\n");
@@ -773,6 +777,7 @@ void cr_usage(bool disp_config)
      fprintf(stderr, "  -M  : magenta (reverse video)\n");
      fprintf(stderr, "  -C  : cyan    (reverse video)\n");
      fprintf(stderr, "  -W  : white   (reverse video)\n");
+     fprintf(stderr, "  -n  : never colorize\n");
      fprintf(stderr, "  -%%c : specifies the beginning of a range colorized in color 'c'\n");
      fprintf(stderr, "  -.  : specifies the end of the previous range\n");
      fprintf(stderr, "  -d  : debug\n");
@@ -1118,33 +1123,39 @@ void cr_start_color(struct cr_color *col)
      _col_num       = col->col_num;
 
      if (_col_num > CR_WHITE) {
-          /* Reverse video
-             ~~~~~~~~~~~~~ */
-          switch (col->intensity) {
+		if (_col_num != CR_NO_COLOR) {
+			/* Reverse video
+			   ~~~~~~~~~~~~~ */
+			switch (col->intensity) {
 
-          case 1:
-               fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
-               fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][0]);
-               break;
+			case 1:
+				fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
+				fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][0]);
+				break;
 
-          case 2:
-               fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
-               fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][1]);
-               break;
+			case 2:
+				fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
+				fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][1]);
+				break;
 
-          case 3:
-               fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
-               fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][2]);
-               break;
+			case 3:
+				fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
+				fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][2]);
+				break;
 
-          case 4:
-               fprintf(_out, "\033[07;04;%dm", 30 + _col_num - 8);
-               break;
+			case 4:
+				fprintf(_out, "\033[07;04;%dm", 30 + _col_num - 8);
+				break;
 
-          default:
-               fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
-               exit(1);
-          }
+			default:
+				fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
+				exit(1);
+			}
+		}
+		else {
+			/* No color
+			   ~~~~~~~~ */
+		}
      }
      else {
           /* Normal video
@@ -1186,7 +1197,9 @@ void cr_end_color(struct cr_color *col)
      if (col)  _out = col->out;
      else      _out = stdout;
 
-     fprintf(_out, "\033[0m");
+	if (col->col_num != CR_NO_COLOR) {
+		fprintf(_out, "\033[0m");
+	}
 }
 
 /******************************************************************************
