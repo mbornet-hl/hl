@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.60 du 15/10/04 - 
+ *   @(#)  [MB] cr_main.c Version 1.61 du 15/10/05 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -681,7 +681,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.60");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.61");
                exit(1);
                break;
 
@@ -727,13 +727,13 @@ int main(int argc, char *argv[])
                printf("[%2d] ", ++_i);
                cr_start_color(&_re->col);
                printf("%s", _re->regex[0]);
-               cr_end_color(NULL);
+               cr_end_color(&_re->col);
                printf("\n");
                if (_re->regex[1]) {
                     printf("     => ");
                     cr_start_color(&_re->col);
                     printf("%s", _re->regex[1]);
-                    cr_end_color(NULL);
+                    cr_end_color(&_re->col);
                     printf("\n");
                }
           }
@@ -752,7 +752,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.60");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.61");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1197,7 +1197,7 @@ void cr_end_color(struct cr_color *col)
      if (col)  _out = col->out;
      else      _out = stdout;
 
-	if (col->col_num != CR_NO_COLOR) {
+	if (col && col->col_num != CR_NO_COLOR) {
 		fprintf(_out, "\033[0m");
 	}
 }
