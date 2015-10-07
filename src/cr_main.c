@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.61 du 15/10/05 - 
+ *   @(#)  [MB] cr_main.c Version 1.62 du 15/10/07 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -509,7 +509,7 @@ void cr_add_regexp(int color, char *regexp)
 {
      struct cr_re_desc        *_re;
 	int					 _error;
-	char					 _errbuf[256];
+	char					 _errbuf[256], *_p;
 
      if (!G.end_specified) {
           _re                      = cr_new_re_desc();
@@ -519,7 +519,16 @@ void cr_add_regexp(int color, char *regexp)
           _re->col.col_num         = color;
           _re->col.intensity       = G.intensity;
           _re->col.out             = G.out;
+		_re->max_sub			= 1;
           G.out                    = stdout;
+
+		/* Count number of possible sub strings
+		   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		for (_p = regexp; (*_p); _p++) {
+			if (*_p == '(') {
+				_re->max_sub++;
+			}
+		}
 
           if ((_error = regcomp(&_re->reg[0], regexp, _re->cflags)) != 0) {
 			(void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
@@ -681,7 +690,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.61");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.62");
                exit(1);
                break;
 
@@ -752,7 +761,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.61");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.62");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1062,7 +1071,7 @@ void cr_read_input(void)
                                    fprintf(stderr, "LINE : [%s] :\n", G.line + _off);
                               }
 
-                              for (_j = 0; _pmatch[_j].rm_so != -1; _j++) {
+                              for (_j = 0; _j < _re->max_sub; _j++) {
                                    if (_j == 0 && _pmatch[1].rm_so != -1) {
                                         continue;
                                    }

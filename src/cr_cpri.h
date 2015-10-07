@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.25 du 15/10/04 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.26 du 15/10/07 -  
  *
  * ============================================================================
  */
@@ -131,6 +131,7 @@ struct cr_re_desc {
 	int							 curr_level;
      struct cr_color                     col;
      struct cr_re_desc                  *next;
+	int							 max_sub;
 };
 
 struct cr_col_desc {
