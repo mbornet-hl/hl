@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.62 du 15/10/07 - 
+ *   @(#)  [MB] cr_main.c Version 1.63 du 15/10/11 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,7 +136,7 @@ void cr_read_config_file(char *cfg_file)
                   G.prgname, cfg_file);
           exit(1);
 #else
-		return;
+          return;
 #endif
      }
 
@@ -508,8 +508,8 @@ inline void cr_clear_marker_flags(void)
 void cr_add_regexp(int color, char *regexp)
 {
      struct cr_re_desc        *_re;
-	int					 _error;
-	char					 _errbuf[256], *_p;
+     int                       _error;
+     char                      _errbuf[256], *_p;
 
      if (!G.end_specified) {
           _re                      = cr_new_re_desc();
@@ -519,21 +519,21 @@ void cr_add_regexp(int color, char *regexp)
           _re->col.col_num         = color;
           _re->col.intensity       = G.intensity;
           _re->col.out             = G.out;
-		_re->max_sub			= 1;
+          _re->max_sub             = 1;
           G.out                    = stdout;
 
-		/* Count number of possible sub strings
-		   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		for (_p = regexp; (*_p); _p++) {
-			if (*_p == '(') {
-				_re->max_sub++;
-			}
-		}
+          /* Count number of possible sub strings
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          for (_p = regexp; (*_p); _p++) {
+               if (*_p == '(') {
+                    _re->max_sub++;
+               }
+          }
 
           if ((_error = regcomp(&_re->reg[0], regexp, _re->cflags)) != 0) {
-			(void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+               (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
                fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
-			        G.prgname, regexp, _errbuf);
+                       G.prgname, regexp, _errbuf);
                exit(1);
           }
 
@@ -565,15 +565,57 @@ void cr_add_regexp(int color, char *regexp)
 ******************************************************************************/
 int main(int argc, char *argv[])
 {
-     int                       _opt, _i;
+     int                       _opt, _i, _lg, _argc;
      struct cr_args           *_args;
      struct cr_re_desc        *_re;
+     char                     *_env_var_name, *_env_deflt, *_deflt_color_opt,
+                              **_argv, *_argv_deflt[4];
 
      G.prgname      = argv[0];
      G.out          = stdout;
 
-     if (argc == 1) {
+     switch (argc) {
+
+     case 1:
           cr_usage(FALSE);
+          break;
+
+     case 2:
+          if (argv[1][0] != '-') {
+               /* Only one argument (the regular expression)
+                * => get the default color in the environment variable
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               _env_var_name  = CR_ENV_DEFLT;
+               if ((_env_deflt = getenv(_env_var_name)) == 0) {
+                    fprintf(stderr, "%s: minimal syntax but \"%s\" is undefined !\n",
+                            G.prgname, _env_var_name);
+                    exit(1);
+               }
+               _lg       = strlen(_env_deflt);
+               if ((_deflt_color_opt = malloc(_lg + 2)) == 0) {
+                    fprintf(stderr, cr_err_malloc, G.prgname);
+                    exit(1);
+               }
+               sprintf(_deflt_color_opt, "-%s", _env_deflt);
+
+               _argv_deflt[0] = argv[0];
+               _argv_deflt[1] = _deflt_color_opt;
+               _argv_deflt[2] = argv[1];
+               _argv_deflt[3] = NULL;
+
+               _argc          = 3;
+               _argv          = _argv_deflt;
+          }
+          else {
+               _argc          = argc;
+               _argv          = argv;
+          }
+          break;
+
+     default:
+          _argc          = argc;
+          _argv          = argv;
+          break;
      }
 
      cr_init_list();
@@ -583,7 +625,7 @@ int main(int argc, char *argv[])
 
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
-     _args               = cr_set_args(argc, argv,
+     _args               = cr_set_args(_argc, _argv,
                                        "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:n:DLdei1234%.:",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
@@ -690,7 +732,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.62");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.63");
                exit(1);
                break;
 
@@ -761,7 +803,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.62");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.63");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1132,39 +1174,39 @@ void cr_start_color(struct cr_color *col)
      _col_num       = col->col_num;
 
      if (_col_num > CR_WHITE) {
-		if (_col_num != CR_NO_COLOR) {
-			/* Reverse video
-			   ~~~~~~~~~~~~~ */
-			switch (col->intensity) {
+          if (_col_num != CR_NO_COLOR) {
+               /* Reverse video
+                  ~~~~~~~~~~~~~ */
+               switch (col->intensity) {
 
-			case 1:
-				fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
-				fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][0]);
-				break;
+               case 1:
+                    fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][0]);
+                    fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][0]);
+                    break;
 
-			case 2:
-				fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
-				fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][1]);
-				break;
+               case 2:
+                    fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][1]);
+                    fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][1]);
+                    break;
 
-			case 3:
-				fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
-				fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][2]);
-				break;
+               case 3:
+                    fprintf(_out, "\033[%sm", cr_best_fg[_col_num - 9][2]);
+                    fprintf(_out, "\033[48;5;%dm", cr_col_codes[_col_num - 9][2]);
+                    break;
 
-			case 4:
-				fprintf(_out, "\033[07;04;%dm", 30 + _col_num - 8);
-				break;
+               case 4:
+                    fprintf(_out, "\033[07;04;%dm", 30 + _col_num - 8);
+                    break;
 
-			default:
-				fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
-				exit(1);
-			}
-		}
-		else {
-			/* No color
-			   ~~~~~~~~ */
-		}
+               default:
+                    fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
+                    exit(1);
+               }
+          }
+          else {
+               /* No color
+                  ~~~~~~~~ */
+          }
      }
      else {
           /* Normal video
@@ -1206,9 +1248,9 @@ void cr_end_color(struct cr_color *col)
      if (col)  _out = col->out;
      else      _out = stdout;
 
-	if (col && col->col_num != CR_NO_COLOR) {
-		fprintf(_out, "\033[0m");
-	}
+     if (col && col->col_num != CR_NO_COLOR) {
+          fprintf(_out, "\033[0m");
+     }
 }
 
 /******************************************************************************

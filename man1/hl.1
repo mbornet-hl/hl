@@ -1,10 +1,16 @@
-.\" 	@(#)	[MB] cr_hl.1	Version 1.11 du 15/10/04 - 
+.\" 	@(#)	[MB] cr_hl.1	Version 1.15 du 15/10/11 - 
 .TH "HL" "1" "September 2015" "" "User Commands"
 .SH "NAME" 
 hl - Colorize strings matching regular expressions
 .SH "SYNOPSIS" 
 .PP 
 \fBhl\fP \fB [-h|-H|-V|-[eiuvdDEL1234][-[[%.]rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\fP
+
+or :
+
+\fBhl\fP \fBregexp\fP
+
+with environment variable HL_DEFAULT initialized
 
 .SH "DESCRIPTION" 
 .PP 
@@ -104,6 +110,11 @@ will colorize each letter in green.
 If no parenthesis are specified in the regular expression, then all characters matching the regexp will be colorized.
 If parenthesis are specified, only characters captured in the parenthesis will be colorized.
 
+.SH DEFAULT COLOR
+\fBhl\fP can be used to quickly highlight strings matching a regular expression with a default color.
+The environment variable HL_DEFAULT must be defined and initialized with a valid color specifier,
+such as "g", "2r" or "3Y".
+
 .SH "EXAMPLES"
 .TP
 Example 1 :
@@ -157,7 +168,12 @@ Example 7 :
 
 Colorize the output of the \fBcal\fP command with the first three month in bright cyan : from the word \fBJanuary\fP to the first \fBempty line\fP.
 
+.TP
+Example 8 :
+.B	export HL_DEFAULT=3Y; ls -l / | hl lib
 
+Specify that the default highlight color is '3Y' (high intensity yellow in reverse video), so that hl can be used with
+no color option but just one regular expression on the command line.
 
 .SH "FILES"
 .TP
@@ -227,9 +243,12 @@ hl		:
 	-w  '.*\<white\>.*'
 .EE
 
+.SH "SEE ALSO"
+hl(5)
+
 .SH "MAN PAGE VERSION"
-The version of this man page is 1.11.
-It is compatible with hl version 1.57 and upper.
+The version of this man page is 1.15.
+It is compatible with hl version 1.63 and upper.
 
 .SH "AUTHOR" 
 .PP 

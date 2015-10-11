@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.26 du 15/10/07 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.27 du 15/10/11 -  
  *
  * ============================================================================
  */
@@ -36,6 +36,7 @@
 
 #define   CR_CONFIG_FILENAME            ".hl.cfg"
 #define   CR_DEFLT_CONFIG_FILE          "/etc/default/hl"
+#define	CR_ENV_DEFLT				"HL_DEFAULT"
 
 #define   bool                          int
 #define   FALSE                         (0)
