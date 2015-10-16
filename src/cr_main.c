@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.63 du 15/10/11 - 
+ *   @(#)  [MB] cr_main.c Version 1.64 du 15/10/17 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -587,9 +587,13 @@ int main(int argc, char *argv[])
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                _env_var_name  = CR_ENV_DEFLT;
                if ((_env_deflt = getenv(_env_var_name)) == 0) {
+#if 0
                     fprintf(stderr, "%s: minimal syntax but \"%s\" is undefined !\n",
                             G.prgname, _env_var_name);
                     exit(1);
+#else
+                    _env_deflt     = CR_DEFLT_COLOR;
+#endif
                }
                _lg       = strlen(_env_deflt);
                if ((_deflt_color_opt = malloc(_lg + 2)) == 0) {
@@ -732,7 +736,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.63");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.64");
                exit(1);
                break;
 
@@ -803,7 +807,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.63");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.64");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
