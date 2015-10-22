@@ -3,16 +3,22 @@
 #	Script for command output colorization
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] cr_hl_generic	Version 1.7 du 15/09/26 - 
+#	@(#)	[MB] cr_hl_generic	Version 1.10 du 15/10/10 - 
 #
-#	This script call the original programme with all the arguments
-#	it received, and  pipe it to "hl" using its name as the "hl"
+#	This script calls the original programme with all the arguments
+#	it received, and  pipes it to "hl" using its name as the "hl"
 #	configuration.
 #
 #	In case the user doesn't want the output of the command to
 #	be colorized, the following syntax must be used :
 #	USE_HL=no cmd [args ...]
 #
+
+OUT=/tmp/OUT.$$
+ERR=/tmp/ERR.$$
+
+mknod $OUT p
+mknod $ERR p
 
 case "$USE_HL" in
 	n|N|no|NO|0)	USE_HL="no"
@@ -34,8 +40,15 @@ if [ "$USE_HL" = "no" ]; then
 else
 	# Default behaviour : colorization
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	"$progname" "$@" | hl --"$progname"
-	rc=${PIPESTATUS[0]}
+	hl -u --"$progname" < "$ERR" & hl --"$progname" < "$OUT" & \
+		"$progname" "$@" > "$OUT" 2> "$ERR"
+
+	rc=$?
+
 fi
+
+wait
+
+rm -f "$OUT" "$ERR"
 
 exit $rc
