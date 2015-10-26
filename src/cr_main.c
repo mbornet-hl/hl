@@ -20,7 +20,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.64 du 15/10/17 - 
+ *   @(#)  [MB] cr_main.c Version 1.66 du 15/10/23 - 
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -546,6 +546,9 @@ void cr_add_regexp(int color, char *regexp)
           _re->regex[1]            = regexp;
 
           if (_re->regex[1]) {
+			if (!strcmp(_re->regex[0], _re->regex[1])) {
+				_re->begin_is_end	= TRUE;
+			}
                if (regcomp(&_re->reg[1], regexp, _re->cflags) != 0) {
                     fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
                     exit(1);
@@ -736,7 +739,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.64");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.66");
                exit(1);
                break;
 
@@ -807,7 +810,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.64");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.66");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1106,6 +1109,9 @@ void cr_read_input(void)
           for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
                for (_i = 0; _i < 2; _i++) {
                     if (_re->regex[_i]) {
+					if (_i == 1 && _re->begin_is_end) {
+						break;
+					}
                          for (_off = 0, _eflags = 0;
                               _off < G.length &&
                               regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
@@ -1134,8 +1140,15 @@ void cr_read_input(void)
                                                 _off, _s, _e, _re->regex[_i], _debug_str);
                                    }
 
-                                   if (_i == 0)   _marker   =  1;
-                                   else           _marker   = -1;
+							if (!_re->begin_is_end) {
+								if (_i == 0)   _marker   =  1;
+								else           _marker   = -1;
+							}
+							else {
+								_re->inside_zone	= !_re->inside_zone;
+								if (_re->inside_zone)	_marker	=  1;
+								else					_marker	= -1;
+							}
                                    cr_set_desc(_re, _off, _s, _e, _marker);
                               }
 

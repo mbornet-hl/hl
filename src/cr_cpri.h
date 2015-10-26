@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.28 du 15/10/17 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.29 du 15/10/23 -  
  *
  * ============================================================================
  */
@@ -129,6 +129,8 @@ struct cr_color {
 struct cr_re_desc {
      regex_t                             reg[2];
      char                               *regex[2];
+	bool							 begin_is_end,
+								 inside_zone;
      int                                 cflags;
 	int							 curr_level;
      struct cr_color                     col;
