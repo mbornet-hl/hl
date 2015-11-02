@@ -2,9 +2,9 @@
 #    Default configuration file for the "hl" command
 #    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#    @(#)	[MB] cr_hl.default	Version 1.12 du 15/09/26 - 
+#    @(#)	[MB] cr_hl.default	Version 1.19 du 15/11/02 - 
 #
-#    /etc/default/hl  version 1.12
+#    /etc/default/hl  version 1.19
 #
 
 # ============================== COMMANDS ==============================
@@ -39,6 +39,10 @@ diff           :
      -y  '^<.*'
      -g  '^>.*'
      -c  '^([0-9]+(,[0-9]+)?[a-z][0-9]+(,[0-9]+)?)'
+     -2B '^diff -r .+' 
+     -2b 'Only in' 
+     -c '^Only in ([^:]+):'
+     -3w '^Only in [^:]+: (.+)'
 
 dpkg-query     :
      -e
@@ -125,22 +129,22 @@ iptables       :
 man            :
      -e
      -2G '^([A-Z][A-Z0-9]*\([1-8]\)) +.* +([A-Z][A-Z0-9]*\([1-8]\))$'
-     -2B '^[A-Z][A-Z ]*'
+     -2B '^[A-Z][A-Z ]*$'
      -3y '^[ 	]+-[a-zA-Z0-9][ 	]'
-     -R  '(red).*reverse video'
-     -G  '(green).*reverse video'
-     -Y  '(yellow).*reverse video'
-     -B  '(blue).*reverse video'
-     -M  '(magenta).*reverse video'
-     -C  '(cyan).*reverse video'
-     -W  '(white).*reverse video'
-     -r  'red'
-     -g  'green'
-     -y  'yellow'
-     -b  'blue'
-     -m  'magenta'
-     -c  'cyan'
-     -w  'white'
+     -R  '(\<red\>).*reverse video'
+     -G  '(\<green\>).*reverse video'
+     -Y  '(\<yellow\>).*reverse video'
+     -B  '(\<blue\>).*reverse video'
+     -M  '(\<magenta\>).*reverse video'
+     -C  '(\<cyan\>).*reverse video'
+     -W  '(\<white\>).*reverse video'
+     -r  '\<red\>'
+     -g  '\<green\>'
+     -y  '\<yellow\>'
+     -b  '\<blue\>'
+     -m  '\<magenta\>'
+     -c  '\<cyan\>'
+     -w  '\<white\>'
      -3b '(Example .*):'
 
 namei          :
@@ -311,18 +315,18 @@ colors42       :
      -W  'Color42'
 
 color_names    :
-     -r  'red'
-     -g  'green'
-     -y  'yellow'
-     -b  'blue'
-     -m  'magenta'
-     -c  'cyan'
-     -w  'white'
+     -r  '\<red\>'
+     -g  '\<green\>'
+     -y  '\<yellow\>'
+     -b  '\<blue\>'
+     -m  '\<magenta\>'
+     -c  '\<cyan\>'
+     -w  '\<white\>'
 
 err            :
      -ei
      -r  '.*error.*'
-     -y  '.*warn.*'
+     -y  '(.*(warn|remark).*)'
 #    -c  '[[:alpha:]][[:alnum:]]]?_[[:alnum:]]+\.[cly]'
 #    -m  '[[:alpha:]][[:alnum:]]]?_[[:alnum:]]+\.o'
 #    -b  '^----- .*|^ {8}.*'
@@ -512,13 +516,13 @@ ps_cpu_time    :
      -c  '(00:00:[1-9][0-9] .*)'
 
 rev_color_names :
-     -R  'red'
-     -G  'green'
-     -Y  'yellow'
-     -B  'blue'
-     -M  'magenta'
-     -C  'cyan'
-     -W  'white'
+     -R  '\<red\>'
+     -G  '\<green\>'
+     -Y  '\<yellow\>'
+     -B  '\<blue\>'
+     -M  '\<magenta\>'
+     -C  '\<cyan\>'
+     -W  '\<white\>'
 
 samba          :
      -e
