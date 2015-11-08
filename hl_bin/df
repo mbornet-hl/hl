@@ -3,7 +3,7 @@
 #	Script for command output colorization
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] cr_hl_generic	Version 1.10 du 15/10/10 - 
+#	@(#)	[MB] cr_hl_generic	Version 1.12 du 15/11/08 - 
 #
 #	This script calls the original programme with all the arguments
 #	it received, and  pipes it to "hl" using its name as the "hl"
@@ -31,6 +31,11 @@ dirname="$(dirname "$pathname")"
 
 PATH="$(echo "$PATH" | sed "s|^$dirname:||;s|:$dirname:|:|g")"
 export PATH
+
+if [ "$WHICH" = 1 ]; then
+	type "$progname"
+	exit 1
+fi
 
 if [ "$USE_HL" = "no" ]; then
 	# No colorization
