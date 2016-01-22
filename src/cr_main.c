@@ -20,7 +20,10 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.67 du 15/10/28 - 
+ *   @(#)  [MB] cr_main.c Version 1.69 du 16/01/23 - 
+ *
+ * Sources from the original hl command are available on :
+ * https://github.com/mbornet-hl/hl
  *
  *   Functions in this file :
  *   ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -65,7 +68,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <getopt.h>
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
@@ -739,7 +741,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.67");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.69");
                exit(1);
                break;
 
@@ -810,7 +812,7 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.67");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.69");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");

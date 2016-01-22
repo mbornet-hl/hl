@@ -22,7 +22,10 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.18 du 15/08/26 - 
+ *   @(#)  [MB] cr_epri.h Version 1.19 du 15/11/11 - 
+ *
+ * Sources from the original hl command are available on :
+ * https://github.com/mbornet-hl/hl
  *
  * ============================================================================
  */

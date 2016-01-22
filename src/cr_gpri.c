@@ -22,8 +22,10 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  cr_gpri.c  1.10  15/07/28  MB  
+ *   @(#)  cr_gpri.c  1.11  15/11/11  MB  
  *
+ * Sources from the original hl command are available on :
+ * https://github.com/mbornet-hl/hl
  * ============================================================================
  */
 

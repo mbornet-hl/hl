@@ -22,7 +22,10 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.29 du 15/10/23 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.31 du 16/01/23 -  
+ *
+ * Sources from the original hl command are available on :
+ * https://github.com/mbornet-hl/hl
  *
  * ============================================================================
  */
@@ -40,8 +43,13 @@
 #define   CR_DEFLT_COLOR                "3Y"
 
 #define   bool                          int
+#if ! defined(FALSE)
 #define   FALSE                         (0)
+#endif
+
+#if ! defined(TRUE)
 #define   TRUE                          (1)
+#endif
 
 #define   CR_NB_COLORS                  (16)
 
