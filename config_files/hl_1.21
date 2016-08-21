@@ -2,9 +2,9 @@
 #    Default configuration file for the "hl" command
 #    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#    @(#)	[MB] cr_hl.default	Version 1.22 du 16/08/21 - 
+#    @(#)	[MB] cr_hl.default	Version 1.21 du 16/08/21 - 
 #
-#    /etc/default/hl  version 1.22
+#    /etc/default/hl  version 1.21
 #
 
 # ============================== COMMANDS ==============================
@@ -44,8 +44,8 @@ diff           :
      -y  '^<.*'
      -g  '^>.*'
      -c  '^([0-9]+(,[0-9]+)?[a-z][0-9]+(,[0-9]+)?)'
-     -2B '^diff -r .+'
-     -2b 'Only in'
+     -2B '^diff -r .+' 
+     -2b 'Only in' 
      -c '^Only in ([^:]+):'
      -3w '^Only in [^:]+: (.+)'
 
@@ -59,7 +59,7 @@ dpkg-query     :
 dmidecode       :
         -e
         -1B '^#.*'
-        -3g '^Handle .+'
+        -3g '^Handle .+' 
         -2B '^[^ 	].+'
         -3b 'Manufacturer:'
         -3y 'Manufacturer: *(.+)'
@@ -222,8 +222,8 @@ smartctl		:
 	-y '(Reallocated_Event_Count|Multi_Zone_Error_Rate).+ ([1-9][0-9]*) *$'
 	-c '(Reallocated_Event_Count|Multi_Zone_Error_Rate).+ (0) *$'
 
-strace         :
-     -e
+strace         :   
+     -e  
      -3c '\<(open|close)\>'
      -2y '\<(read)\>'
      -3r '\<(write)\>'
