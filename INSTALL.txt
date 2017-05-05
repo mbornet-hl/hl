@@ -1,0 +1,14 @@
+Compilation
+============
+
+cd src
+make
+
+Installation
+=============
+
+You don't really need to install hl, just set environment variables pointing to the source directory:
+
+export PATH=<SCRDIR>/hl_bin
+export MANPAGER=<SRCDIR>/scripts/hl_man_pager
+
