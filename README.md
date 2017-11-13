@@ -5,7 +5,7 @@ Here is a review_ about `hl` is a french magazine (Linux Pratique).
 
 #
 # hl command :
-# ~~~~~~~~~~~~
+# ------------
 #
 # This command uses regcomp() and regexec() to colorize (highlight)
 # strings from stdin using options on the command line.
@@ -85,7 +85,7 @@ Here is a review_ about `hl` is a french magazine (Linux Pratique).
 #
 #
 # Examples :
-# ~~~~~~~~~~
+# ----------
 #
 #
 #  /sbin/ifconfig -a | hl -ei -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'       \
@@ -110,5 +110,6 @@ Here is a review_ about `hl` is a french magazine (Linux Pratique).
 #  df -h | hl --df
 #
 #  /sbin/ifconfig -a | hl --IP --MAC --eth
+
 
 .. _review: https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl
