@@ -1,79 +1,102 @@
 hl : a colorization command
 ===========================
 
-Here is a [review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` is a french magazine (Linux Pratique).
+Purpose
+-------
+This command uses regcomp() and regexec() to colorize (highlight)
+strings from stdin using options on the command line.
 
 `hl` can use up to 42 colors :
 
 ![hl_colors](https://github.com/mbornet-hl/hl/blob/master/images/hl_colors.png)
 
-hl command :
-------------
-This command uses regcomp() and regexec() to colorize (highlight)
-strings from stdin using options on the command line.
+Here is a [review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` is a french magazine (Linux Pratique).
 
-Usage :
+Usage
+-----
 
 ```
-hl: version 1.45
-Usage: hl [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]
-  -h : help
-  -H : help + configuration names
-  -V : version
-  -v : verbose
-  -u : do not bufferize output on stdout
-  -e : extended regular expressions
-  -i : ignore case
-  -E : print on stderr
-  -r : red
-  -g : green
-  -y : yellow
-  -b : blue
-  -m : magenta
-  -c : cyan
-  -w : white
-  -R : red     (reverse video)
-  -G : green   (reverse video)
-  -Y : yellow  (reverse video)
-  -B : blue    (reverse video)
-  -M : magenta (reverse video)
-  -C : cyan    (reverse video)
-  -W : white   (reverse video)
-  -d : debug
-  -D : display regular expressions
-  -L : lex debug
-  -1 : color brightness (half-bright)
-  -2 : color brightness (normal : default)
-  -3 : color brightness (bright)
-  -4 : color brightness (underscore)
+hl: version 1.67
+Usage: hl [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]
+  -h  : help
+  -H  : help + configuration names
+  -V  : version
+  -v  : verbose
+  -u  : do not bufferize output on stdout
+  -e  : extended regular expressions
+  -i  : ignore case
+  -E  : print on stderr
+  -r  : red
+  -g  : green
+  -y  : yellow
+  -b  : blue
+  -m  : magenta
+  -c  : cyan
+  -w  : white
+  -R  : red     (reverse video)
+  -G  : green   (reverse video)
+  -Y  : yellow  (reverse video)
+  -B  : blue    (reverse video)
+  -M  : magenta (reverse video)
+  -C  : cyan    (reverse video)
+  -W  : white   (reverse video)
+  -n  : never colorize
+  -%c : specifies the beginning of a range colorized in color 'c'
+  -.  : specifies the end of the previous range
+  -d  : debug
+  -D  : display regular expressions
+  -L  : lex debug
+  -1  : color brightness (half-bright)
+  -2  : color brightness (normal : default)
+  -3  : color brightness (bright)
+  -4  : color brightness (underscore)
   Configurations :
+    --acl
     --apt
+    --C
     --cal
+    --colors
+    --colors42
+    --color_names
     --df
     --diff
     --dpkg-query
     --err
+    --eth
     --ethtool
+    --eth_VIP
+    --fail2ban
+    --fdisk
+    --free
+    --ha_log
     --heartbeat
     --hl
+    --hl_usage
+    --hosts
     --ifconfig
-    --ip
     --IP
-    --eth
+    --ip
     --iptables
     --ls_doc
     --MAC
+    --man
+    --namei
     --netstat
+    --passwd
     --percent
     --ps_cpu
+    --rev_color_names
     --samba
+    --sep3
     --services
+    --show_disks
+    --tcpdump
     --validate_IP
     --virsh_list
+    --w
     --xxd
-    --za_conf
     --za0
-    --colors
+    --za_conf
     --alpha
     --beta
     --alphabeta
@@ -81,14 +104,122 @@ Usage: hl [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name 
     --beta
     --alphabeta
     --alphabeta2
-    --hl_usage
-    --colors42
     --col_dupl
+    --free_used_swap
+    --swap
+    --p
+    --test
+    --hi_red
+    --hi_green
+    --hi_yellow
+    --hi_blue
+    --hi_magenta
+    --hi_cyan
+    --hi_white
+    --dim_red
+    --dim_green
+    --dim_yellow
+    --dim_blue
+    --dim_magenta
+    --dim_cyan
+    --dim_white
+    --red
+    --green
+    --yellow
+    --blue
+    --magenta
+    --cyan
+    --white
+    --file
+    --sql
+    --quote1
+    --quote2
+    --html
+    --ref_list
+    --apt-get
+    --cal
+    --chkconfig
+    --df
+    --diff
+    --dpkg-query
+    --dmidecode
+    --ethtool
+    --fdisk
+    --free
+    --ifconfig
+    --iostat
+    --iptables
     --man
+    --mpg123
+    --namei
+    --netstat
+    --objdump
+    --ps
+    --smartctl
+    --strace
+    --stty
+    --tcpdump
+    --w
+    --xxd
+    --acl
+    --C
+    --colors
+    --colors42
+    --color_names
+    --err
+    --eth
+    --eth_VIP
+    --fail2ban
+    --ha_log
+    --heartbeat
+    --hl
+    --hl_conf
+    --hl_usage
+    --hosts
+    --IP
+    --ip
+    --jigdo
+    --ls_doc
+    --MAC
+    --on-off
+    --passwd
+    --passwd_chk
+    --percent
+    --ps_cpu
+    --ps_cpu_time
+    --rev_color_names
+    --samba
+    --sep3
+    --services
+    --sh
+    --show_disks
+    --validate_IP
+    --virsh_list
+    --hi_red
+    --hi_green
+    --hi_yellow
+    --hi_blue
+    --hi_magenta
+    --hi_cyan
+    --hi_white
+    --dim_red
+    --dim_green
+    --dim_yellow
+    --dim_blue
+    --dim_magenta
+    --dim_cyan
+    --dim_white
+    --red
+    --green
+    --yellow
+    --blue
+    --magenta
+    --cyan
+    --white
 ```
 
-Examples :
-----------
+Examples
+--------
 
 ```
 /sbin/ifconfig -a | hl -ei -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'       \
