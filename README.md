@@ -107,6 +107,7 @@ cat firewall_rules | hl -e -c INPUT                    \
 cat firewall_rules | hl --iptables
 
 df -h | hl --df
+![df](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl#imageLightbox65503)
 
 /sbin/ifconfig -a | hl --IP --MAC --eth
 ```
