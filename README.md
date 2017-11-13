@@ -107,8 +107,9 @@ cat firewall_rules | hl -e -c INPUT                    \
 cat firewall_rules | hl --iptables
 
 df -h | hl --df
+```
 ![df](https://github.com/mbornet-hl/hl/blob/master/images/df.png)
 
+```
 /sbin/ifconfig -a | hl --IP --MAC --eth
 ```
-
