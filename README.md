@@ -10,6 +10,7 @@ strings from stdin using options on the command line.
 
 Usage :
 
+```
 hl: version 1.45
 Usage: hl [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name ...] ]
   -h : help
@@ -80,11 +81,12 @@ Usage: hl [-h|-H|-V|-[eiuvdDEL1234][-[rgybmcwRGYBMCW] regexp ...][--config_name 
     --colors42
     --col_dupl
     --man
+```
 
 Examples :
 ----------
 
-::
+```
 /sbin/ifconfig -a | hl -ei -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'       \
 			 -b '^(eth|(vir)?br|vnet)[0-9.]*\.[0-9]+\>'             \
 			 -c '([0-9a-f]{2}:){5}[0-9a-f]{2}'                      \
@@ -107,5 +109,5 @@ cat firewall_rules | hl --iptables
 df -h | hl --df
 
 /sbin/ifconfig -a | hl --IP --MAC --eth
-
+```
 
