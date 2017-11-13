@@ -3,6 +3,9 @@ hl : a colorization command
 
 Here is a [review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` is a french magazine (Linux Pratique).
 
+`hl` can use up to 42 colors :
+![hl_colors](https://github.com/mbornet-hl/hl/blob/master/images/hl_colors.png)
+
 hl command :
 ------------
 This command uses regcomp() and regexec() to colorize (highlight)
