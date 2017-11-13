@@ -1,7 +1,7 @@
 hl : a colorization command
 ===========================
 
-Here is a [review] (https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` is a french magazine (Linux Pratique).
+Here is a [review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` is a french magazine (Linux Pratique).
 
 hl command :
 ------------
