@@ -6,6 +6,8 @@ Purpose
 This command uses regcomp() and regexec() to colorize (highlight)
 strings from stdin using options on the command line.
 
+Standard system commands can be colorized without having to change their syntax nor having to manually pipe their output to the `hl`command, using the `hl_generic` script.
+
 `hl` can use up to 42 colors :
 
 ![hl_colors](https://github.com/mbornet-hl/hl/blob/master/images/hl_colors.png)
