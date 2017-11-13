@@ -230,6 +230,8 @@ Examples
 
 /sbin/ifconfig -a | hl --ifconfig
 
+/sbin/ifconfig -a | hl --IP --MAC --eth
+
 cat firewall_rules | hl -e -c INPUT                    \
 				   -y 'FORWARD|POSTROUTING'    \
 				   -b '#.*'                    \
@@ -246,5 +248,7 @@ df -h | hl --df
 ![df](https://github.com/mbornet-hl/hl/blob/master/images/df.png)
 
 ```
-/sbin/ifconfig -a | hl --IP --MAC --eth
+fdisk -l | hl --fdisk
+
 ```
+![fdisk](https://github.com/mbornet-hl/hl/blob/master/images/fdisk.png)
