@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015, Martial Bornet
+ * Copyright (C) 2015-2019, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015.
+ *   (C) Copyright Martial Bornet, 2015-2019.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.19 du 15/11/11 - 
+ *   @(#)  [MB] cr_epri.h Version 1.21 du 19/06/02 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -41,7 +41,8 @@ extern FILE                                            *yyin;
 
 /* Error messages
    ~~~~~~~~~~~~~~ */
-extern char                                            *cr_err_malloc;
+extern char                                            *cr_err_malloc,
+											*cr_err_syntax;
 
 extern int                                              cr_col_codes[8][3];
 extern char                                            *cr_best_fg[8][3];
@@ -65,6 +66,7 @@ void                                     cr_start_color(struct cr_color *);
 void                                     cr_end_color(struct cr_color *);
 void                                     cr_init_desc(void);
 void                                     cr_disp_line(void);
+struct cr_color                         *cr_get_deflt_alt_col(char *, int, int);
 
 int                                      yylex(void);
 

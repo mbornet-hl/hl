@@ -8,18 +8,21 @@
  *
  *   File         :     cr_lex.l
  *
- *   @(#)  cr_lex.l  1.6  15/08/26  MB  
+ *   @(#)  cr_lex.l  1.8  19/06/02  MB  
  *
  * ============================================================================
  */
 
+#include	<stdio.h>
 #include  <string.h>
 #include  "cr_epri.h"
+
+int					fileno(FILE *);
 
 %}
 
 config                   ([a-zA-Z][-._a-zA-Z0-9_]*)
-options                  (-[a-zA-Z0-9%.]+)
+options                  (-[a-zA-Z0-9%.,]+)
 args                     ('.*')
 space                    ([ \t]+)
 call_config              (--[a-zA-Z][-.a-zA-Z0-9_]*)

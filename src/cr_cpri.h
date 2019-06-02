@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015, Martial Bornet
+ * Copyright (C) 2015-2019, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015.
+ *   (C) Copyright Martial Bornet, 2015-2019.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.31 du 16/01/23 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.37 du 19/06/02 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -39,8 +39,17 @@
 
 #define   CR_CONFIG_FILENAME            ".hl.cfg"
 #define   CR_DEFLT_CONFIG_FILE          "/etc/default/hl"
-#define	CR_ENV_DEFLT				"HL_DEFAULT"
+#define   CR_ENV_DEFLT                  "HL_DEFAULT"
+#define   CR_ENV_DEFLT_ALTERNATE_1      "HL_A1"
+#define   CR_ENV_DEFLT_ALTERNATE_2      "HL_A2"
+
 #define   CR_DEFLT_COLOR                "3Y"
+#define   CR_DEFLT_ALT_INTENSITY_1      (2)
+#define   CR_DEFLT_ALT_COLOR_1          'B'
+#define   CR_DEFLT_ALT_INTENSITY_2      (1)
+#define   CR_DEFLT_ALT_COLOR_2          'n'
+
+#define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
 
 #define   bool                          int
 #if ! defined(FALSE)
@@ -75,24 +84,13 @@
 #define   CR_WHITE_REV                  (15)
 #define   CR_NO_COLOR                   (16)
 
-#define   CR_C0                         "black"
-#define   CR_C1                         "red"
-#define   CR_C2                         "green"
-#define   CR_C3                         "yellow"
-#define   CR_C4                         "blue"
-#define   CR_C5                         "magenta"
-#define   CR_C6                         "cyan"
-#define   CR_C7                         "white"
-#define   CR_C8                         "black reverse"
-#define   CR_C9                         "red reverse"
-#define   CR_C10                        "green reverse"
-#define   CR_C11                        "yellow reverse"
-#define   CR_C12                        "blue reverse"
-#define   CR_C13                        "magenta reverse"
-#define   CR_C14                        "cyan reverse"
-#define   CR_C15                        "white reverse"
-#define   CR_C16                        "no color"
-
+/* Strings describing elements for
+ * alternate options
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_SELECTOR_STRING            "0123456789"
+#define   CR_INTENSITY_STRING           "12345"
+#define   CR_COLORS_STRING              "rgybmcwnRGYBMCW"
+ 
 /* Line size, number of different intervals
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SIZE                       (1024)
@@ -125,31 +123,44 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   yyin                          CR_in
 #endif
 
+/* Parser states for the decoding of option -A
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_STATE_INITIAL              (1)
+#define   CR_STATE_W_SEPARATOR          (2)
+#define   CR_STATE_W_INTENSITY          (3)
+#define   CR_STATE_W_COLOR              (4)
+#define   CR_STATE_W_END                (5)
+
 /* Structures
    ~~~~~~~~~~ */
 struct cr_color {
      int                                 col_num;
      int                                 intensity;
-     int                                 linux_code;
      FILE                               *out;
 };
 
 struct cr_re_desc {
      regex_t                             reg[2];
      char                               *regex[2];
-	bool							 begin_is_end,
-								 inside_zone;
+     bool                                begin_is_end,
+                                         inside_zone;
      int                                 cflags;
-	int							 curr_level;
+     int                                 curr_level;
      struct cr_color                     col;
      struct cr_re_desc                  *next;
-	int							 max_sub;
+     int                                 max_sub;
+     struct cr_color                   **alt_cols;          /* Array for alternate colors */
+     int                                 alt_idx;           /* Current alternate index    */
+     int                                 idx_regex_select;  /* Index of selector regex    */
+     char                               *matching_str;      /* String matching the        */
+                                                            /* selector regex             */
+     bool                                change_on_diff;    /* Change on difference       */
 };
 
 struct cr_col_desc {
      bool                                used;
      struct cr_color                    *col;
-	int							 marker;
+     int                                 marker;
 };
 
 struct cr_arg {
@@ -188,13 +199,19 @@ struct cr_args {
      char                               *optarg;
      struct cr_ptrs                     *curr_ptrs;
      struct cr_configs                  *configs;
+     int                                 special_opt;
 };
 
 struct cr_global {
      char                               *prgname;
 
+     char                               *selector_string,
+                                        *color_string,
+                                        *intensity_string;
      struct cr_color                     color_RE[CR_NB_COLORS];
      struct cr_color                    *curr_col;
+     struct cr_color                    *deflt_alt_col_1,
+                                        *deflt_alt_col_2;
      int                                 cflags;
      int                                 list[CR_NB_COLORS];
      int                                 idx_list;
@@ -208,14 +225,14 @@ struct cr_global {
                                          config_file_read;
      FILE                               *out;
      bool                                newline;
-	bool							 begin_specified,
-								 end_specified;
+     bool                                begin_specified,
+                                         end_specified;
      int                                 intensity;
      struct cr_configs                   configs;
      struct cr_re_desc                  *extract_RE,
                                         *insert_RE,
-								*last_RE;
-	int							 last_color;
+                                        *last_RE;
+     int                                 last_color;
 };
 
 #endif    /* CR_CPRI_H */

@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015, Martial Bornet
+ * Copyright (C) 2015-2019, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,13 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ *   (C) Copyright Martial Bornet, 2015-2019.
+ *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
  *   Description  :     String colorization
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.69 du 16/01/23 - 
+ *   @(#)  [MB] cr_main.c Version 1.78 du 19/06/02 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -56,12 +58,14 @@
  *   - cr_free_re
  *   - cr_marker2color
  *   - cr_set_desc
+ *   - cr_set_desc_alt
  *   - cr_read_input
  *   - cr_start_color
  *   - cr_end_color
  *   - cr_init_desc
  *   - cr_same_colors
  *   - cr_disp_line
+ *   - cr_get_deflt_alt_col
  * ============================================================================
  */
 
@@ -74,6 +78,7 @@
 
 #include "cr_epri.h"
 
+#define   X0     fprintf(stderr, "%s(%d)\n", __FILE__, __LINE__);
 #define   X      if (G.debug) fprintf(stderr, "%s(%d)\n", __FILE__, __LINE__);
 #define   SC     if (G.debug) fprintf(stderr, "==> %s(%d) Start color : [%c]\n", __FILE__, __LINE__, _c);
 #define   NC     if (G.debug) fprintf(stderr, "==> %s(%d) No color    : [%c]\n", __FILE__, __LINE__, _c);
@@ -227,6 +232,42 @@ CR_NEW(re_desc)
 
 /******************************************************************************
 
+                         CR_NEW_COLOR
+
+******************************************************************************/
+CR_NEW(color)
+
+/******************************************************************************
+
+                         CR_CREATE_COLOR
+
+******************************************************************************/
+struct cr_color *cr_create_color(int color, int intensity)
+{
+     // XXX : for Alternate option
+     struct cr_color     *_color;
+
+     _color              = cr_new_color();
+     _color->col_num     = color;
+     _color->intensity   = intensity;
+     _color->out         = stdout;      // XXX : TO CHANGE !!!
+
+     return _color;
+}
+
+/******************************************************************************
+
+                         CR_DUMP_COLOR
+
+******************************************************************************/
+void cr_dump_color(struct cr_color *col)
+{
+     printf("COLOR %p : color = %3d), intensity = %d\n",
+            col, col->col_num, col->intensity);
+}
+
+/******************************************************************************
+
                          CR_NEEDS_ARG
 
 ******************************************************************************/
@@ -236,7 +277,30 @@ bool cr_needs_arg(char opt, struct cr_args *args)
 
      for (_i = 0; args->opts[_i] != 0; _i++) {
           if (args->opts[_i] != opt) continue;
-          if (args->opts[_i + 1] == ':') {
+          if (args->opts[_i + 1] == '!') {
+               return TRUE;
+          }
+          else {
+               break;
+          }
+     }
+
+     return FALSE;
+}
+
+/******************************************************************************
+
+                         CR_SPECIAL_OPT
+
+******************************************************************************/
+bool cr_special_opt(char opt, struct cr_args *args)
+{
+     // for Alternate option
+     int                  _i;
+
+     for (_i = 0; args->opts[_i] != 0; _i++) {
+          if (args->opts[_i] != opt) continue;
+          if (args->opts[_i + 1] == '{') {
                return TRUE;
           }
           else {
@@ -298,6 +362,388 @@ void cr_dump_args(struct cr_args *args)
      printf("    curr_ptrs = %p\n", args->curr_ptrs);
 
      cr_dump_ptrs(args->curr_ptrs);
+}
+
+/******************************************************************************
+
+                         CR_IS_SELECTOR
+
+******************************************************************************/
+int cr_is_selector(char c)
+{
+     int             _retcode;
+
+     if (strchr(G.selector_string, (int) c) != NULL) {
+          _retcode  = TRUE;
+     }
+     else {
+          _retcode  = FALSE;
+     }
+
+     return _retcode;
+}
+
+/******************************************************************************
+
+                         CR_IS_INTENSITY
+
+******************************************************************************/
+int cr_is_intensity(char c)
+{
+     int             _retcode;
+
+     if (strchr(G.intensity_string, (int) c) != NULL) {
+          _retcode  = TRUE;
+     }
+     else {
+          _retcode  = FALSE;
+     }
+
+     return _retcode;
+}
+
+/******************************************************************************
+
+                         CR_IS_A_COLOR
+
+******************************************************************************/
+int cr_is_a_color(char c)
+{
+     int             _retcode;
+
+     if (strchr(G.color_string, (int) c) != NULL) {
+          _retcode  = TRUE;
+     }
+     else {
+          _retcode  = FALSE;
+     }
+
+     return _retcode;
+}
+
+/******************************************************************************
+
+                         CR_DECODE_COLOR
+
+******************************************************************************/
+struct cr_color *cr_decode_color(char c, int intensity)
+{
+     struct cr_color          *_color;
+
+     switch (c) {
+
+     case 'r':
+          _color    = cr_create_color(CR_RED, intensity);
+          break;
+
+     case 'g':
+          _color    = cr_create_color(CR_GREEN, intensity);
+          break;
+
+     case 'y':
+          _color    = cr_create_color(CR_YELLOW, intensity);
+          break;
+
+     case 'b':
+          _color    = cr_create_color(CR_BLUE, intensity);
+          break;
+
+     case 'm':
+          _color    = cr_create_color(CR_MAGENTA, intensity);
+          break;
+
+     case 'c':
+          _color    = cr_create_color(CR_CYAN, intensity);
+          break;
+
+     case 'w':
+          _color    = cr_create_color(CR_WHITE, intensity);
+          break;
+
+     case 'R':
+          _color    = cr_create_color(CR_RED_REV, intensity);
+          break;
+
+     case 'G':
+          _color    = cr_create_color(CR_GREEN_REV, intensity);
+          break;
+
+     case 'Y':
+          _color    = cr_create_color(CR_YELLOW_REV, intensity);
+          break;
+
+     case 'B':
+          _color    = cr_create_color(CR_BLUE_REV, intensity);
+          break;
+
+     case 'M':
+          _color    = cr_create_color(CR_MAGENTA_REV, intensity);
+          break;
+
+     case 'C':
+          _color    = cr_create_color(CR_CYAN_REV, intensity);
+          break;
+
+     case 'W':
+          _color    = cr_create_color(CR_WHITE_REV, intensity);
+          break;
+
+     case 'n':
+          _color    = cr_create_color(CR_NO_COLOR, intensity);
+          break;
+
+     default:
+          /* Syntax error
+             ~~~~~~~~~~~~ */
+          fprintf(stderr, cr_err_syntax, G.prgname);
+          exit(1);
+          break;
+     }
+
+     return _color;
+}
+
+/******************************************************************************
+
+                              CR_DECODE_ALTERNATE
+
+******************************************************************************/
+struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
+{
+     // for Alternate option
+     int                       _state, _curr_col_idx, _selector, _lg, _size;
+     char                      _c, _next_char, *_regexp;
+     struct cr_ptrs           *_ptrs;
+     struct cr_color         **_alt_colors;
+     struct cr_re_desc        *_re;
+     int                       _error, _i;
+     char                      _errbuf[256], *_p;
+
+//X
+     _re                      = cr_new_re_desc();
+     _re->cflags              = G.cflags;
+     _re->col.col_num         = 0;
+     _re->col.intensity       = 0;
+     _re->col.out             = G.out;
+     _re->max_sub             = 1;
+     _re->alt_idx             = 0;
+     _re->idx_regex_select    = 0;
+     _re->matching_str        = NULL;
+     _re->change_on_diff      = TRUE;
+     G.out                    = stdout;
+
+     _state                   = CR_STATE_INITIAL;
+     _curr_col_idx            = 0;
+     _selector                = 0;
+
+     _regexp                  = NULL;
+
+     if ((_ptrs = args->curr_ptrs) == NULL) {
+          /* No selector, no color specifiers, no regexp
+             => use defaults
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          _regexp                       = CR_DEFLT_ALT_REGEXP;
+
+          _lg                           = 3;
+          _size                         = (_lg + 1) * sizeof(struct cr_color **);
+          if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
+               fprintf(stderr, cr_err_malloc, G.prgname);
+               exit(1);
+          }
+          _alt_colors[_curr_col_idx++]  = G.deflt_alt_col_1;
+          _alt_colors[_curr_col_idx++]  = G.deflt_alt_col_2;
+          _alt_colors[_curr_col_idx++]  = NULL;
+          _re->alt_cols                 = _alt_colors;
+          goto end;
+     }
+
+     _lg                      = strlen(_ptrs->curr_arg);
+     if (_lg < 3) {
+          _lg                      = 3;
+     }
+     _size                    = (_lg + 1) * sizeof(struct cr_color **);
+     if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
+          fprintf(stderr, cr_err_malloc, G.prgname);
+          exit(1);
+     }
+     _re->alt_cols            = _alt_colors;
+
+     for (_c = 0 ; ; ) {
+          if (!(_ptrs = args->curr_ptrs)) {
+               /* No more argument to treat
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               CR_DEBUG("NO MORE ARGS.\n");
+               fprintf(stderr, cr_err_syntax, G.prgname);
+               exit(1);
+          }
+
+          _c        = _ptrs->curr_arg[_ptrs->curr_idx];
+          CR_DEBUG("==> OPTION : '%c'\n", _c);
+          _ptrs->curr_idx++;
+          _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
+          args->optarg      = 0;
+
+          if (_next_char == 0) {
+               CR_DEBUG("    No more 1 letter option\n");
+               CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+               if (*(_ptrs->curr_argv + 1) == 0) {
+                    /* No regexp for this option
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    CR_DEBUG("No regexp for this option => use default one\n");
+                    _regexp             = CR_DEFLT_ALT_REGEXP;
+                    args->curr_ptrs     = _ptrs->prev;
+                    free(_ptrs);
+               }
+               else {
+                    _ptrs->curr_argv++;
+                    _ptrs->curr_arg     = *_ptrs->curr_argv;
+                    _ptrs->curr_idx     = 0;
+                    CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+                    if (_ptrs->curr_arg[0] != '-') {
+                         /* Regexp found !
+                            ~~~~~~~~~~~~~~ */
+                         _regexp             = _ptrs->curr_arg;
+                         _ptrs->curr_argv++;
+                         _ptrs->curr_arg     = *_ptrs->curr_argv;
+//                         args->curr_ptrs     = _ptrs;  // XXX !?!?!?!?
+//cr_dump_args(args);
+                    }
+                    else {
+                         /* No regexp : use default one
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _regexp             = CR_DEFLT_ALT_REGEXP;
+                    }
+               }
+          }
+
+          switch (_state) {
+
+          case CR_STATE_INITIAL:
+               if (cr_is_selector(_c)) {
+                    _selector      = _c - '0';
+                    _state         = CR_STATE_W_SEPARATOR;
+               }
+               else if (_c == ',') {
+                    _selector      = 0;
+                    _state         = CR_STATE_W_INTENSITY;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_SEPARATOR:
+               if (_c == ',') {
+                    _state         = CR_STATE_W_INTENSITY;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_INTENSITY:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    _state         = CR_STATE_W_COLOR;
+               }
+               else if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+//cr_dump_color(_alt_colors[_curr_col_idx - 1]);
+                    _state         = CR_STATE_W_END;
+               }
+               else {
+                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COLOR:
+               if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+//cr_dump_color(_alt_colors[_curr_col_idx - 1]);
+               }
+               _state         = CR_STATE_W_END;
+               break;
+
+          case CR_STATE_W_END:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    _state         = CR_STATE_W_COLOR;
+               }
+               else if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+//cr_dump_color(_alt_colors[_curr_col_idx - 1]);
+                    _state         = CR_STATE_W_END;
+               }
+               else {
+                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    exit(1);
+               }
+               break;
+
+          default:
+               fprintf(stderr, cr_err_syntax, G.prgname);
+               exit(1);
+               break;
+          }
+
+          if (_regexp != NULL) {
+               /* Regex initialized : get out of the loop
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               break;
+          }
+     }
+
+//printf("END OF LOOP : regexp initialized : [%s]\n", _regexp);
+//cr_dump_args(args);
+     _alt_colors[_curr_col_idx++]  = NULL;
+//printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
+
+end:
+     /* Count number of possible sub strings
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_p = _regexp; (*_p); _p++) {
+          if (*_p == '(') {
+               _re->max_sub++;
+          }
+     }
+
+     _selector++;   // '0' => regexp number 1
+     _re->idx_regex_select    = _selector;
+     _re->regex[0]            = _regexp;
+     _re->regex[1]            = NULL;
+
+     if (G.debug) {
+          struct cr_color     *_color;
+
+          printf("Selector  = %d\n",   _re->idx_regex_select);
+          printf("regex[0]  = [%s]\n", _re->regex[0]);
+          printf("regex[1]  = %p\n",   _re->regex[1]);
+          for (_i = 0; ; _i++) {
+               _color              = _re->alt_cols[_i];
+               if (_color == NULL) {
+                    break;
+               }
+               printf("Color[%d]  = (%d, %d)  (%p)\n", _i, _color->intensity, _color->col_num, _color);
+          }
+     }
+
+     if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
+          (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+          fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                  G.prgname, _regexp, _errbuf);
+          exit(1);
+     }
+
+     return _re;
 }
 
 /******************************************************************************
@@ -416,6 +862,9 @@ int cr_getopt(struct cr_args *args)
           CR_DEBUG("    OPTARG = \"%s\"\n", args->optarg);
           _ptrs->curr_argv++;
           _ptrs->curr_arg     = *_ptrs->curr_argv;
+     }
+     else if (cr_special_opt(_c, args)) {
+          args->special_opt        = TRUE;
      }
      else {
           CR_DEBUG("    no argument needed.\n");
@@ -548,9 +997,9 @@ void cr_add_regexp(int color, char *regexp)
           _re->regex[1]            = regexp;
 
           if (_re->regex[1]) {
-			if (!strcmp(_re->regex[0], _re->regex[1])) {
-				_re->begin_is_end	= TRUE;
-			}
+               if (!strcmp(_re->regex[0], _re->regex[1])) {
+                    _re->begin_is_end   = TRUE;
+               }
                if (regcomp(&_re->reg[1], regexp, _re->cflags) != 0) {
                     fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
                     exit(1);
@@ -565,19 +1014,112 @@ void cr_add_regexp(int color, char *regexp)
 
 /******************************************************************************
 
+                         CR_GET_DEFLT_ALT_COL
+
+******************************************************************************/
+struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
+                                      int deflt_color)
+{
+     struct cr_color          *_color = NULL;
+     char                     *_env_val, _c;
+     int                       _intensity, _lg;
+
+     if ((_env_val = getenv(env_var_name)) == 0) {
+          /* Environment variable undefined :
+           * use default values
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          _color         = cr_decode_color(deflt_color, deflt_intensity);
+     }
+     else {
+          /* Decode the color string
+             ~~~~~~~~~~~~~~~~~~~~~~~ */
+          _lg            = strlen(_env_val);
+          if (_lg == 0 || _lg > 2) {
+               /* Invalid color specifier : use default values
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               fprintf(stderr,
+                       "Invalid color specifier %s=\%s\", using default\n",
+                       env_var_name, _env_val);
+               _color         = cr_decode_color(deflt_color, deflt_intensity);
+          }
+          else {
+               _c             = _env_val[0];
+               if (cr_is_intensity(_c)) {
+                    /* Intensity : OK
+                       ~~~~~~~~~~~~~~ */
+                    _intensity     = _c - '0';
+                    _c             = _env_val[1];
+                    if (cr_is_a_color(_c)) {
+                         /* Intensity : OK, color : OK
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _color         = cr_decode_color(_c, _intensity);
+                    }
+                    else {
+                         /* Intensity : OK, color : default
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _color         = cr_decode_color(deflt_color,
+                                                          _intensity);
+                    }
+               }
+               else {
+                    /* Intensity KO : maybe intensity is absent
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    if (cr_is_a_color(_c)) {
+                         /* Intensity : default, color : OK
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _color         = cr_decode_color(_c, deflt_intensity);
+                    }
+                    else {
+                         /* No intensity, invalid color :
+                          * use default values
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+					fprintf(stderr,
+						   "Invalid color specifier %s=\%s\", using default\n",
+						   env_var_name, _env_val);
+                         _color         = cr_decode_color(deflt_color,
+                                                          deflt_intensity);
+                    }
+               }
+          }
+     }
+
+     return _color;
+}
+
+/******************************************************************************
+
+                         CR_INIT_DEFLT_ALT_COL
+
+******************************************************************************/
+void cr_init_deflt_alt_col()
+{
+     G.deflt_alt_col_1   = cr_get_deflt_alt_col(CR_ENV_DEFLT_ALTERNATE_1,
+                                      CR_DEFLT_ALT_INTENSITY_1,
+                                      CR_DEFLT_ALT_COLOR_1);
+
+     G.deflt_alt_col_2   = cr_get_deflt_alt_col(CR_ENV_DEFLT_ALTERNATE_2,
+                                      CR_DEFLT_ALT_INTENSITY_2,
+                                      CR_DEFLT_ALT_COLOR_2);
+}
+
+/******************************************************************************
+
                               MAIN
 
 ******************************************************************************/
 int main(int argc, char *argv[])
 {
-     int                       _opt, _i, _lg, _argc;
+     int                       _opt, _i, _j, _lg, _argc;
      struct cr_args           *_args;
      struct cr_re_desc        *_re;
      char                     *_env_var_name, *_env_deflt, *_deflt_color_opt,
                               **_argv, *_argv_deflt[4];
 
-     G.prgname      = argv[0];
-     G.out          = stdout;
+     G.prgname           = argv[0];
+     G.selector_string   = CR_SELECTOR_STRING;
+     G.color_string      = CR_COLORS_STRING;
+     G.intensity_string  = CR_INTENSITY_STRING;
+     G.out               = stdout;
 
      switch (argc) {
 
@@ -630,12 +1172,14 @@ int main(int argc, char *argv[])
      cr_init_list();
      G.intensity    = CR_DEFLT_INTENSITY;
 
+     cr_init_deflt_alt_col();
+
      cr_clear_marker_flags();
 
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(_argc, _argv,
-                                       "hHuVvEr:g:y:b:m:c:w:R:G:Y:B:M:C:W:n:DLdei1234%.:",
+                                       "hHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!A{I{",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -741,7 +1285,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.69");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.78");
                exit(1);
                break;
 
@@ -775,6 +1319,24 @@ int main(int argc, char *argv[])
                cr_add_regexp(G.last_color, _args->optarg);
                break;
 
+          case 'A':
+               G.cflags  |= REG_EXTENDED;
+               if (_args->special_opt) {
+                    _re                 = cr_decode_alternate(_args);
+                    _re->change_on_diff = TRUE;
+                    cr_add_to_list(_re);
+               }
+               break;
+
+          case 'I':
+               G.cflags  |= REG_EXTENDED;
+               if (_args->special_opt) {
+                    _re                 = cr_decode_alternate(_args);
+                    _re->change_on_diff = FALSE;
+                    cr_add_to_list(_re);
+               }
+               break;
+
           default:
                fprintf(stderr, "%s: unknown option '%c' !\n", G.prgname, _opt);
                cr_usage(FALSE);
@@ -784,17 +1346,38 @@ int main(int argc, char *argv[])
 
      if (G.disp_regex) {
           for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
-               printf("[%2d] ", ++_i);
-               cr_start_color(&_re->col);
-               printf("%s", _re->regex[0]);
-               cr_end_color(&_re->col);
-               printf("\n");
-               if (_re->regex[1]) {
-                    printf("     => ");
+               if (_re->alt_cols == NULL) {
+//X
+                    printf("[%2d] ", ++_i);
                     cr_start_color(&_re->col);
-                    printf("%s", _re->regex[1]);
+                    printf("%s", _re->regex[0]);
                     cr_end_color(&_re->col);
                     printf("\n");
+                    if (_re->regex[1]) {
+                         printf("     => ");
+//X
+                         cr_start_color(&_re->col);
+                         printf("%s", _re->regex[1]);
+                         cr_end_color(&_re->col);
+                         printf("\n");
+                    }
+               }
+               else {
+                    struct cr_color     *_color;
+
+                    _i++;
+                    for (_j = 0; ; _j++) {
+                         _color              = _re->alt_cols[_j];
+                         if (_color == NULL) {
+                              break;
+                         }
+
+                         printf("[%2d.%d] ", _i, _j);
+                         cr_start_color(_re->alt_cols[_j]);
+                         printf("%s", _re->regex[0]);
+                         cr_end_color(_re->alt_cols[_j]);
+                         printf("\n");
+                    }
                }
           }
      }
@@ -812,8 +1395,13 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.69");
-     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\n",
+	char					*_env_var,  *_env_val,
+						*_env_var1, *_env_var2,
+						*_env_val1, *_env_val2,
+						*_msg,      *_undefined;
+
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.78");
+     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
      fprintf(stderr, "  -H  : help + configuration names\n");
@@ -847,6 +1435,37 @@ void cr_usage(bool disp_config)
      fprintf(stderr, "  -2  : color brightness (normal : default)\n");
      fprintf(stderr, "  -3  : color brightness (bright)\n");
      fprintf(stderr, "  -4  : color brightness (underscore)\n");
+     fprintf(stderr, "  -A  : alternate colors when string matched by selection regex changes\n");
+     fprintf(stderr, "  -I  : alternate colors when string matched by selection regex does not change\n");
+     fprintf(stderr, "        Syntax for alternate options : -{A|I}[[s][,c1c2...cn]]\n");
+     fprintf(stderr, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
+     fprintf(stderr, "         and c1, c2, ... cn are color specifiers to use\n");
+     fprintf(stderr, "        Alternate colors implies extended regular expressions (-e)\n");
+
+	_env_var			= CR_ENV_DEFLT;
+	_env_var1			= CR_ENV_DEFLT_ALTERNATE_1;
+	_env_var2			= CR_ENV_DEFLT_ALTERNATE_2;
+	_undefined		= "Environment variable \"%s\" is undefined.\n";
+	_msg				= "%-10s = \"%s\"\n";
+
+	if ((_env_val = getenv(_env_var)) == NULL) {
+		fprintf(stderr, _undefined, _env_var);
+	}
+	else {
+		fprintf(stderr, _msg, _env_var, _env_val);
+	}
+	if ((_env_val1 = getenv(_env_var1)) == NULL) {
+		fprintf(stderr, _undefined, _env_var1);
+	}
+	else {
+		fprintf(stderr, _msg, _env_var1, _env_val1);
+	}
+	if ((_env_val2 = getenv(_env_var2)) == NULL) {
+		fprintf(stderr, _undefined, _env_var2);
+	}
+	else {
+		fprintf(stderr, _msg, _env_var2, _env_val2);
+	}
 
      if (disp_config) {
           cr_display_config();
@@ -1072,21 +1691,44 @@ void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
 
 /******************************************************************************
 
+                         CR_SET_DESC_ALT
+
+******************************************************************************/
+void cr_set_desc_alt(struct cr_re_desc *re, int offset, int s, int e, struct cr_color *col)
+{
+     int                  _i;
+     struct cr_col_desc  *_desc;
+
+     /* RE descriptor does not define a range
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
+          if (!_desc->used) {
+               _desc->used    = TRUE;
+               _desc->col     = col;
+          }
+     }
+}
+
+/******************************************************************************
+
                          CR_READ_INPUT
 
 ******************************************************************************/
 void cr_read_input(void)
 {
      int                       _i, _j, _n, _s = 0, _e = 0, _off, _idx_last,
-                               _marker;
+                               _marker = 0, _search_no;
      struct cr_re_desc        *_re;
      size_t                    _nmatch;
      regmatch_t                _pmatch[CR_SIZE + 1];
      int                       _eflags = 0;
 
      char                      _debug_str[CR_SIZE + 1];
+     char                      _matching_str[CR_SIZE + 1];
+     bool                      _change;
 
      _nmatch        = sizeof(_pmatch) / sizeof(_pmatch[0]);
+
 
      for (_n = sizeof(G.line); fgets(G.line, _n, stdin) != 0; _n = sizeof(G.line)) {
           /* Reset of color descriptors
@@ -1108,33 +1750,207 @@ void cr_read_input(void)
                fprintf(stderr, "LINE   : [%s] :\n", G.line);
           }
 
-		/* Loop on regexp
-		   ~~~~~~~~~~~~~~ */
+//X
+          /* Loop on regexp
+             ~~~~~~~~~~~~~~ */
           for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
-			/* Loop on BEGIN / END regexp
-			   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               /* Loop on BEGIN / END regexp
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                for (_i = 0; _i < 2; _i++) {
-                    if (_re->regex[_i]) {
-					if (_i == 1 && _re->begin_is_end) {
-						break;
-					}
-					/* Search for multiple matches
-					   ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//X
+                    if (_re->alt_cols == NULL) {
+//X
+                         if (_re->regex[_i]) {
+                              if (_i == 1 && _re->begin_is_end) {
+                                   break;
+                              }
+                              /* Search for multiple matches on the line
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              for (_off = 0, _eflags = 0;
+                                   _off < G.length &&
+                                   regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                                   _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+
+                                   if (G.debug) {
+                                        fprintf(stderr, "  Match for [%s] // [%s]\n",
+                                                G.line + _off, _re->regex[_i]);
+                                        fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
+                                   }
+
+                                   /* Loop on substrings
+                                      ~~~~~~~~~~~~~~~~~~ */
+                                   for (_j = 0; _j < _re->max_sub; _j++) {
+                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                             continue;
+                                        }
+
+                                        _s   = _pmatch[_j].rm_so;
+                                        _e   = _pmatch[_j].rm_eo - 1;
+
+                                        if (G.debug) {
+                                             strncpy(_debug_str,
+                                                     G.line + _off + _s, _e - _s + 1);
+                                             _debug_str[_e -_s + 1]   = 0;
+                                             fprintf(stderr,
+                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s]\n",
+                                                     _off, _s, _e, _re->regex[_i], _debug_str);
+                                        }
+
+                                        if (!_re->begin_is_end) {
+                                             if (_i == 0)   _marker   =  1;
+                                             else           _marker   = -1;
+                                        }
+                                        else {
+                                             _re->inside_zone    = !_re->inside_zone;
+                                             if (_re->inside_zone)    _marker   =  1;
+                                             else                     _marker   = -1;
+                                        }
+                                        if (_s >= 0) {
+                                             cr_set_desc(_re, _off, _s, _e, _marker);
+                                        }
+
+                                        if (G.debug) {
+                                             fprintf(stderr, "cr_set_desc : %d, %d => %d, %d\n",
+                                                     _off, _s, _e, _marker);
+                                             fprintf(stderr, "\n");
+                                        }
+                                   }
+
+                                   /* To handle empty strings
+                                      ~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   if (_e < 0) {
+                                        _e   = 0;
+                                   }
+                              }
+
+                              if (G.debug) {
+                                   fprintf(stderr, "  NO MATCH for [%s] // [%s]\n",
+                                           G.line + _off, _re->regex[_i]);
+                              }
+                         }
+                    }
+                    else {
+                         if (G.debug) {
+                              printf("ALTERNATE COLORS ...\n");
+                         }
+
+                         /* Search for multiple matches on the line
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _search_no     = 1;
                          for (_off = 0, _eflags = 0;
                               _off < G.length &&
                               regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
-                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
 
                               if (G.debug) {
-                                   fprintf(stderr, "  Match for [%s] // [%s]\n",
-                                           G.line + _off, _re->regex[_i]);
-                                   fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
+                                   fprintf(stderr, "  Search %3d : Match for [%s] // [%s] _i = %d\n",
+                                           _search_no, G.line + _off, _re->regex[_i], _i);
+                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
                               }
 
-						/* Loop on substrings
-						   ~~~~~~~~~~~~~~~~~~ */
+                              _change        = FALSE;
+                              if ((_search_no == 1) && (_re->idx_regex_select < _re->max_sub)) {
+                                   /* Check if the string matching the selection regexp has changed
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   _j   = _re->idx_regex_select;
+                                   if (G.debug) {
+                                        printf("Search %3d : Selection regexp number = %d\n", _search_no, _j);
+                                   }
+
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
+
+                                   if (G.debug) {
+                                        strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
+                                        _debug_str[_e -_s + 1]   = 0;
+                                        fprintf(stderr, "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                   }
+
+                                   strncpy(_matching_str, G.line + _off + _s, _e - _s + 1);
+                                   _matching_str[_e -_s + 1]   = 0;
+                                   if (G.debug) {
+                                        printf("String matching the selection regexp : [%s]\n", _matching_str);
+                                   }
+                                   if (_re->matching_str == NULL) {
+                                        if (G.debug) {
+                                             printf("NO MATCHING STRING STORED YET : storing [%s]\n", _matching_str);
+                                        }
+
+                                        /* No previous match for the selection regexp
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                        _re->matching_str   = strdup(_matching_str);
+                                   }
+                                   else {
+                                        if (G.debug) {
+                                             printf("Comparing [%s] and [%s] ...\n", _re->matching_str, _matching_str);
+                                        }
+
+                                        if (!strcmp(_re->matching_str, _matching_str)) {
+                                             /* Current match is identical to the previous match
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                             if (G.debug) {
+                                                  printf("IDENTICAL STRINGS\n");
+                                             }
+
+                                             if (!_re->change_on_diff) {
+                                                  if (G.debug) {
+                                                       printf("CHANGE !!!\n");
+                                                  }
+                                                  _change   = TRUE;
+                                             }
+                                             else {
+                                                  if (G.debug) {
+                                                       printf("No change !!!\n");
+                                                  }
+                                             }
+                                        }
+                                        else {
+                                             /* Current match differs from the previous match
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                             if (G.debug) {
+                                                  printf("DIFFERENT STRINGS\n");
+                                             }
+                                             free(_re->matching_str);
+                                             _re->matching_str   = strdup(_matching_str);
+
+                                             if (_re->change_on_diff) {
+                                                  if (G.debug) {
+                                                       printf("CHANGE !!!\n");
+                                                  }
+                                                  _change   = TRUE;
+                                             }
+                                             else {
+                                                  if (G.debug) {
+                                                       printf("No change !!!\n");
+                                                  }
+                                             }
+                                        }
+                                   }
+                              }
+
+                              if (_change) {
+                                   /* Color change : select next color
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   _re->alt_idx++;
+                                   if (_re->alt_cols[_re->alt_idx] == NULL) {
+                                        _re->alt_idx   = 0;
+                                   }
+
+                                   if (G.debug) {
+                                        printf("***** CHANGE COLOR ***** : alt_idx = %d\n", _re->alt_idx);
+                                   }
+                              }
+
+                              /* Loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~ */
                               for (_j = 0; _j < _re->max_sub; _j++) {
+                                   if (G.debug) {
+                                        printf("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                                   }
+
                                    if (_j == 0 && _pmatch[1].rm_so != -1) {
+//                                 if (_pmatch[1].rm_so != -1) {
                                         continue;
                                    }
 
@@ -1146,28 +1962,20 @@ void cr_read_input(void)
                                                 G.line + _off + _s, _e - _s + 1);
                                         _debug_str[_e -_s + 1]   = 0;
                                         fprintf(stderr,
-                                                "    OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-                                                _off, _s, _e, _re->regex[_i], _debug_str);
+                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
                                    }
 
-							if (!_re->begin_is_end) {
-								if (_i == 0)   _marker   =  1;
-								else           _marker   = -1;
-							}
-							else {
-								_re->inside_zone	= !_re->inside_zone;
-								if (_re->inside_zone)	_marker	=  1;
-								else					_marker	= -1;
-							}
-							if (_s >= 0) {
-								cr_set_desc(_re, _off, _s, _e, _marker);
-							}
+                                   if (_s >= 0) {
+                                        cr_set_desc_alt(_re, _off, _s, _e, _re->alt_cols[_re->alt_idx]);
 
-							if (G.debug) {
-								fprintf(stderr, "cr_set_desc : %d, %d => %d, %d\n",
-								        _off, _s, _e, _marker);
-								fprintf(stderr, "\n");
-							}
+                                        if (G.debug) {
+                                             cr_dump_color(_re->alt_cols[_re->alt_idx]);
+                                             fprintf(stderr, "cr_set_desc_alt : offset = %d, [%d => %d], col = %d\n",
+                                                     _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
+                                             fprintf(stderr, "\n");
+                                        }
+                                   }
                               }
 
                               /* To handle empty strings
@@ -1176,25 +1984,21 @@ void cr_read_input(void)
                                    _e   = 0;
                               }
                          }
-
-                         if (G.debug) {
-                              fprintf(stderr, "  NO MATCH for [%s] // [%s]\n",
-                                      G.line + _off, _re->regex[_i]);
-                         }
+                         break;
                     }
 
-				if (G.debug) {
-					fprintf(stderr, "\n");
-				}
+                    if (G.debug) {
+                         fprintf(stderr, "\n");
+                    }
                }
 
                if (_re->regex[1]) {
                     cr_marker2color(_re);
                }
-		
-			if (G.debug) {
-				fprintf(stderr, "\n");
-			}
+          
+               if (G.debug) {
+                    fprintf(stderr, "\n");
+               }
           }
 
           cr_disp_line();
@@ -1242,7 +2046,8 @@ void cr_start_color(struct cr_color *col)
                     break;
 
                default:
-                    fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
+                    fprintf(stderr, "%s: invalid color brightness ! (col = %p : (%d, %d))\n",
+                            G.prgname, col, col->col_num, col->intensity);
                     exit(1);
                }
           }
@@ -1273,7 +2078,8 @@ void cr_start_color(struct cr_color *col)
                break;
 
           default:
-               fprintf(stderr, "%s: invalid color brightness !\n", G.prgname);
+               fprintf(stderr, "%s: invalid color brightness ! (col = %p : (%d, %d))\n",
+                       G.prgname, col, col->col_num, col->intensity);
                exit(1);
           }
      }
@@ -1354,6 +2160,7 @@ void cr_disp_line(void)
                if (G.curr_col == NULL) {
                     /* Previous character was not in color
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//X
                     cr_start_color(_desc->col);
                     putc(_c, _desc->col->out);
                     G.curr_col     = _desc->col;
@@ -1370,6 +2177,7 @@ void cr_disp_line(void)
                          /* Color change
                             ~~~~~~~~~~~~ */
                          cr_end_color(G.curr_col);
+//X
                          cr_start_color(_desc->col);
                          putc(_c, _desc->col->out);
                          G.curr_col     = _desc->col;

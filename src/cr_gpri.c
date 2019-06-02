@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015, Martial Bornet
+ * Copyright (C) 2015-2019, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015.
+ *   (C) Copyright Martial Bornet, 2015-2019.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  cr_gpri.c  1.11  15/11/11  MB  
+ *   @(#)  cr_gpri.c  1.12  19/06/02  MB  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -35,7 +35,8 @@ struct cr_global                                  G         = { 0 };
 
 /* Error messages
    ~~~~~~~~~~~~~~ */
-char                *cr_err_malloc      = "%s: cannot allocate memory !\n";
+char                *cr_err_malloc      = "%s: cannot allocate memory !\n",
+				*cr_err_syntax		= "%s: syntax error !\n";
 
 int                  cr_col_codes[8][3] = {
      {  88,    160,      196  },
