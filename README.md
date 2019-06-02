@@ -269,7 +269,13 @@ df -h | hl --df
 ![df](https://github.com/mbornet-hl/hl/blob/master/images/df.png)
 
 ```
-fdisk -l | hl --fdisk
 
+fdisk -l | hl --fdisk
 ```
 ![fdisk](https://github.com/mbornet-hl/hl/blob/master/images/fdisk.png)
+
+```
+
+Alternate colors when the first character of the filenames changes :
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_example_alternate.png)
