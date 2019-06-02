@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.83 du 19/06/02 - 
+ *   @(#)  [MB] cr_main.c Version 1.84 du 19/06/02 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -505,7 +505,7 @@ struct cr_color *cr_decode_color(char c, int intensity)
      default:
           /* Syntax error
              ~~~~~~~~~~~~ */
-          fprintf(stderr, cr_err_syntax, G.prgname);
+          fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
           exit(1);
           break;
      }
@@ -578,8 +578,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                /* No more argument to treat
                   ~~~~~~~~~~~~~~~~~~~~~~~~~ */
                CR_DEBUG("NO MORE ARGS.\n");
-               fprintf(stderr, cr_err_syntax, G.prgname);
-               exit(1);
+			break;
           }
 
           _c        = _ptrs->curr_arg[_ptrs->curr_idx];
@@ -635,7 +634,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                else {
                     /* Syntax error
                        ~~~~~~~~~~~~ */
-                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
                     exit(1);
                     break;
                }
@@ -648,7 +647,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                else {
                     /* Syntax error
                        ~~~~~~~~~~~~ */
-                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
                     exit(1);
                     break;
                }
@@ -665,7 +664,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                     _state         = CR_STATE_W_END;
                }
                else {
-                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
                     exit(1);
                }
                break;
@@ -689,13 +688,13 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                     _state         = CR_STATE_W_END;
                }
                else {
-                    fprintf(stderr, cr_err_syntax, G.prgname);
+                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
                     exit(1);
                }
                break;
 
           default:
-               fprintf(stderr, cr_err_syntax, G.prgname);
+               fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
                exit(1);
                break;
           }
@@ -1342,7 +1341,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.83");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.84");
                exit(1);
                break;
 
@@ -1457,7 +1456,7 @@ void cr_usage(bool disp_config)
                               *_env_val1, *_env_val2,
                               *_msg,      *_undefined;
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.83");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.84");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
