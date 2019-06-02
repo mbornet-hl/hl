@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.80 du 19/06/02 - 
+ *   @(#)  [MB] cr_main.c Version 1.83 du 19/06/02 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -69,12 +69,20 @@
  * ============================================================================
  */
 
+#if defined(HL_BACKTRACE)
+#define _GNU_SOURCE
+#endif    /* HL_BACKTRACE */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
+#if defined(HL_BACKTRACE)
+#include <signal.h>
+#include <execinfo.h>
+#endif    /* HL_BACKTRACE */
 
 #include "cr_epri.h"
 
@@ -84,7 +92,7 @@
 #define   NC     if (G.debug) fprintf(stderr, "==> %s(%d) No color    : [%c]\n", __FILE__, __LINE__, _c);
 #define   EC     if (G.debug) fprintf(stderr, "==> %s(%d) End color\n", __FILE__, __LINE__);
 
-#define	inline /* empty : for compilers that do not know the inline directive */
+#define   inline /* empty : for compilers that do not know the inline directive */
 
 /******************************************************************************
 
@@ -541,28 +549,17 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
      _regexp                  = NULL;
 
      if ((_ptrs = args->curr_ptrs) == NULL) {
-          /* No selector, no color specifiers, no regexp
-             => use defaults
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-          _regexp                       = CR_DEFLT_ALT_REGEXP;
-
           _lg                           = 3;
-          _size                         = (_lg + 1) * sizeof(struct cr_color **);
-          if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
-               fprintf(stderr, cr_err_malloc, G.prgname);
-               exit(1);
+     }
+     else {
+          _lg                      = strlen(_ptrs->curr_arg);
+          if (_lg < 3) {
+               _lg                      = 3;
           }
-          _alt_colors[_curr_col_idx++]  = G.deflt_alt_col_1;
-          _alt_colors[_curr_col_idx++]  = G.deflt_alt_col_2;
-          _alt_colors[_curr_col_idx++]  = NULL;
-          _re->alt_cols                 = _alt_colors;
-          goto end;
      }
 
-     _lg                      = strlen(_ptrs->curr_arg);
-     if (_lg < 3) {
-          _lg                      = 3;
-     }
+     /* Allocate memory for the color descriptors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      _size                    = (_lg + 1) * sizeof(struct cr_color **);
      if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
           fprintf(stderr, cr_err_malloc, G.prgname);
@@ -570,6 +567,12 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
      }
      _re->alt_cols            = _alt_colors;
 
+     for (_i = 0; _i < (_lg + 1); _i++) {
+          _alt_colors[_i]          = NULL;
+     }
+
+     /* Decode options
+        ~~~~~~~~~~~~~~ */
      for (_c = 0 ; ; ) {
           if (!(_ptrs = args->curr_ptrs)) {
                /* No more argument to treat
@@ -709,7 +712,16 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
      _alt_colors[_curr_col_idx++]  = NULL;
 //printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
 
-end:
+     if (_alt_colors[0] == NULL) {
+          _alt_colors[0]           = G.deflt_alt_col_1;
+     }
+     if (_alt_colors[1] == NULL) {
+          _alt_colors[1]           = G.deflt_alt_col_2;
+     }
+     if (_regexp == NULL) {
+          _regexp                  = CR_DEFLT_ALT_REGEXP;
+     }
+
      /* Count number of possible sub strings
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      for (_p = _regexp; (*_p); _p++) {
@@ -1075,9 +1087,9 @@ struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
                          /* No intensity, invalid color :
                           * use default values
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-					fprintf(stderr,
-						   "Invalid color specifier %s=\%s\", using default\n",
-						   env_var_name, _env_val);
+                         fprintf(stderr,
+                                 "Invalid color specifier %s=\%s\", using default\n",
+                                 env_var_name, _env_val);
                          _color         = cr_decode_color(deflt_color,
                                                           deflt_intensity);
                     }
@@ -1104,6 +1116,41 @@ void cr_init_deflt_alt_col()
                                       CR_DEFLT_ALT_COLOR_2);
 }
 
+#if defined(HL_BACKTRACE)
+/******************************************************************************
+
+                              PRINT_TRACE
+
+******************************************************************************/
+void print_trace(int signum)
+{
+#define   MAX_FUNCTS               (1600)
+     void            *_array[MAX_FUNCTS];
+     size_t           _num_addr, _max_addr;
+     char           **_strings;
+     int              _i;
+
+     printf("%s: received signal %d.\n", __func__, signum);
+
+     _max_addr      = sizeof(_array)/sizeof(_array[0]);
+     printf("Max addresses number = %u\n", (unsigned int) _max_addr);
+
+     _num_addr      = backtrace(_array, _max_addr);
+     printf("size = %u\n", (unsigned int) _num_addr);
+
+     _strings       = backtrace_symbols(_array, _num_addr);
+     printf("%u currently active functions :\n", (unsigned int) _num_addr);
+
+     for (_i = 0; _i < _num_addr; _i++) {
+          printf("===> %s\n", _strings[_i]);
+     }
+
+     free(_strings);
+
+     exit(1);
+}
+#endif    /* HL_BACKTRACE */
+
 /******************************************************************************
 
                               MAIN
@@ -1116,7 +1163,15 @@ int main(int argc, char *argv[])
      struct cr_re_desc        *_re;
      char                     *_env_var_name, *_env_deflt, *_deflt_color_opt,
                               **_argv, *_argv_deflt[4];
+#if defined(HL_BACKTRACE)
+     sighandler_t              _previous_handler;
+     
+     if ((_previous_handler = signal(SIGSEGV, print_trace)) == SIG_ERR) {
+          fprintf(stderr, "%s: signal() returned an error !\n", argv[0]);
+          exit(1);
+     }
 
+#endif    /* HL_BACKTRACE */
      G.prgname           = argv[0];
      G.selector_string   = CR_SELECTOR_STRING;
      G.color_string      = CR_COLORS_STRING;
@@ -1287,7 +1342,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.80");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.83");
                exit(1);
                break;
 
@@ -1397,12 +1452,12 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-	char					*_env_var,  *_env_val,
-						*_env_var1, *_env_var2,
-						*_env_val1, *_env_val2,
-						*_msg,      *_undefined;
+     char                     *_env_var,  *_env_val,
+                              *_env_var1, *_env_var2,
+                              *_env_val1, *_env_val2,
+                              *_msg,      *_undefined;
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.80");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.83");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1439,35 +1494,35 @@ void cr_usage(bool disp_config)
      fprintf(stderr, "  -4  : color brightness (underscore)\n");
      fprintf(stderr, "  -A  : alternate colors when string matched by selection regex changes\n");
      fprintf(stderr, "  -I  : alternate colors when string matched by selection regex does not change\n");
-     fprintf(stderr, "        Syntax for alternate options : -{A|I}[[s][,c1c2...cn]]\n");
+     fprintf(stderr, "        Syntax for alternate options : -{A|I}[[s],c1c2...cn]\n");
      fprintf(stderr, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
      fprintf(stderr, "         and c1, c2, ... cn are color specifiers to use\n");
      fprintf(stderr, "        Alternate colors implies extended regular expressions (-e)\n");
 
-	_env_var			= CR_ENV_DEFLT;
-	_env_var1			= CR_ENV_DEFLT_ALTERNATE_1;
-	_env_var2			= CR_ENV_DEFLT_ALTERNATE_2;
-	_undefined		= "Environment variable %s is undefined.\n";
-	_msg				= "Environment variable %-10s = \"%s\"\n";
+     _env_var            = CR_ENV_DEFLT;
+     _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;
+     _env_var2           = CR_ENV_DEFLT_ALTERNATE_2;
+     _undefined          = "Environment variable %s is undefined.\n";
+     _msg                = "Environment variable %-10s = \"%s\"\n";
 
-	if ((_env_val = getenv(_env_var)) == NULL) {
-		fprintf(stderr, _undefined, _env_var);
-	}
-	else {
-		fprintf(stderr, _msg, _env_var, _env_val);
-	}
-	if ((_env_val1 = getenv(_env_var1)) == NULL) {
-		fprintf(stderr, _undefined, _env_var1);
-	}
-	else {
-		fprintf(stderr, _msg, _env_var1, _env_val1);
-	}
-	if ((_env_val2 = getenv(_env_var2)) == NULL) {
-		fprintf(stderr, _undefined, _env_var2);
-	}
-	else {
-		fprintf(stderr, _msg, _env_var2, _env_val2);
-	}
+     if ((_env_val = getenv(_env_var)) == NULL) {
+          fprintf(stderr, _undefined, _env_var);
+     }
+     else {
+          fprintf(stderr, _msg, _env_var, _env_val);
+     }
+     if ((_env_val1 = getenv(_env_var1)) == NULL) {
+          fprintf(stderr, _undefined, _env_var1);
+     }
+     else {
+          fprintf(stderr, _msg, _env_var1, _env_val1);
+     }
+     if ((_env_val2 = getenv(_env_var2)) == NULL) {
+          fprintf(stderr, _undefined, _env_var2);
+     }
+     else {
+          fprintf(stderr, _msg, _env_var2, _env_val2);
+     }
 
      if (disp_config) {
           cr_display_config();

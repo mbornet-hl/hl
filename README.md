@@ -7,6 +7,12 @@ This command uses regcomp() and regexec() to colorize (highlight)
 strings from stdin using options on the command line.
 
 Standard system commands can be colorized without having to change their syntax nor having to manually pipe their output to the `hl`command, using the `hl_generic` script.
+If you want to colorize the output of a command, here is what you have to do :
+  1. Define a colorization configuration having the name of the command,
+  2. Create a hard link on hl_generic with the name of the command,
+  3. Make sure the directory containing the new link appears before
+     the directory containing the original command in your PATH variable,
+  4. Use your command the way you are used to.
 
 `hl` can use up to 42 colors :
 
@@ -18,8 +24,8 @@ Usage
 -----
 
 ```
-hl: version 1.67
-Usage: hl [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]
+hl: version 1.83
+Usage: ./hl [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]
   -h  : help
   -H  : help + configuration names
   -V  : version
@@ -52,6 +58,15 @@ Usage: hl [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_
   -2  : color brightness (normal : default)
   -3  : color brightness (bright)
   -4  : color brightness (underscore)
+  -A  : alternate colors when string matched by selection regex changes
+  -I  : alternate colors when string matched by selection regex does not change
+        Syntax for alternate options : -{A|I}[[s],c1c2...cn]
+         where s is a number from 0 to 9 indicating the selection regexp number,
+         and c1, c2, ... cn are color specifiers to use
+        Alternate colors implies extended regular expressions (-e)
+Environment variable HL_DEFAULT is undefined.
+Environment variable HL_A1      = "3Y"
+Environment variable HL_A2      = "3g"
   Configurations :
     --acl
     --apt
@@ -219,6 +234,10 @@ Usage: hl [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWn] regexp ...][--config_
     --cyan
     --white
 ```
+
+To use a colorized version of the "man" command, you should define a pager :
+MANPAGER=/usr/local/bin/hl_man_pager
+(and copy hl_man pager to /usr/local/bin).
 
 Examples
 --------

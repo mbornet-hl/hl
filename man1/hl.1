@@ -1,7 +1,10 @@
-.\" 	@(#)	[MB] cr_hl.1	Version 1.15 du 15/10/11 - 
+.\" 	@(#)	[MB] cr_hl.1	Version 1.16 du 19/06/02 - 
 .TH "HL" "1" "September 2015" "" "User Commands"
 .SH "NAME" 
 hl - Colorize strings matching regular expressions
+.SH "VERSION"
+.PP
+Version 1.83
 .SH "SYNOPSIS" 
 .PP 
 \fBhl\fP \fB [-h|-H|-V|-[eiuvdDEL1234][-[[%.]rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\fP
@@ -93,6 +96,15 @@ Changes the brightness of all the following colors, until another brightness is 
 Specifies the beginning of a range colorized in color 'c'.
 .IP "\fB-.\fP " 10
 Specifies the end of the range colorized in color 'c'.
+.IP "\fB-A\fP " 10
+Specifies parameters to alternate colors when matching string changes.
+.IP "\fB-I\fP " 10
+Specifies parameters to alternate colors when matching string stays identical.
+.TP
+		Syntax for alternate options : -{A|I}[[s],c1c2...cn]
+where s is a number from 0 to 9 indicating the selection regexp number,
+and c1, c2, ... cn are color specifiers to use
+Alternate colors implies extended regular expressions (-e)
 
 .SH "PRIORITIES"
 A color specifier always has a higher priority than the one that follows.
@@ -175,6 +187,21 @@ Example 8 :
 Specify that the default highlight color is '3Y' (high intensity yellow in reverse video), so that hl can be used with
 no color option but just one regular expression on the command line.
 
+.TP
+Example 9 :
+.B	cat logfile | hl -A1,3Y3c '(.*([12][0-9]{3}[-/][0-9]{2}[-/][0-9]{2}[     ]+..:..:..).*)'
+
+Alternate the colors when the date (format = YYYY-mm-dd HH:MM:SS) changes. Selection regexp is regexp number 1.
+First color used (3Y) is high intensity yellow (reverse video) and second color (3c) is high intensity cyan.
+More than two colors may be specified with this option.
+
+.TP
+Example 10 :
+.B	export HL_A1=2G; export HL_A2=3b
+
+Define default alternate colors in environment variables so that you can use -A or -I without specifing colors.
+Only two colors may be specified that way.
+
 .SH "FILES"
 .TP
 Since version 1.57, the default configuration for \fBhl\fP is \fB/etc/default/hl\fP . This configuration file is common to all users.
@@ -247,7 +274,7 @@ hl		:
 hl(5)
 
 .SH "MAN PAGE VERSION"
-The version of this man page is 1.15.
+The version of this man page is 1.16.
 It is compatible with hl version 1.63 and upper.
 
 .SH "AUTHOR" 
