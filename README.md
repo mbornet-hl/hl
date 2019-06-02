@@ -277,5 +277,6 @@ fdisk -l | hl --fdisk
 ```
 
 Alternate colors when the first character of the filenames changes :
+/bin/ls -l | hl -A1,2Y3c2B2r2G '(.*[       ](.).*)$'
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_example_alternate.png)
