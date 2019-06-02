@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.78 du 19/06/02 - 
+ *   @(#)  [MB] cr_main.c Version 1.80 du 19/06/02 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -83,6 +83,8 @@
 #define   SC     if (G.debug) fprintf(stderr, "==> %s(%d) Start color : [%c]\n", __FILE__, __LINE__, _c);
 #define   NC     if (G.debug) fprintf(stderr, "==> %s(%d) No color    : [%c]\n", __FILE__, __LINE__, _c);
 #define   EC     if (G.debug) fprintf(stderr, "==> %s(%d) End color\n", __FILE__, __LINE__);
+
+#define	inline /* empty : for compilers that do not know the inline directive */
 
 /******************************************************************************
 
@@ -1285,7 +1287,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.78");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.80");
                exit(1);
                break;
 
@@ -1400,7 +1402,7 @@ void cr_usage(bool disp_config)
 						*_env_val1, *_env_val2,
 						*_msg,      *_undefined;
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.78");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.80");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1445,8 +1447,8 @@ void cr_usage(bool disp_config)
 	_env_var			= CR_ENV_DEFLT;
 	_env_var1			= CR_ENV_DEFLT_ALTERNATE_1;
 	_env_var2			= CR_ENV_DEFLT_ALTERNATE_2;
-	_undefined		= "Environment variable \"%s\" is undefined.\n";
-	_msg				= "%-10s = \"%s\"\n";
+	_undefined		= "Environment variable %s is undefined.\n";
+	_msg				= "Environment variable %-10s = \"%s\"\n";
 
 	if ((_env_val = getenv(_env_var)) == NULL) {
 		fprintf(stderr, _undefined, _env_var);
