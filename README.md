@@ -24,7 +24,7 @@ Usage
 -----
 
 ```
-hl: version 1.83
+hl: version 1.84
 Usage: ./hl [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]
   -h  : help
   -H  : help + configuration names
