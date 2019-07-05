@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.84 du 19/06/02 - 
+ *   @(#)  [MB] cr_main.c Version 1.85 du 19/07/05 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -1051,7 +1051,7 @@ struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
                /* Invalid color specifier : use default values
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                fprintf(stderr,
-                       "Invalid color specifier %s=\%s\", using default\n",
+                       "Invalid color specifier %s=\"%s\", using default\n",
                        env_var_name, _env_val);
                _color         = cr_decode_color(deflt_color, deflt_intensity);
           }
@@ -1087,7 +1087,7 @@ struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
                           * use default values
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                          fprintf(stderr,
-                                 "Invalid color specifier %s=\%s\", using default\n",
+                                 "Invalid color specifier %s=\"%s\", using default\n",
                                  env_var_name, _env_val);
                          _color         = cr_decode_color(deflt_color,
                                                           deflt_intensity);
@@ -1341,7 +1341,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.84");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.85");
                exit(1);
                break;
 
@@ -1456,7 +1456,7 @@ void cr_usage(bool disp_config)
                               *_env_val1, *_env_val2,
                               *_msg,      *_undefined;
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.84");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.85");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
