@@ -6,6 +6,15 @@ Purpose
 This command uses regcomp() and regexec() to colorize (highlight)
 strings from stdin using options on the command line.
 
+It can be used to colorize text files (such as log files, configuration files, source files, ...) or commands output.
+Here are two examples of how you can colorize the output of  `ls` using the file date, by day (with `lD`) :
+![lD](https://github.com/mbornet-hl/hl/blob/master/images/hl_lD.png)
+
+or by week (with `lW`) :
+![lW](https://github.com/mbornet-hl/hl/blob/master/images/hl_lW.png)
+
+These are examples, the dates of the listed files have been modified to give suitable results. The scripts `lD` and `lW` are available in the `scripts` directory, and you can modify them to change the colors to your taste.
+
 Standard system commands can be colorized without having to change their syntax nor having to manually pipe their output to the `hl`command, using the `hl_generic` script.
 If you want to colorize the output of a command, here is what you have to do :
   1. Define a colorization configuration having the name of the command,
