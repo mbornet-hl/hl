@@ -295,6 +295,8 @@ Alternate colors when the first character of the filenames changes :
 ```
 ![ls_blue](https://github.com/mbornet-hl/hl/blob/master/images/hl_ls_alt_blue.png)
 
+![ls_yellow](https://github.com/mbornet-hl/hl/blob/master/images/hl_ls_alt_yellow.png)
+
 or in another way using many colors :
 ```
 /bin/ls -l | hl -A1,2Y3c2B2r2G '(^[-d].*[       ](.).*)$'
