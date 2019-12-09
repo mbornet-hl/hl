@@ -283,15 +283,20 @@ fdisk -l | hl --fdisk
 ```
 ![fdisk](https://github.com/mbornet-hl/hl/blob/master/images/fdisk.png)
 
-```
-
 Alternate colors on the first 15 lines of `vmstat` :
+```
 vmstat 1 | head -n 15 | hl -A,2B3w
 ```
 ![vmstat](https://github.com/mbornet-hl/hl/blob/master/images/fig12.png)
-```
 
 Alternate colors when the first character of the filenames changes :
+```
+/bin/ls -l | hl -A1,3c2B '^[-d].*[       ](([^ ])([^ ]*))$'
+```
+![ls_blue](https://github.com/mbornet-hl/hl/blob/master/images/hl_ls_alt_blue.png)
+
+or in another way using many colors :
+```
 /bin/ls -l | hl -A1,2Y3c2B2r2G '(^[-d].*[       ](.).*)$'
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_example_alternate.png)
