@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# Copyright (C) 2017-2019, Martial Bornet
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#	@(#)	[MB] aj_ls_by_day	Version 1.2 du 19/12/09 - 
+#
+
+hl_opts()
+{
+	for d in {0..6}
+	do
+		case $d in
+			0)	color=3c
+				;;
+
+			1)	color=2g
+				;;
+
+			2)	color=3y
+				;;
+
+			3)	color=1y
+				;;
+
+			4)	color=3r
+				;;
+
+			5)	color=1r
+				;;
+
+			6)	color=1m
+				;;
+
+			*)	color=n
+				;;
+		esac
+
+		HL_COL="-$color"
+		day=$(date '+%b %2e' -d "@$(echo "$(date '+%s') 24 3600 * $d * - p" | dc)")
+		HL_RE="$day ..:.. .+"
+		echo -n "$HL_COL" "'$HL_RE' "
+	done
+
+	 echo " "
+
+}
+
+/bin/ls -l "$@" | eval hl -e "$(hl_opts)"
