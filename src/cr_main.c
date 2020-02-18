@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.85 du 19/07/05 - 
+ *   @(#)  [MB] cr_main.c Version 1.87 du 20/02/16 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -578,7 +578,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                /* No more argument to treat
                   ~~~~~~~~~~~~~~~~~~~~~~~~~ */
                CR_DEBUG("NO MORE ARGS.\n");
-			break;
+               break;
           }
 
           _c        = _ptrs->curr_arg[_ptrs->curr_idx];
@@ -1341,7 +1341,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.85");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.87");
                exit(1);
                break;
 
@@ -1456,8 +1456,8 @@ void cr_usage(bool disp_config)
                               *_env_val1, *_env_val2,
                               *_msg,      *_undefined;
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.85");
-     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnA] regexp ...][--config_name ...] ]\n",
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.87");
+     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
      fprintf(stderr, "  -H  : help + configuration names\n");
