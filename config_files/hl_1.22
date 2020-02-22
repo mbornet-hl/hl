@@ -2,9 +2,9 @@
 #    Default configuration file for the "hl" command
 #    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#    @(#)	[MB] cr_hl.default	Version 1.23 du 20/02/22 - 
+#    @(#)	[MB] cr_hl.default	Version 1.22 du 16/08/21 - 
 #
-#    /etc/default/hl  version 1.23
+#    /etc/default/hl  version 1.22
 #
 
 # ============================== COMMANDS ==============================
@@ -153,12 +153,9 @@ iptables       :
 
 man            :
      -e
-     -3R '\<systemd\>'
      -2G '^([A-Z][A-Z0-9]*\([1-8]\)) +.* +([A-Z][A-Z0-9]*\([1-8]\))$'
      -2B '^[A-Z][A-Z ]*$'
-     -3g '[^a-zA-Z0-9](-[a-zA-Z0-9])[^a-zA-Z0-9]'
      -3y '^[ 	]+-[a-zA-Z0-9][ 	]'
-     -3y '\--[^ 	]+'
      -R  '(\<red\>).*reverse video'
      -G  '(\<green\>).*reverse video'
      -Y  '(\<yellow\>).*reverse video'
@@ -174,7 +171,6 @@ man            :
      -c  '\<cyan\>'
      -w  '\<white\>'
      -3b '(Example .*):'
-#     -1G '[^a-zA-Z0-9/]((/[-a-zA-Z_0-9]+)+)'
 
 mpg123         :
      -e
@@ -533,7 +529,7 @@ hl_conf        :
      -1B '	+$'
 
 hl_usage       :
-     -e
+     -ei
      -r  '(-r .*)'
      -g  '(-g .*)'
      -y  '(-y .*)'
@@ -541,19 +537,6 @@ hl_usage       :
      -m  '(-m .*)'
      -c  '(-c .*)'
      -w  '(-w .*)'
-     -R  '(-R .*)'
-     -G  '(-G .*)'
-     -Y  '(-Y .*)'
-     -B  '(-B .*)'
-     -M  '(-M .*)'
-     -C  '(-C .*)'
-     -W  '(-W .*)'
-     -1B 'Default value = "(.*)"'
-     -3w 'Environment variable ([^ ]+)'
-     -2B '^[ 	]*(Configurations)[ 	]*:'
-     -3Y '^/[^ 	]+[ 	]+: *([^ ]+)'
-     -%c '^[ 	]*Configurations[ 	]*:'
-     -.  '^END'
 
 hosts          :
      -e
