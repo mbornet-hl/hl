@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2019.
+ *   (C) Copyright Martial Bornet, 2015-2020.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.37 du 19/06/02 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.40 du 20/02/22 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -42,6 +42,8 @@
 #define   CR_ENV_DEFLT                  "HL_DEFAULT"
 #define   CR_ENV_DEFLT_ALTERNATE_1      "HL_A1"
 #define   CR_ENV_DEFLT_ALTERNATE_2      "HL_A2"
+#define   CR_ENV_CONF                   "HL_CONF"
+#define   CR_ENV_CONF_GLOB              "HL_CONF_GLOB"
 
 #define   CR_DEFLT_COLOR                "3Y"
 #define   CR_DEFLT_ALT_INTENSITY_1      (2)
@@ -50,6 +52,7 @@
 #define   CR_DEFLT_ALT_COLOR_2          'n'
 
 #define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
+#define   CR_DEFLT_CONF_GLOB            "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
 
 #define   bool                          int
 #if ! defined(FALSE)
@@ -131,6 +134,10 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_W_COLOR              (4)
 #define   CR_STATE_W_END                (5)
 
+/* Formatting parameters
+   ~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_SZ_CFG_FILE                (40)
+
 /* Structures
    ~~~~~~~~~~ */
 struct cr_color {
@@ -171,6 +178,7 @@ struct cr_arg {
 struct cr_config {
      char                               *name;
      bool                                visited;
+	char							*config_file;
      struct cr_config                   *next;
      struct cr_arg                      *extract,
                                         *insert;
@@ -208,6 +216,7 @@ struct cr_global {
      char                               *selector_string,
                                         *color_string,
                                         *intensity_string;
+     char                               *cfg_filename;
      struct cr_color                     color_RE[CR_NB_COLORS];
      struct cr_color                    *curr_col;
      struct cr_color                    *deflt_alt_col_1,

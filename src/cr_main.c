@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2019.
+ *   (C) Copyright Martial Bornet, 2015-2020.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.87 du 20/02/16 - 
+ *   @(#)  [MB] cr_main.c Version 1.90 du 20/02/22 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -32,6 +32,7 @@
  *   - cr_list2argv
  *   - cr_lists2argv
  *   - cr_read_config_file
+ *   - cr search_config
  *   - cr_read_config_files
  *   - cr_new_config
  *   - cr_new_arg
@@ -79,6 +80,9 @@
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <glob.h>
 #if defined(HL_BACKTRACE)
 #include <signal.h>
 #include <execinfo.h>
@@ -164,9 +168,66 @@ void cr_read_config_file(char *cfg_file)
           exit(1);
      }
 
+     G.cfg_filename           = strdup(cfg_file);
      yylex();
 
 //     cr_lists2argv(&G.configs);
+}
+
+/******************************************************************************
+
+                              CR_SEARCH_CONFIG
+
+******************************************************************************/
+void cr_search_config(char *dir)
+{
+     int                       _flags = 0, _size, _i;
+     glob_t                    _globbuf;
+     char                     *_var_conf_glob, *_val_conf_glob, *_val, *_pattern, *_s;
+
+     _var_conf_glob           = CR_ENV_CONF_GLOB;
+     if ((_val_conf_glob = getenv(_var_conf_glob)) == 0) {
+//          fprintf(stderr, "%s is undefined\n", _var_conf_glob);
+          _val_conf_glob      = CR_DEFLT_CONF_GLOB;
+     }
+//X0
+//   fprintf(stderr, "CONF_GLOB = \"%s\"\n", _val_conf_glob);
+
+//X0
+     _size                    = strlen(dir) + strlen(_val_conf_glob);
+     if ((_pattern = malloc(_size)) == 0) {
+          fprintf(stderr, "%s: malloc error !\n", G.prgname);
+          exit(1);
+     }
+//X0
+
+     for (_val = strdup(_val_conf_glob); (_s = strtok(_val, ":")) != 0; _val = 0) {
+          sprintf(_pattern, "%s/%s", dir, _s);
+//fprintf(stderr, "pattern = [%s]\n", _pattern);
+
+          switch (glob(_pattern, _flags, NULL, &_globbuf)) {  
+       
+          case GLOB_NOSPACE:  
+               fprintf(stderr, "Memoire insuffisante !\n");  
+               exit(1);  
+               break;  
+       
+          case GLOB_ABORTED:  
+               fprintf(stderr, "Erreur de lecture !\n");  
+               exit(1);  
+               break;  
+       
+          case GLOB_NOMATCH:  
+               fprintf(stderr, "Pas de correspondance !\n");  
+               break; 
+       
+          default:  
+               for (_i = 0; _globbuf.gl_pathv[_i] != NULL; _i++) { 
+//                  printf("%5d %s\n", _i, _globbuf.gl_pathv[_i]); 
+                    cr_read_config_file(_globbuf.gl_pathv[_i]);
+               } 
+          }
+     }
 }
 
 /******************************************************************************
@@ -178,27 +239,58 @@ void cr_read_config_files(void)
 {
      int                       _size;
      char                     *_home, *_cfg_file;
+     char                     *_var_conf = CR_ENV_CONF,
+                              *_val_conf, *_val, *_s;
+     struct stat               _st_buf;
 
      if (G.config_file_read) {
           return;
      }
 
-     if ((_home = getenv("HOME")) == 0) {
-          fprintf(stderr, "%s: HOME variable undefined !\n", G.prgname);
-          exit(1);
+     if ((_val_conf = getenv(_var_conf)) == 0) {
+//          fprintf(stderr, "%s is undefined\n", _var_conf);
+
+          if ((_home = getenv("HOME")) == 0) {
+               fprintf(stderr, "%s: HOME variable undefined !\n", G.prgname);
+               exit(1);
+          }
+
+          _size     = strlen(_home) + 1 + sizeof(CR_CONFIG_FILENAME);
+          if ((_cfg_file = malloc(_size)) == NULL) {
+               fprintf(stderr, cr_err_malloc, G.prgname);
+               exit(1);
+          }
+
+          sprintf(_cfg_file, "%s/%s", _home, CR_CONFIG_FILENAME);
+
+          cr_read_config_file(_cfg_file);
+          cr_read_config_file(CR_DEFLT_CONFIG_FILE);
      }
+     else {
+          for (_val = strdup(_val_conf); (_s = strtok(_val, ":")) != 0; _val = 0) {
+               if (stat(_s, &_st_buf) < 0) {
+                    fprintf(stderr, "Cannot stat \"%s\"\n", _s);
+               }
+               else {
+                    switch (_st_buf.st_mode & S_IFMT) {
 
-     _size     = strlen(_home) + 1 + sizeof(CR_CONFIG_FILENAME);
-     if ((_cfg_file = malloc(_size)) == NULL) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+                    case S_IFDIR:
+                         fprintf(stderr, "%s : directory\n", _s);
+                         cr_search_config(_s);
+                         break;
+
+                    case S_IFREG:
+                         fprintf(stderr, "%s : file\n", _s);
+                         cr_read_config_file(_s);
+                         break;
+
+                    default:
+                         fprintf(stderr, "%s : IGNORED\n", _s);
+                         break;
+                    }
+               }
+          }
      }
-
-     sprintf(_cfg_file, "%s/%s", _home, CR_CONFIG_FILENAME);
-
-     cr_read_config_file(_cfg_file);
-
-     cr_read_config_file(CR_DEFLT_CONFIG_FILE);
 
      cr_lists2argv(&G.configs);
 
@@ -1162,6 +1254,7 @@ int main(int argc, char *argv[])
      struct cr_re_desc        *_re;
      char                     *_env_var_name, *_env_deflt, *_deflt_color_opt,
                               **_argv, *_argv_deflt[4];
+
 #if defined(HL_BACKTRACE)
      sighandler_t              _previous_handler;
      
@@ -1337,11 +1430,11 @@ int main(int argc, char *argv[])
                break;
 
           case 'v':
-               G.verbose      = TRUE;
+               G.verbose++;
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.87");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.90");
                exit(1);
                break;
 
@@ -1403,7 +1496,6 @@ int main(int argc, char *argv[])
      if (G.disp_regex) {
           for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
                if (_re->alt_cols == NULL) {
-//X
                     printf("[%2d] ", ++_i);
                     cr_start_color(&_re->col);
                     printf("%s", _re->regex[0]);
@@ -1411,7 +1503,6 @@ int main(int argc, char *argv[])
                     printf("\n");
                     if (_re->regex[1]) {
                          printf("     => ");
-//X
                          cr_start_color(&_re->col);
                          printf("%s", _re->regex[1]);
                          cr_end_color(&_re->col);
@@ -1451,12 +1542,16 @@ int main(int argc, char *argv[])
 ******************************************************************************/
 void cr_usage(bool disp_config)
 {
-     char                     *_env_var,  *_env_val,
-                              *_env_var1, *_env_var2,
-                              *_env_val1, *_env_val2,
-                              *_msg,      *_undefined;
+     char                     *_env_var,           *_env_val,
+                              *_env_var1,          *_env_var2,
+                              *_env_val1,          *_env_val2,
+                              *_env_var_conf,      *_env_val_conf,
+                              *_env_var_conf_glob, *_env_val_conf_glob,
+                              *_msg,               *_undefined,
+						 _deflt_alt_1[4],	  _deflt_alt_2[4],
+						 _deflt_conf[128];
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.87");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.90");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
@@ -1501,26 +1596,43 @@ void cr_usage(bool disp_config)
      _env_var            = CR_ENV_DEFLT;
      _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;
      _env_var2           = CR_ENV_DEFLT_ALTERNATE_2;
-     _undefined          = "Environment variable %s is undefined.\n";
-     _msg                = "Environment variable %-10s = \"%s\"\n";
+     _env_var_conf       = CR_ENV_CONF;
+     _env_var_conf_glob  = CR_ENV_CONF_GLOB;
+     _undefined          = "Environment variable %s is undefined. Default value = \"%s\".\n";
+     _msg                = "Environment variable %-14s = \"%s\"\n";
 
      if ((_env_val = getenv(_env_var)) == NULL) {
-          fprintf(stderr, _undefined, _env_var);
+          fprintf(stderr, _undefined, _env_var, CR_DEFLT_COLOR);
      }
      else {
           fprintf(stderr, _msg, _env_var, _env_val);
      }
      if ((_env_val1 = getenv(_env_var1)) == NULL) {
-          fprintf(stderr, _undefined, _env_var1);
+		sprintf(_deflt_alt_1, "%d%c", CR_DEFLT_ALT_INTENSITY_1, CR_DEFLT_ALT_COLOR_1);
+          fprintf(stderr, _undefined, _env_var1, _deflt_alt_1);
      }
      else {
           fprintf(stderr, _msg, _env_var1, _env_val1);
      }
      if ((_env_val2 = getenv(_env_var2)) == NULL) {
-          fprintf(stderr, _undefined, _env_var2);
+		sprintf(_deflt_alt_2, "%d%c", CR_DEFLT_ALT_INTENSITY_2, CR_DEFLT_ALT_COLOR_2);
+          fprintf(stderr, _undefined, _env_var2, _deflt_alt_2);
      }
      else {
           fprintf(stderr, _msg, _env_var2, _env_val2);
+     }
+     if ((_env_val_conf = getenv(_env_var_conf)) == NULL) {
+		sprintf(_deflt_conf, "~/%s:%s", CR_CONFIG_FILENAME, CR_DEFLT_CONFIG_FILE);
+          fprintf(stderr, _undefined, _env_var_conf, _deflt_conf);
+     }
+     else {
+          fprintf(stderr, _msg, _env_var_conf, _env_val_conf);
+     }
+     if ((_env_val_conf_glob = getenv(_env_var_conf_glob)) == NULL) {
+          fprintf(stderr, _undefined, _env_var_conf_glob, CR_DEFLT_CONF_GLOB);
+     }
+     else {
+          fprintf(stderr, _msg, _env_var_conf_glob, _env_val_conf_glob);
      }
 
      if (disp_config) {
@@ -1570,10 +1682,23 @@ void cr_display_config(void)
 
      fprintf(stderr, "  Configurations :\n");
      for (_config = G.configs.extract; _config != 0; _config = _config->next) {
-          fprintf(stderr, "    --%s\n", _config->name);
-          if (G.verbose) {
-               cr_display_args(_config);
-          }
+		switch (G.verbose) {
+
+		case 0:
+			fprintf(stderr, "    --%s\n", _config->name);
+			break;
+
+		case	1:
+			fprintf(stderr, "%-*s : %s\n",
+				   CR_SZ_CFG_FILE, _config->config_file, _config->name);
+			break;
+
+		default:
+			fprintf(stderr, "%-*s : %s\n",
+				   CR_SZ_CFG_FILE, _config->config_file, _config->name);
+			cr_display_args(_config);
+			break;
+		}
      }
 }
 

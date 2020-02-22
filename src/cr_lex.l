@@ -8,7 +8,7 @@
  *
  *   File         :     cr_lex.l
  *
- *   @(#)  cr_lex.l  1.8  19/06/02  MB  
+ *   @(#)  cr_lex.l  1.9  20/02/22  MB  
  *
  * ============================================================================
  */
@@ -42,8 +42,9 @@ sep                      (:)
                               BEGIN CONFIG;
                               CR_DISP_LEX("CONFIG  : %s\n", yytext);
 
-                              _config        = cr_new_config();
-                              _config->name  = strdup(yytext);
+                              _config        		= cr_new_config();
+                              _config->name  		= strdup(yytext);
+						_config->config_file	= G.cfg_filename;
 
                               cr_add_config(_config);
                          }

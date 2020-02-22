@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  cr_gpri.c  1.12  19/06/02  MB  
+ *	@(#)	[MB] cr_gpri.c	Version 1.14 du 20/02/22 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
