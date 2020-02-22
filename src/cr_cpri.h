@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.40 du 20/02/22 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.41 du 20/02/22 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -136,7 +136,7 @@ struct cr_##name *cr_new_##name(void)                                      \
 
 /* Formatting parameters
    ~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_SZ_CFG_FILE                (40)
+#define   CR_SZ_CFG_FILE                (50)
 
 /* Structures
    ~~~~~~~~~~ */

@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.90 du 20/02/22 - 
+ *   @(#)  [MB] cr_main.c Version 1.91 du 20/02/22 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -151,6 +151,7 @@ void cr_lists2argv(struct cr_configs *configs)
 ******************************************************************************/
 void cr_read_config_file(char *cfg_file)
 {
+//fprintf(stderr, "        %s (%d) : cfg_file = [%s]\n", __func__, __LINE__, cfg_file);
      if (access(cfg_file, 0) != 0) {
 #if 0
           fprintf(stderr, "%s: config file \"%s\" does not exist !\n",
@@ -183,47 +184,44 @@ void cr_search_config(char *dir)
 {
      int                       _flags = 0, _size, _i;
      glob_t                    _globbuf;
-     char                     *_var_conf_glob, *_val_conf_glob, *_val, *_pattern, *_s;
+     char                     *_var_conf_glob, *_val_conf_glob, *_val, *_pattern,
+						*_s, *_saveptr = 0;
 
+//X
      _var_conf_glob           = CR_ENV_CONF_GLOB;
      if ((_val_conf_glob = getenv(_var_conf_glob)) == 0) {
-//          fprintf(stderr, "%s is undefined\n", _var_conf_glob);
           _val_conf_glob      = CR_DEFLT_CONF_GLOB;
      }
-//X0
-//   fprintf(stderr, "CONF_GLOB = \"%s\"\n", _val_conf_glob);
 
-//X0
      _size                    = strlen(dir) + strlen(_val_conf_glob);
      if ((_pattern = malloc(_size)) == 0) {
           fprintf(stderr, "%s: malloc error !\n", G.prgname);
           exit(1);
      }
-//X0
 
-     for (_val = strdup(_val_conf_glob); (_s = strtok(_val, ":")) != 0; _val = 0) {
+     for (_val = strdup(_val_conf_glob); (_s = strtok_r(_val, ":", &_saveptr)) != 0; _val = 0) {
           sprintf(_pattern, "%s/%s", dir, _s);
-//fprintf(stderr, "pattern = [%s]\n", _pattern);
+//fprintf(stderr, "    %s (%d) : CONFIG_FILE GLOB : [%s] : ", __func__, __LINE__,  _pattern);
 
           switch (glob(_pattern, _flags, NULL, &_globbuf)) {  
        
           case GLOB_NOSPACE:  
-               fprintf(stderr, "Memoire insuffisante !\n");  
+               fprintf(stderr, "Not enough memory !\n");  
                exit(1);  
                break;  
        
           case GLOB_ABORTED:  
-               fprintf(stderr, "Erreur de lecture !\n");  
+               fprintf(stderr, "Read error !\n");  
                exit(1);  
                break;  
        
           case GLOB_NOMATCH:  
-               fprintf(stderr, "Pas de correspondance !\n");  
+//               fprintf(stderr, "No match !\n");  
                break; 
        
           default:  
+//fprintf(stderr, "OK\n");  
                for (_i = 0; _globbuf.gl_pathv[_i] != NULL; _i++) { 
-//                  printf("%5d %s\n", _i, _globbuf.gl_pathv[_i]); 
                     cr_read_config_file(_globbuf.gl_pathv[_i]);
                } 
           }
@@ -240,7 +238,7 @@ void cr_read_config_files(void)
      int                       _size;
      char                     *_home, *_cfg_file;
      char                     *_var_conf = CR_ENV_CONF,
-                              *_val_conf, *_val, *_s;
+                              *_val_conf, *_val, *_s, *_saveptr = 0;
      struct stat               _st_buf;
 
      if (G.config_file_read) {
@@ -248,8 +246,6 @@ void cr_read_config_files(void)
      }
 
      if ((_val_conf = getenv(_var_conf)) == 0) {
-//          fprintf(stderr, "%s is undefined\n", _var_conf);
-
           if ((_home = getenv("HOME")) == 0) {
                fprintf(stderr, "%s: HOME variable undefined !\n", G.prgname);
                exit(1);
@@ -267,25 +263,28 @@ void cr_read_config_files(void)
           cr_read_config_file(CR_DEFLT_CONFIG_FILE);
      }
      else {
-          for (_val = strdup(_val_conf); (_s = strtok(_val, ":")) != 0; _val = 0) {
+//fprintf(stderr, "%s (%d) : _val_conf = [%s]\n", __func__, __LINE__, _val_conf);
+          for (_val = strdup(_val_conf); (_s = strtok_r(_val, ":", &_saveptr)) != 0; _val = 0) {
+//fprintf(stderr, "%s (%d) : _s = [%s]\n", __func__, __LINE__, _s);
                if (stat(_s, &_st_buf) < 0) {
                     fprintf(stderr, "Cannot stat \"%s\"\n", _s);
                }
                else {
+//fprintf(stderr, "%s (%d) : CONFIG FILE : [%s]\n", __func__, __LINE__, _s);
                     switch (_st_buf.st_mode & S_IFMT) {
 
                     case S_IFDIR:
-                         fprintf(stderr, "%s : directory\n", _s);
+//                         fprintf(stderr, "%s (%d) : %s : directory\n", __func__, __LINE__,  _s);
                          cr_search_config(_s);
                          break;
 
                     case S_IFREG:
-                         fprintf(stderr, "%s : file\n", _s);
+//                         fprintf(stderr, "%s (%d) : %s : file\n", __func__, __LINE__,  _s);
                          cr_read_config_file(_s);
                          break;
 
                     default:
-                         fprintf(stderr, "%s : IGNORED\n", _s);
+//                         fprintf(stderr, "%s (%d) : %s : IGNORED\n", __func__, __LINE__,  _s);
                          break;
                     }
                }
@@ -1434,7 +1433,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.90");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.91");
                exit(1);
                break;
 
@@ -1551,7 +1550,7 @@ void cr_usage(bool disp_config)
 						 _deflt_alt_1[4],	  _deflt_alt_2[4],
 						 _deflt_conf[128];
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.90");
+     fprintf(stderr, "%s: version %s\n", G.prgname, "1.91");
      fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(stderr, "  -h  : help\n");
