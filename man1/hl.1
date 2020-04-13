@@ -1,19 +1,17 @@
 .\" 	@(#)	[MB] cr_hl.1	Version 1.17 du 19/06/02 - 
-.TH "HL" "1" "September 2015" "" "User Commands"
+.TH "HL" "1" "April 2020" "" "User Commands"
 .SH "NAME" 
-hl - Colorize strings matching regular expressions
+.B hl - Colorize strings matching regular expressions
 .SH "VERSION"
 .PP
-Version 1.84
+Version 1.91
 .SH "SYNOPSIS" 
 .PP 
-\fBhl\fP \fB [-h|-H|-V|-[eiuvdDEL1234][-[[%.]rgybmcwRGYBMCWn] regexp ...][--config_name ...] ]\fP
+\fBhl\fP \fB [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\fP
 
 or :
 
 \fBhl\fP \fBregexp\fP
-
-with environment variable HL_DEFAULT initialized
 
 .SH "DESCRIPTION" 
 .PP 
@@ -74,6 +72,10 @@ display strings matching the associated regular expression in white
 (reverse video)
 .IP "\fB-n\fP " 10
 display strings matching the associated regular expression uncolorized
+.IP "\fB-%c\fP " 10
+Specifies the beginning of a range colorized in color 'c'.
+.IP "\fB-.\fP " 10
+Specifies the end of the range colorized in color 'c'.
 .IP "\fB-d\fP " 10
 activate debug
 .IP "\fB-D\fP " 10
@@ -92,10 +94,6 @@ Changes the brightness of all the following colors, until another brightness is 
 .IP "\fB-4\fP " 10
 color brightness (underscore).
 Changes the brightness of all the following colors, until another brightness is specified.
-.IP "\fB-%c\fP " 10
-Specifies the beginning of a range colorized in color 'c'.
-.IP "\fB-.\fP " 10
-Specifies the end of the range colorized in color 'c'.
 .IP "\fB-A\fP " 10
 Specifies parameters to alternate colors when matching string changes.
 .IP "\fB-I\fP " 10
@@ -122,10 +120,40 @@ will colorize each letter in green.
 If no parenthesis are specified in the regular expression, then all characters matching the regexp will be colorized.
 If parenthesis are specified, only characters captured in the parenthesis will be colorized.
 
-.SH DEFAULT COLOR
+.SH "ENVIRONMENT VARIABLES"
+
+.TP
+HL_DEFAULT : default color
 \fBhl\fP can be used to quickly highlight strings matching a regular expression with a default color.
 The environment variable HL_DEFAULT must be defined and initialized with a valid color specifier,
-such as "g", "2r" or "3Y".
+such as "g", "2r" or "3G".
+
+The default value is "3Y".
+
+.TP
+HL_A1 : first color specifier variable for color alternate
+
+The default value is 2B.
+
+.TP
+HL_A2 : second color specifier variable for color alternate
+
+The default value is 1n (no color).
+
+.TP
+HL_CONF : list of paths for configuration files
+This variable allows the user to specify the pathnames of the configuration files or those of directories containing
+configuration files. The separator between pathnames is ':', as in the shell PATH variable.
+
+The default value is "$HOME/.hl.cfg:/etc/default/hl".
+
+.TP
+HL_CONF_GLOB : list of patterns for configuration filenames matching
+This variable allows the user to specify a list of patterns for a generic specification of configuration filenames
+(globbing : see glob(7)). The separator between pathnames is ':', as in the shell PATH variable.
+
+The default value is "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg".
+
 
 .SH "EXAMPLES"
 .TP
