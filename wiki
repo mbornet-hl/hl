@@ -1,0 +1,95 @@
+Welcome to the **hl wiki** !
+
+**hl** is a simple command that colorizes strings with basic terminal colors according to regular expressions.
+It can be used to highlight log files, configuration files, output of various commands, and so on. It is also helpful to locate useful informations in a screen full of text.
+hl can handle 42 colors.
+Thanks to configuration files, the syntax of the **hl** command is considerably simplified.
+
+**hl** is a command that can colorize texts such as text files, log files, or command outputs.
+To use it on your system, you need to download the source files : 
+```
+$ git clone https://github.com/mbornet-hl/hl
+```
+then compile them : 
+```
+$ cd hl
+$ make clean; make
+```
+You should get a result like the following one : 
+```
+rm -f hl src/hl src/*.o
+cd src; make
+cc    -c -o cr_main.o cr_main.c
+cc    -c -o cr_gpri.o cr_gpri.c
+lex  -t cr_lex.l > cr_lex.c
+cc    -c -o cr_lex.o cr_lex.c
+./hl: version 1.91
+rm cr_lex.c
+mv src/hl .
+./hl -V
+./hl: version 1.91
+make: [hl] Error 1 (ignored)
+```
+The generated **hl** file contains the executable binary file.
+On Linux, you can check the file type with the following command : 
+```
+$ file hl
+```
+and the result should look like : 
+```
+hl: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.26, BuildID[sha1]=0x5f54d27c095ef7fabb9b19279f73c40cae1e6650, stripped
+```
+On macOS, you should get something like : 
+```
+hl: Mach-O 64-bit executable x86_64
+```
+Once you have got your **hl** executable, you can copy it into a directory which is in your PATH environment variable, for example : 
+```
+# cp hl /usr/local/bin
+```
+or : 
+```
+$ cp hl $HOME/bin
+```
+You can check you can access the command with : 
+```
+$ hl -V
+```
+and it should display the command's version, like : 
+```
+hl: version 1.91
+```
+Then you can copy configuration files in their own directories : 
+```
+# cp config_files/hl /etc/default
+```
+and : 
+```
+$ cp config_files/.hl.cfg $HOME
+```
+or copy the files from the **config_files** directory to any place you want on your system, as long as you define the environment variables **HL_CONF** and **HL_CONF_GLOB** to describe your configuration environment, for example :
+``` 
+export HL_CONF='/DATA3/projets/hl/config_files:/home/machine/mb:/etc/default/hl'
+export HL_CONF_GLOB='hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg:hl_*.config'
+```
+
+Once this is done, you can use the configurations defined in the configuration files, by simply placing their name after a double dash, like : 
+```
+$  xxd hl | hl --xxd
+```
+You can test your own regular expressions using the options on the command line, like : 
+```
+$ echo "starting / stopping" | hl -ei -3g '(start(ing|ed))' -2r '(stop(ping|ped))'
+```
+and once you have got a set of options that suits your needs, you can create a configuration in your $HOME/.cfg file to simplify your command line options.
+
+If you understand french, you can read the following item : 
+https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl
+
+Man pages displayed by the man command can be colorized using the script hl_man as a pager. For example, you can set the **MANPAGER** variable like this :
+```
+$ export MANPAGER='/usr/local/bin/hl_man'
+```
+then use the man command as usual.
+
+Now, you can define your own configurations using simple text strings or regular expressions and boldly go where no developer has gone before !
