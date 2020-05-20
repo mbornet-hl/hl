@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.91 du 20/02/22 - 
+ *   @(#)  [MB] cr_main.c Version 1.92 du 20/05/20 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -1268,6 +1268,7 @@ int main(int argc, char *argv[])
      G.color_string      = CR_COLORS_STRING;
      G.intensity_string  = CR_INTENSITY_STRING;
      G.out               = stdout;
+	G.usage_out		= stderr;
 
      switch (argc) {
 
@@ -1327,7 +1328,7 @@ int main(int argc, char *argv[])
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(_argc, _argv,
-                                       "hHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!A{I{",
+                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!A{I{",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -1433,7 +1434,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.91");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.92");
                exit(1);
                break;
 
@@ -1484,6 +1485,10 @@ int main(int argc, char *argv[])
                     cr_add_to_list(_re);
                }
                break;
+
+		case 'o':
+			G.usage_out	= stdout;
+			break;
 
           default:
                fprintf(stderr, "%s: unknown option '%c' !\n", G.prgname, _opt);
@@ -1550,47 +1555,48 @@ void cr_usage(bool disp_config)
 						 _deflt_alt_1[4],	  _deflt_alt_2[4],
 						 _deflt_conf[128];
 
-     fprintf(stderr, "%s: version %s\n", G.prgname, "1.91");
-     fprintf(stderr, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.92");
+     fprintf(G.usage_out, "Usage: %s [-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\n",
              G.prgname);
-     fprintf(stderr, "  -h  : help\n");
-     fprintf(stderr, "  -H  : help + configuration names\n");
-     fprintf(stderr, "  -V  : version\n");
-     fprintf(stderr, "  -v  : verbose\n");
-     fprintf(stderr, "  -u  : do not bufferize output on stdout\n");
-     fprintf(stderr, "  -e  : extended regular expressions\n");
-     fprintf(stderr, "  -i  : ignore case\n");
-     fprintf(stderr, "  -E  : print on stderr\n");
-     fprintf(stderr, "  -r  : red\n");
-     fprintf(stderr, "  -g  : green\n");
-     fprintf(stderr, "  -y  : yellow\n");
-     fprintf(stderr, "  -b  : blue\n");
-     fprintf(stderr, "  -m  : magenta\n");
-     fprintf(stderr, "  -c  : cyan\n");
-     fprintf(stderr, "  -w  : white\n");
-     fprintf(stderr, "  -R  : red     (reverse video)\n");
-     fprintf(stderr, "  -G  : green   (reverse video)\n");
-     fprintf(stderr, "  -Y  : yellow  (reverse video)\n");
-     fprintf(stderr, "  -B  : blue    (reverse video)\n");
-     fprintf(stderr, "  -M  : magenta (reverse video)\n");
-     fprintf(stderr, "  -C  : cyan    (reverse video)\n");
-     fprintf(stderr, "  -W  : white   (reverse video)\n");
-     fprintf(stderr, "  -n  : never colorize\n");
-     fprintf(stderr, "  -%%c : specifies the beginning of a range colorized in color 'c'\n");
-     fprintf(stderr, "  -.  : specifies the end of the previous range\n");
-     fprintf(stderr, "  -d  : debug\n");
-     fprintf(stderr, "  -D  : display regular expressions\n");
-     fprintf(stderr, "  -L  : lex debug\n");
-     fprintf(stderr, "  -1  : color brightness (half-bright)\n");
-     fprintf(stderr, "  -2  : color brightness (normal : default)\n");
-     fprintf(stderr, "  -3  : color brightness (bright)\n");
-     fprintf(stderr, "  -4  : color brightness (underscore)\n");
-     fprintf(stderr, "  -A  : alternate colors when string matched by selection regex changes\n");
-     fprintf(stderr, "  -I  : alternate colors when string matched by selection regex does not change\n");
-     fprintf(stderr, "        Syntax for alternate options : -{A|I}[[s],c1c2...cn]\n");
-     fprintf(stderr, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
-     fprintf(stderr, "         and c1, c2, ... cn are color specifiers to use\n");
-     fprintf(stderr, "        Alternate colors implies extended regular expressions (-e)\n");
+     fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
+     fprintf(G.usage_out, "  -h  : help\n");
+     fprintf(G.usage_out, "  -H  : help + configuration names\n");
+     fprintf(G.usage_out, "  -V  : version\n");
+     fprintf(G.usage_out, "  -v  : verbose\n");
+     fprintf(G.usage_out, "  -u  : do not bufferize output on stdout\n");
+     fprintf(G.usage_out, "  -e  : extended regular expressions\n");
+     fprintf(G.usage_out, "  -i  : ignore case\n");
+     fprintf(G.usage_out, "  -E  : print on stderr\n");
+     fprintf(G.usage_out, "  -r  : red\n");
+     fprintf(G.usage_out, "  -g  : green\n");
+     fprintf(G.usage_out, "  -y  : yellow\n");
+     fprintf(G.usage_out, "  -b  : blue\n");
+     fprintf(G.usage_out, "  -m  : magenta\n");
+     fprintf(G.usage_out, "  -c  : cyan\n");
+     fprintf(G.usage_out, "  -w  : white\n");
+     fprintf(G.usage_out, "  -R  : red     (reverse video)\n");
+     fprintf(G.usage_out, "  -G  : green   (reverse video)\n");
+     fprintf(G.usage_out, "  -Y  : yellow  (reverse video)\n");
+     fprintf(G.usage_out, "  -B  : blue    (reverse video)\n");
+     fprintf(G.usage_out, "  -M  : magenta (reverse video)\n");
+     fprintf(G.usage_out, "  -C  : cyan    (reverse video)\n");
+     fprintf(G.usage_out, "  -W  : white   (reverse video)\n");
+     fprintf(G.usage_out, "  -n  : never colorize\n");
+     fprintf(G.usage_out, "  -%%c : specifies the beginning of a range colorized in color 'c'\n");
+     fprintf(G.usage_out, "  -.  : specifies the end of the previous range\n");
+     fprintf(G.usage_out, "  -d  : debug\n");
+     fprintf(G.usage_out, "  -D  : display regular expressions\n");
+     fprintf(G.usage_out, "  -L  : lex debug\n");
+     fprintf(G.usage_out, "  -1  : color brightness (half-bright)\n");
+     fprintf(G.usage_out, "  -2  : color brightness (normal : default)\n");
+     fprintf(G.usage_out, "  -3  : color brightness (bright)\n");
+     fprintf(G.usage_out, "  -4  : color brightness (underscore)\n");
+     fprintf(G.usage_out, "  -A  : alternate colors when string matched by selection regex changes\n");
+     fprintf(G.usage_out, "  -I  : alternate colors when string matched by selection regex does not change\n");
+     fprintf(G.usage_out, "        Syntax for alternate options : -{A|I}[[s],c1c2...cn]\n");
+     fprintf(G.usage_out, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
+     fprintf(G.usage_out, "         and c1, c2, ... cn are color specifiers to use\n");
+     fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
 
      _env_var            = CR_ENV_DEFLT;
      _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;
@@ -1601,37 +1607,37 @@ void cr_usage(bool disp_config)
      _msg                = "Environment variable %-14s = \"%s\"\n";
 
      if ((_env_val = getenv(_env_var)) == NULL) {
-          fprintf(stderr, _undefined, _env_var, CR_DEFLT_COLOR);
+          fprintf(G.usage_out, _undefined, _env_var, CR_DEFLT_COLOR);
      }
      else {
-          fprintf(stderr, _msg, _env_var, _env_val);
+          fprintf(G.usage_out, _msg, _env_var, _env_val);
      }
      if ((_env_val1 = getenv(_env_var1)) == NULL) {
 		sprintf(_deflt_alt_1, "%d%c", CR_DEFLT_ALT_INTENSITY_1, CR_DEFLT_ALT_COLOR_1);
-          fprintf(stderr, _undefined, _env_var1, _deflt_alt_1);
+          fprintf(G.usage_out, _undefined, _env_var1, _deflt_alt_1);
      }
      else {
-          fprintf(stderr, _msg, _env_var1, _env_val1);
+          fprintf(G.usage_out, _msg, _env_var1, _env_val1);
      }
      if ((_env_val2 = getenv(_env_var2)) == NULL) {
 		sprintf(_deflt_alt_2, "%d%c", CR_DEFLT_ALT_INTENSITY_2, CR_DEFLT_ALT_COLOR_2);
-          fprintf(stderr, _undefined, _env_var2, _deflt_alt_2);
+          fprintf(G.usage_out, _undefined, _env_var2, _deflt_alt_2);
      }
      else {
-          fprintf(stderr, _msg, _env_var2, _env_val2);
+          fprintf(G.usage_out, _msg, _env_var2, _env_val2);
      }
      if ((_env_val_conf = getenv(_env_var_conf)) == NULL) {
 		sprintf(_deflt_conf, "~/%s:%s", CR_CONFIG_FILENAME, CR_DEFLT_CONFIG_FILE);
-          fprintf(stderr, _undefined, _env_var_conf, _deflt_conf);
+          fprintf(G.usage_out, _undefined, _env_var_conf, _deflt_conf);
      }
      else {
-          fprintf(stderr, _msg, _env_var_conf, _env_val_conf);
+          fprintf(G.usage_out, _msg, _env_var_conf, _env_val_conf);
      }
      if ((_env_val_conf_glob = getenv(_env_var_conf_glob)) == NULL) {
-          fprintf(stderr, _undefined, _env_var_conf_glob, CR_DEFLT_CONF_GLOB);
+          fprintf(G.usage_out, _undefined, _env_var_conf_glob, CR_DEFLT_CONF_GLOB);
      }
      else {
-          fprintf(stderr, _msg, _env_var_conf_glob, _env_val_conf_glob);
+          fprintf(G.usage_out, _msg, _env_var_conf_glob, _env_val_conf_glob);
      }
 
      if (disp_config) {
@@ -1663,11 +1669,44 @@ void cr_display_args_list(struct cr_config *config)
 void cr_display_args(struct cr_config *config)
 {
      char                    **_argv;
+	int					 _opt_displayed = FALSE, _opt_len;
+
+#define	OPT_WIDTH			(5)
 
      for (_argv = config->argv + 1; *_argv != 0; _argv++) {
-          fprintf(stderr, "      %s\n", *_argv);
+		if ((*_argv)[0] == '-') {
+			if (_opt_displayed) {
+				fprintf(G.usage_out, "\n");
+			}
+
+			if ((*_argv)[1] == '-') {
+				/* --XXXXXXXXX : config name
+				   ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+				fprintf(G.usage_out, "      %s\n", *_argv);
+				_opt_displayed			= FALSE;
+			}
+			else {
+				/* -XXXXXXXX : option
+				   ~~~~~~~~~~~~~~~~~~ */
+				fprintf(G.usage_out, "      %s", *_argv);
+				_opt_len				= strlen(*_argv);
+				_opt_displayed			= TRUE;
+			}
+		}
+		else {
+			/* Argument
+			   ~~~~~~~~ */
+			fprintf(G.usage_out, "%*s '%s'\n",
+			        _opt_len < OPT_WIDTH ? OPT_WIDTH - _opt_len : 1, "",
+				   *_argv);
+			_opt_displayed			= FALSE;
+		}
      }
-     fprintf(stderr, "\n");
+
+	if (_opt_displayed) {
+		fprintf(G.usage_out, "\n");
+	}
+     fprintf(G.usage_out, "\n");
 }
 
 /******************************************************************************
@@ -1679,21 +1718,21 @@ void cr_display_config(void)
 {
      struct cr_config         *_config;
 
-     fprintf(stderr, "  Configurations :\n");
+     fprintf(G.usage_out, "  Configurations :\n");
      for (_config = G.configs.extract; _config != 0; _config = _config->next) {
 		switch (G.verbose) {
 
 		case 0:
-			fprintf(stderr, "    --%s\n", _config->name);
+			fprintf(G.usage_out, "    --%s\n", _config->name);
 			break;
 
 		case	1:
-			fprintf(stderr, "%-*s : %s\n",
+			fprintf(G.usage_out, "%-*s : %s\n",
 				   CR_SZ_CFG_FILE, _config->config_file, _config->name);
 			break;
 
 		default:
-			fprintf(stderr, "%-*s : %s\n",
+			fprintf(G.usage_out, "%-*s : %s\n",
 				   CR_SZ_CFG_FILE, _config->config_file, _config->name);
 			cr_display_args(_config);
 			break;

@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.41 du 20/02/22 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.42 du 20/05/20 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -232,7 +232,8 @@ struct cr_global {
                                          disp_regex,
                                          disp_lex,
                                          config_file_read;
-     FILE                               *out;
+     FILE                               *out,
+								*usage_out;
      bool                                newline;
      bool                                begin_specified,
                                          end_specified;
