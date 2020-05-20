@@ -23,11 +23,11 @@ cc    -c -o cr_main.o cr_main.c
 cc    -c -o cr_gpri.o cr_gpri.c
 lex  -t cr_lex.l > cr_lex.c
 cc    -c -o cr_lex.o cr_lex.c
-./hl: version 1.91
+./hl: version 1.92
 rm cr_lex.c
 mv src/hl .
 ./hl -V
-./hl: version 1.91
+./hl: version 1.92
 make: [hl] Error 1 (ignored)
 ```
 The generated **hl** file contains the executable binary file.
@@ -57,7 +57,7 @@ $ hl -V
 ```
 and it should display the command's version, like :
 ```
-hl: version 1.91
+hl: version 1.92
 ```
 Then you can copy configuration files in their own directories :
 ```
