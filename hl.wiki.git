@@ -6,16 +6,16 @@ hl can handle 42 colors.
 Thanks to configuration files, the syntax of the **hl** command is considerably simplified.
 
 **hl** is a command that can colorize texts such as text files, log files, or command outputs.
-To use it on your system, you need to download the source files : 
+To use it on your system, you need to download the source files :
 ```
 $ git clone https://github.com/mbornet-hl/hl
 ```
-then compile them : 
+then compile them :
 ```
 $ cd hl
 $ make clean; make
 ```
-You should get a result like the following one : 
+You should get a result like the following one :
 ```
 rm -f hl src/hl src/*.o
 cd src; make
@@ -31,59 +31,59 @@ mv src/hl .
 make: [hl] Error 1 (ignored)
 ```
 The generated **hl** file contains the executable binary file.
-On Linux, you can check the file type with the following command : 
+On Linux, you can check the file type with the following command :
 ```
 $ file hl
 ```
-and the result should look like : 
+and the result should look like :
 ```
 hl: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.26, BuildID[sha1]=0x5f54d27c095ef7fabb9b19279f73c40cae1e6650, stripped
 ```
-On macOS, you should get something like : 
+On macOS, you should get something like :
 ```
 hl: Mach-O 64-bit executable x86_64
 ```
-Once you have got your **hl** executable, you can copy it into a directory which is in your PATH environment variable, for example : 
+Once you have got your **hl** executable, you can copy it into a directory which is in your PATH environment variable, for example :
 ```
 # cp hl /usr/local/bin
 ```
-or : 
+or :
 ```
 $ cp hl $HOME/bin
 ```
-You can check you can access the command with : 
+You can check you can access the command with :
 ```
 $ hl -V
 ```
-and it should display the command's version, like : 
+and it should display the command's version, like :
 ```
 hl: version 1.91
 ```
-Then you can copy configuration files in their own directories : 
+Then you can copy configuration files in their own directories :
 ```
 # cp config_files/hl /etc/default
 ```
-and : 
+and :
 ```
 $ cp config_files/.hl.cfg $HOME
 ```
 or copy the files from the **config_files** directory to any place you want on your system, as long as you define the environment variables **HL_CONF** and **HL_CONF_GLOB** to describe your configuration environment, for example :
-``` 
+```
 export HL_CONF='/DATA3/projets/hl/config_files:/home/machine/mb:/etc/default/hl'
 export HL_CONF_GLOB='hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg:hl_*.config'
 ```
 
-Once this is done, you can use the configurations defined in the configuration files, by simply placing their name after a double dash, like : 
+Once this is done, you can use the configurations defined in the configuration files, by simply placing their name after a double dash, like :
 ```
 $  xxd hl | hl --xxd
 ```
-You can test your own regular expressions using the options on the command line, like : 
+You can test your own regular expressions using the options on the command line, like :
 ```
 $ echo "starting / stopping" | hl -ei -3g '(start(ing|ed))' -2r '(stop(ping|ped))'
 ```
 and once you have got a set of options that suits your needs, you can create a configuration in your $HOME/.cfg file to simplify your command line options.
 
-If you understand french, you can read the following item : 
+If you understand french, you can read the following item :
 https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl
 
 Man pages displayed by the man command can be colorized using the script hl_man as a pager. For example, you can set the **MANPAGER** variable like this :
@@ -91,5 +91,64 @@ Man pages displayed by the man command can be colorized using the script hl_man 
 $ export MANPAGER='/usr/local/bin/hl_man'
 ```
 then use the man command as usual.
+
+You have several ways to list configurations :
+1.   with **hl -H**, you will only have a list of the configuration, such as :
+```
+  Configurations :
+    --C
+    --dmidecode
+    --show_disks
+    --show_all_disks
+    --sccs
+    --acl
+    --apt-get
+    --jigdo
+    --ll
+    --ls_doc
+    --man
+    ...
+```
+
+2. with **hl -vH**, you will have a list of options preceeded by the name of the configuration file in which the configuration is defined, such as :
+```
+  Configurations :
+/home/machine/mb/hl_conf/hl_C.cfg                  : C
+/home/machine/mb/hl_conf/hl_HW.cfg                 : dmidecode
+/home/machine/mb/hl_conf/hl_HW.cfg                 : show_disks
+/home/machine/mb/hl_conf/hl_HW.cfg                 : show_all_disks
+/home/machine/mb/hl_conf/hl_SCCS.cfg               : sccs
+/home/machine/mb/hl_conf/hl_acl.cfg                : acl
+/home/machine/mb/hl_conf/hl_cmds.cfg               : apt-get
+/home/machine/mb/hl_conf/hl_cmds.cfg               : jigdo
+/home/machine/mb/hl_conf/hl_cmds.cfg               : ll
+/home/machine/mb/hl_conf/hl_cmds.cfg               : ls_doc
+/home/machine/mb/hl_conf/hl_cmds.cfg               : man
+...
+```
+
+3. with **hl -vvH**, you will also have the details of each configuration :
+```
+  Configurations :
+/home/machine/mb/hl_conf/hl_C.cfg                  : C
+      -e
+      -%c   '/\*'
+      -.    '\*/'
+      -g    '\<(void|bool|char|int|long|unsigned|float|double|struct|enum)\>'
+      -y    '\<(sizeof|switch|case|default|for|while|if|else|[0-9]|stderr|stdout)\>'
+      -m    '(\\n|\\r|\\b)'
+      -y    '".*"'
+      -m    '^[ 	]*#[a-zA-Z]+'
+      -y    '^[ 	]*#include[ 	]+(<.*>|".*")'
+
+/home/machine/mb/hl_conf/hl_HW.cfg                 : dmidecode
+      -e
+      -1B   '^#.*'
+      -3g   '^Handle .+'
+      -2B   '^[^ 	].+'
+      -3b   'Manufacturer:'
+      -3y   'Manufacturer: *(.+)'
+...
+```
 
 Now, you can define your own configurations using simple text strings or regular expressions and boldly go where no developer has gone before !
