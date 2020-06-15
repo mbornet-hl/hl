@@ -28,7 +28,7 @@ If you want to colorize the output of a command, here is what you have to do :
 
 ![hl_colors](https://github.com/mbornet-hl/hl/blob/master/images/hl_colors.png)
 
-Here is a [review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` in a french magazine (Linux Pratique).
+Here is the [first review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) about `hl` in a french magazine (Linux Pratique), and here is the [second one](https://connect.ed-diamond.com/Linux-Pratique/LPHS-046/Tirez-parti-de-la-colorisation-pour-faciliter-la-lecture-de-vos-donnees).
 
 Usage
 -----
