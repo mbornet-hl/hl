@@ -1,1 +1,1 @@
-complete -W "`hl -oH | sed '1,/Configurations *:/d;s/^ *//'`" hl
+complete -W "`hl -oH | sed '1,/Configurations *:/d;s/^ *//'|sort -u`" hl
