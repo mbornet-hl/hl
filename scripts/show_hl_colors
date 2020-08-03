@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+#	@(#)	[MB] aj_show_hl_colors	Version 1.1 du 20/07/05 - 
+#
 
 # The following command only works when the 'colors' configuration can be found
 # in $HOME/.hl.cfg or /etc/default/hl :
