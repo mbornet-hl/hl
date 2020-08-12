@@ -3,6 +3,18 @@ hl : a colorization command
 
 Purpose
 -------
+**In short** :
+
+**hl** is a binary program compiled from **C** and **lex** source which can greatly **help you read log files**, the **output of commands** or **scripts**, **configuration files**, **text files**. It can **highlight thresholds**, **colorize blocks of text** delimited by markers, **alternate colors** when the value of an element **changes** (or on the contrary when it **does not change**), check values **consistency** on a line, **colorize fields** of text, and so on. **Many configurations** have been created, and you can **easily create yours** to suit your needs, using **simple text strings** or **regular expressions**.
+
+Its purpose is to colorize **what is important in the text you read**. It has been designed to **help you get straight to the point**. It's **fast** and **efficient**.
+
+There are no need to add plug-ins when you want to colorize a new syntax : you just have to define a new configuration with **basic** or **extended** **regular expressions**. You don't have to install the binary nor the configuration files in a system directory, you can use environment variables to specify where to fetch the files.
+
+At the present time, it has only been included in the ArchLinux distribution. There are no RPM nor .deb package, if you want to use it, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. By the way, if you want to create an RPM or .deb package for it, you're welcome !
+
+**In more detail** :
+
 This command is a compiled C program which can colorize text with up to 42 colors according to specified regular expressions. It can colorize patterns on a line when it finds a match, or colorize a group of lines from a start marker to an end marker, or alternate colors when the value of a match changes, or when it doesn't change.
 Configuration files can be placed anywhere on the file system (not only in /etc/default) as long as you initialize the environment variables.
 It uses regcomp() and regexec() to colorize (highlight) strings from stdin using options on the command line.
