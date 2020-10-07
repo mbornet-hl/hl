@@ -11,7 +11,9 @@ Its purpose is to colorize **what is important in the text you read**. It has be
 
 There are no need to add plug-ins when you want to colorize a new syntax : you just have to define a new configuration with **basic** or **extended** **regular expressions**. You don't have to install the binary nor the configuration files in a system directory, you can use environment variables to specify where to fetch the files.
 
-At the present time, it has only been included in the ArchLinux distribution. There are no RPM nor .deb package, if you want to use it, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. By the way, if you want to create an RPM or .deb package for it, you're welcome !
+Contribution
+------------
+At the present time, **hl** has only been included in the ArchLinux distribution. There are no RPM nor .deb package, and if you want to use it, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. **hl** will be more widely spread if it can be installed using **dpkg**, **apt-get**, **rpm**, or **yum**. If you want to create such packages, you are welcome !
 
 **In more detail** :
 
@@ -24,6 +26,7 @@ Here are two examples of how you can colorize the output of  `ls` using the file
 ![lD](https://github.com/mbornet-hl/hl/blob/master/images/hl_lD.png)
 
 or by week (with `lW`) :
+
 ![lW](https://github.com/mbornet-hl/hl/blob/master/images/hl_lW.png)
 
 These are examples, the dates of the listed files have been modified to give suitable results. The scripts `lD` and `lW` are available in the `scripts` directory, and you can modify them to change the colors to your taste.
