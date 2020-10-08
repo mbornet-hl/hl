@@ -13,7 +13,7 @@ There are no need to add plug-ins when you want to colorize a new syntax : you j
 
 Contribute
 ----------
-At the present time, **hl** has only been included in the ArchLinux distribution. There are no RPM nor .deb package, and if you want to use it, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. **hl** will be more widely spread if it can be installed using **dpkg**, **apt-get**, **rpm**, or **yum**. If you want to create such packages, you are welcome !
+At the present time, **hl** has only been included in the ArchLinux distribution. There are no RPM nor .deb package, and if you want to use it, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. **hl** would be more widely spread if it can be installed using **dpkg**, **apt-get**, **rpm**, or **yum**. So if you want to create such packages, you are welcome !
 
 **In more detail** :
 
