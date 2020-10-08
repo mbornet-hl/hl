@@ -11,9 +11,11 @@ Its purpose is to colorize **what is important in the text you read**. It has be
 
 There are no need to add plug-ins when you want to colorize a new syntax : you just have to define a new configuration with **basic** or **extended** **regular expressions**. You don't have to install the binary nor the configuration files in a system directory, you can use environment variables to specify where to fetch the files.
 
-Contribute
-----------
+Contributing
+------------
 At the present time, **hl** has only been included in the ArchLinux distribution. There are no RPM nor .deb package, and if you want to use it, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. **hl** would be more widely spread if it can be installed using **dpkg**, **apt-get**, **rpm**, or **yum**. So if you want to create such packages, you are welcome !
+
+Another way to contribute is to **share the configurations that you have created that could help other people**. To do so, please add a small comment above your configuration to specify your name, the creation date of your configuration and its purpose, and add an example of the data (as a separate file : 50 lines max) that your configuration colorizes. You also can add a screenshot of the result of the colorization of your data. Those files will be located in a sub-directory of the *examples* directory.
 
 **In more detail** :
 
