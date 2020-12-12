@@ -1,0 +1,26 @@
+Source: hl
+Section: utils
+Priority: optional
+Maintainer: Otto Kekäläinen <otto@debian.org>
+Build-Depends: debhelper (>= 10),
+               libfl-dev
+Standards-Version: 4.5.0
+Vcs-Git: https://github.com/mbornet-hl/hl.git
+Vcs-Browser: https://github.com/mbornet-hl/hl
+Rules-Requires-Root: no
+
+Package: hl
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: general-purpose, command-line text colorization tool
+ hl can greatly help you read log files, the output of commands or scripts,
+ configuration files, text files. It can highlight thresholds, colorize blocks
+ of text delimited by markers, alternate colors when the value of an element
+ changes (or on the contrary when it does not change), check values consistency
+ on a line, colorize fields of text, and so on. Many configurations have been
+ created, and you can easily create yours to suit your needs, using simple text
+ strings or regular expressions.
+ .
+ Its purpose is to colorize what is important in the text you read. It has been
+ designed to help you get straight to the point. It's fast and efficient.
