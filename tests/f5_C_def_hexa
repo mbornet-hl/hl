@@ -1,0 +1,21 @@
+/*
+ * Example of C program
+ */
+
+#define	A1	0x10
+#define	A2	0x11
+#define	A3	0x12
+#define	A4	0x14
+#define	A5	0x25
+#define	A6	0x16
+#define	A7	0x17
+#define	A8	0x18
+#define	A9	0x19
+#define	A10	0x20
+#define	A11	0x21
+#define	A12	0x22
+#define	A13	0x23
+#define	A15	0x25
+#define	A16	0x26
+#define	A17	0x27
+==================================================

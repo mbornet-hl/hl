@@ -1,0 +1,39 @@
+#!/bin/bash
+
+export HL_A2=3w
+
+run()
+{
+	file="$1"
+	opt1="$2"
+	regex1="$3"
+	opt2="$4"
+	regex2="$5"
+
+	echo "$1 ..." | hl -2B '.*'
+	cat <<- EOF | hl --hi_green
+		cat "$file" | ./hl "$OPT" "$opt1" "$regex1" "$opt2" "$regex2"
+	EOF
+
+	cat "$file" | hl "$OPT" "$opt1" "$regex1" "$opt2" "$regex2"
+	echo
+}
+
+OPT='-v'
+
+clear
+(
+	run f1_hexa		-sx:1    		'^0x([0-9a-fA-F]{2})'							-2r	'.+'
+	run f1_hexa		-sx:2,3c3y	'^(0x([0-9a-fA-F]{2}))'							-2r	'.+'
+	run f2_nodes		-s1:2    		'^(node([0-9]+))'								-2r	'.+'
+	run f3_even		-s+2   		'^([0-9]+)'									-2r	'.+'
+	run f3_even		-s+2:2   		'^([0-9]+)[ 	]+([0-9]+)'						-2r	'.+'
+	run f4_mult3		-s3    		'^x([0-9]+)'									-2r	'.+'
+	run f4_mult3		-s3:0    		'^x([0-9]+)'									-2r	'.+'
+	run f4_mult3		-s3:1    		'^(x([0-9]+))'									-2r	'.+'
+	run f5_C_def_hexa	-sx:1,3c3y	'^#define[ 	]+[^ 	]+[ 	]+0x([0-9A-F]+)'		-sx:2,2c2y	'^(#define[ 	]+[^ 	]+[ 	]+0x([0-9A-F]+))'
+	run f6_powers_2	-s\*2:1,3c3y	'^(.*)'										-2r	'.+'
+	run f6_powers_2-2	-s\*2:1,3c3y	'^2\^[0-9]+[ 	]+=[ 	]+(.*)'					-s\*2:2,2c2y	'^(2\^[0-9]+[ 	]+=[ 	]+(.*))'
+	run f6_powers_2-2	-s1:1,3c3y	'^2\^([0-9]+)[ 	].*'							-s1:2,1c1y	'^(2\^([0-9]+)[ 	].*)'
+	run f7_decrement	-s-5:2,1G1B	'^(Countdown[ ]*:[ ]*([0-9]+))'					-s-1:2,2R2M	'^(Countdown[        ]*:[    ]*([0-9])[      ]*)$'	-3b			'^#.*'
+) 2>&1 | less -RX
