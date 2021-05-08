@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2019, Martial Bornet
+ * Copyright (C) 2015-2021, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,52 +22,11 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.93 du 20/05/26 - 
+ *   @(#)  [MB] cr_main.c Version 1.101 du 21/05/08 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
  *
- *   Functions in this file :
- *   ~~~~~~~~~~~~~~~~~~~~~~~~
- *   - cr_list2argv
- *   - cr_lists2argv
- *   - cr_read_config_file
- *   - cr search_config
- *   - cr_read_config_files
- *   - cr_new_config
- *   - cr_new_arg
- *   - cr_new_args
- *   - cr_new_ptrs
- *   - cr_new_re_desc
- *   - cr_needs_arg
- *   - cr_get_config
- *   - cr_dump_ptrs
- *   - cr_dump_args
- *   - cr_getopt
- *   - cr_set_args
- *   - cr_add_to_list
- *   - cr_clear_marker_flags
- *   - cr_add_regexp
- *   - main
- *   - cr_usage
- *   - cr_display_args_list
- *   - cr_display_args
- *   - cr_display_config
- *   - cr_init_list
- *   - cr_add_config
- *   - cr_add_arg
- *   - cr_free_re
- *   - cr_marker2color
- *   - cr_set_desc
- *   - cr_set_desc_alt
- *   - cr_read_input
- *   - cr_start_color
- *   - cr_end_color
- *   - cr_init_desc
- *   - cr_same_colors
- *   - cr_disp_line
- *   - cr_get_deflt_alt_col
- * ============================================================================
  */
 
 #if defined(HL_BACKTRACE)
@@ -97,6 +56,8 @@
 #define   EC     if (G.debug) fprintf(stderr, "==> %s(%d) End color\n", __FILE__, __LINE__);
 
 #define   inline /* empty : for compilers that do not know the inline directive */
+
+/* cr_list2argv() {{{ */
 
 /******************************************************************************
 
@@ -130,6 +91,9 @@ void cr_list2argv(struct cr_config *config)
      config->insert      = 0;
 }
 
+/* cr_list2argv() }}} */
+/* cr_lists2argv() {{{ */
+
 /******************************************************************************
 
                               CR_LISTS2ARGV
@@ -143,6 +107,57 @@ void cr_lists2argv(struct cr_configs *configs)
           cr_list2argv(_config);
      }
 }
+
+/* cr_lists2argv() }}} */
+/* cr_glob_to_regexp() {{{ */
+
+/******************************************************************************
+
+                              CR_GLOB_TO_REGEXP
+
+******************************************************************************/
+char *cr_glob_to_regexp(char *glob_expr)
+{
+     char                     *_regexp, *_r, *_g;
+     int                       _len, _size;
+
+     _len                     = strlen(glob_expr);
+     _size                    = (_len * 2) + 3;
+
+     if ((_regexp = malloc(_size)) == NULL) {
+          fprintf(stderr, cr_err_malloc, G.prgname);
+          exit(1);
+     }
+
+     _r                       = _regexp;
+     *_r++                    = '^';
+
+     for (_g = glob_expr; *_g != 0; _g++) {
+          switch (*_g) {
+          
+          case '*':
+               *_r++               = '.';
+               *_r++               = '*';
+               break;
+
+          case '?':
+               *_r++               = '.';
+               break;
+
+          default:
+               *_r++               = *_g;
+               break;
+          }
+     }
+
+     *_r++                    = '$';
+     *_r++                    = '\0';
+
+     return _regexp;
+}
+
+/* cr_glob_to_regexp() }}} */
+/* cr_read_config_file() {{{ */
 
 /******************************************************************************
 
@@ -175,6 +190,9 @@ void cr_read_config_file(char *cfg_file)
 //     cr_lists2argv(&G.configs);
 }
 
+/* cr_read_config_file() }}} */
+/* cr_search_config() {{{ */
+
 /******************************************************************************
 
                               CR_SEARCH_CONFIG
@@ -185,9 +203,8 @@ void cr_search_config(char *dir)
      int                       _flags = 0, _size, _i;
      glob_t                    _globbuf;
      char                     *_var_conf_glob, *_val_conf_glob, *_val, *_pattern,
-						*_s, *_saveptr = 0;
+                              *_s, *_saveptr = 0;
 
-//X
      _var_conf_glob           = CR_ENV_CONF_GLOB;
      if ((_val_conf_glob = getenv(_var_conf_glob)) == 0) {
           _val_conf_glob      = CR_DEFLT_CONF_GLOB;
@@ -201,7 +218,6 @@ void cr_search_config(char *dir)
 
      for (_val = strdup(_val_conf_glob); (_s = strtok_r(_val, ":", &_saveptr)) != 0; _val = 0) {
           sprintf(_pattern, "%s/%s", dir, _s);
-//fprintf(stderr, "    %s (%d) : CONFIG_FILE GLOB : [%s] : ", __func__, __LINE__,  _pattern);
 
           switch (glob(_pattern, _flags, NULL, &_globbuf)) {  
        
@@ -227,6 +243,9 @@ void cr_search_config(char *dir)
           }
      }
 }
+
+/* cr_search_config() }}} */
+/* cr_read_config_files() {{{ */
 
 /******************************************************************************
 
@@ -296,12 +315,18 @@ void cr_read_config_files(void)
      G.config_file_read  = TRUE;
 }
 
+/* cr_read_config_files() }}} */
+/* cr_new_config() {{{ */
+
 /******************************************************************************
 
                          CR_NEW_CONFIG
 
 ******************************************************************************/
 CR_NEW(config)
+
+/* cr_new_config() }}} */
+/* cr_new_arg() {{{ */
 
 /******************************************************************************
 
@@ -310,12 +335,18 @@ CR_NEW(config)
 ******************************************************************************/
 CR_NEW(arg)
 
+/* cr_new_arg() }}} */
+/* cr_new_args() {{{ */
+
 /******************************************************************************
 
                          CR_NEW_ARGS
 
 ******************************************************************************/
 CR_NEW(args)
+
+/* cr_new_args() }}} */
+/* cr_new_ptrs() {{{ */
 
 /******************************************************************************
 
@@ -324,6 +355,9 @@ CR_NEW(args)
 ******************************************************************************/
 CR_NEW(ptrs)
 
+/* cr_new_ptrs() }}} */
+/* cr_new_re_desc() {{{ */
+
 /******************************************************************************
 
                          CR_NEW_RE_DESC
@@ -331,12 +365,18 @@ CR_NEW(ptrs)
 ******************************************************************************/
 CR_NEW(re_desc)
 
+/* cr_new_re_desc() }}} */
+/* cr_new_color() {{{ */
+
 /******************************************************************************
 
                          CR_NEW_COLOR
 
 ******************************************************************************/
 CR_NEW(color)
+
+/* cr_new_color() }}} */
+/* cr_create_color() {{{ */
 
 /******************************************************************************
 
@@ -356,6 +396,9 @@ struct cr_color *cr_create_color(int color, int intensity)
      return _color;
 }
 
+/* cr_create_color() }}} */
+/* cr_dump_color() {{{ */
+
 /******************************************************************************
 
                          CR_DUMP_COLOR
@@ -366,6 +409,9 @@ void cr_dump_color(struct cr_color *col)
      printf("COLOR %p : color = %3d), intensity = %d\n",
             col, col->col_num, col->intensity);
 }
+
+/* cr_dump_color() }}} */
+/* cr_needs_arg() {{{ */
 
 /******************************************************************************
 
@@ -388,6 +434,9 @@ bool cr_needs_arg(char opt, struct cr_args *args)
 
      return FALSE;
 }
+
+/* cr_needs_arg() }}} */
+/* cr_special_opt() {{{ */
 
 /******************************************************************************
 
@@ -412,6 +461,9 @@ bool cr_special_opt(char opt, struct cr_args *args)
      return FALSE;
 }
 
+/* cr_special_opt() }}} */
+/* cr_get_config() {{{ */
+
 /******************************************************************************
 
                               CR_GET_CONFIG
@@ -435,6 +487,9 @@ struct cr_config *cr_get_config(char *config_name, struct cr_args *args)
      return _config;
 }
 
+/* cr_get_config() }}} */
+/* cr_dump_ptrs() {{{ */
+
 /******************************************************************************
 
                               CR_DUMP_PTRS
@@ -450,6 +505,9 @@ void cr_dump_ptrs(struct cr_ptrs *ptrs)
      printf("     config    = %p\n", ptrs->config);
 }
 
+/* cr_dump_ptrs() }}} */
+/* cr_dump_args() {{{ */
+
 /******************************************************************************
 
                               CR_DUMP_ARGS
@@ -464,6 +522,9 @@ void cr_dump_args(struct cr_args *args)
 
      cr_dump_ptrs(args->curr_ptrs);
 }
+
+/* cr_dump_args() }}} */
+/* cr_is_selector() {{{ */
 
 /******************************************************************************
 
@@ -484,6 +545,9 @@ int cr_is_selector(char c)
      return _retcode;
 }
 
+/* cr_is_selector() }}} */
+/* cr_is_intensity() {{{ */
+
 /******************************************************************************
 
                          CR_IS_INTENSITY
@@ -503,6 +567,9 @@ int cr_is_intensity(char c)
      return _retcode;
 }
 
+/* cr_is_intensity() }}} */
+/* cr_is_a_color() {{{ */
+
 /******************************************************************************
 
                          CR_IS_A_COLOR
@@ -521,6 +588,219 @@ int cr_is_a_color(char c)
 
      return _retcode;
 }
+
+/* cr_is_a_color() }}} */
+/* cr_is_int() {{{ */
+
+/******************************************************************************
+
+                         CR_IS_INT
+
+******************************************************************************/
+int cr_is_int(char c)
+{
+     int             _retcode;
+
+     if (strchr(G.int_string, (int) c) != NULL) {
+          _retcode  = TRUE;
+     }
+     else {
+          _retcode  = FALSE;
+     }
+
+     return _retcode;
+}
+
+/* cr_is_int() }}} */
+/* cr_is_op() {{{ */
+
+/******************************************************************************
+
+                         CR_IS_OP
+
+******************************************************************************/
+int cr_is_op(char c)
+{
+     int             _retcode;
+
+     if (strchr(G.op_string, (int) c) != NULL) {
+          _retcode  = TRUE;
+     }
+     else {
+          _retcode  = FALSE;
+     }
+
+     return _retcode;
+}
+
+/* cr_is_op() }}} */
+/* cr_is_base() {{{ */
+
+/******************************************************************************
+
+                         CR_IS_BASE
+
+******************************************************************************/
+int cr_is_base(char c)
+{
+     int             _retcode;
+
+     if (strchr(G.base_string, (int) c) != NULL) {
+          _retcode  = TRUE;
+     }
+     else {
+          _retcode  = FALSE;
+     }
+
+     return _retcode;
+}
+
+/* cr_is_base() }}} */
+/* cr_op() {{{ */
+
+/******************************************************************************
+
+                         CR_OP
+
+******************************************************************************/
+int cr_op(char op)
+{
+     int             _op;
+
+     switch (op) {
+
+     case '+':
+          _op       = CR_OP_ADD;
+          break;
+
+     case '-':
+          _op       = CR_OP_SUB;
+          break;
+
+     case '*':
+          _op       = CR_OP_MUL;
+          break;
+
+     case '/':
+          _op       = CR_OP_DIV;
+          break;
+     }
+
+     return _op;
+}
+
+/* cr_op() }}} */
+/* cr_base() {{{ */
+
+/******************************************************************************
+
+                         CR_BASE
+
+******************************************************************************/
+int cr_base(char base)
+{
+     int             _base;
+
+     switch (base) {
+
+     case 'd':
+          _base     = CR_BASE_DEC;
+          break;
+
+     case 'o':
+          _base     = CR_BASE_OCT;
+          break;
+
+     case 'x':
+          _base     = CR_BASE_HEX;
+          break;
+
+     case 'a':
+          _base     = CR_BASE_ASCII;
+          break;
+     }
+
+     return _base;
+}
+
+/* cr_base() }}} */
+/* cr_base_to_str() {{{ */
+
+/******************************************************************************
+
+                         CR_BASE_TO_STR
+
+******************************************************************************/
+char *cr_base_to_str(int base)
+{
+     char           *_base;
+
+     switch (base) {
+
+     case CR_BASE_DEC:
+          _base     = "decimal";
+          break;
+
+     case CR_BASE_OCT:
+          _base     = "octal";
+          break;
+
+     case CR_BASE_HEX:
+          _base     = "hexadecimal";
+          break;
+
+     case CR_BASE_ASCII:
+          _base     = "ascii";
+          break;
+
+     default:
+          _base     = "UNKNOWN";
+          break;
+     }
+
+     return _base;
+}
+
+/* cr_base_to_str() }}} */
+/* cr_glob_to_regexp() {{{ */
+
+/******************************************************************************
+
+                         CR_OP_TO_STR
+
+******************************************************************************/
+char *cr_op_to_str(int op)
+{
+     char           *_op;
+
+     switch (op) {
+
+     case CR_OP_ADD:
+          _op       = "add";
+          break;
+
+     case CR_OP_SUB:
+          _op       = "sub";
+          break;
+
+     case CR_OP_MUL:
+          _op       = "mul";
+          break;
+
+     case CR_OP_DIV:
+          _op       = "div";
+          break;
+
+     default:
+          _op       = "UNKNOWN";
+          break;
+     }
+
+     return _op;
+}
+
+/* cr_glob_to_regexp() }}} */
+/* cr_decode_color() {{{ */
 
 /******************************************************************************
 
@@ -604,6 +884,113 @@ struct cr_color *cr_decode_color(char c, int intensity)
      return _color;
 }
 
+/* cr_decode_color() }}} */
+/* cr_dec_to_long() {{{ */
+
+/******************************************************************************
+
+                         CR_DEC_TO_LONG
+
+******************************************************************************/
+long cr_dec_to_long(char *str)
+{
+     long                 _value = 0;
+
+     sscanf(str, "%ld", &_value);
+     return _value;
+}
+
+/* cr_dec_to_long() }}} */
+/* cr_hex_to_long() {{{ */
+
+/******************************************************************************
+
+                         CR_HEX_TO_LONG
+
+******************************************************************************/
+long cr_hex_to_long(char *str)
+{
+     long                 _value = 0;
+
+     sscanf(str, "%lx", &_value);
+     return _value;
+}
+
+/* cr_hex_to_long() }}} */
+/* cr_oct_to_long() {{{ */
+
+/******************************************************************************
+
+                         CR_OCT_TO_LONG
+
+******************************************************************************/
+long cr_oct_to_long(char *str)
+{
+     long                 _value = 0;
+
+     sscanf(str, "%lo", &_value);
+     return _value;
+}
+
+/* cr_oct_to_long() }}} */
+/* cr_ascii_to_long() {{{ */
+
+/******************************************************************************
+
+                         CR_ASCII_TO_LONG
+
+******************************************************************************/
+long cr_ascii_to_long(char *str)
+{
+     long                 _value = 0;
+
+     _value              = str[0];
+
+     return _value;
+}
+
+/* cr_ascii_to_long() }}} */
+/* cr_convert() {{{ */
+
+/******************************************************************************
+
+                         CR_CONVERT
+
+******************************************************************************/
+long cr_convert(struct cr_re_desc *re, char *str)
+{
+     long                 _value;
+
+     switch (re->base) {
+
+     case CR_BASE_DEC:
+          _value              = cr_dec_to_long(str);
+          break;
+
+     case CR_BASE_HEX:
+          _value              = cr_hex_to_long(str);
+          break;
+
+     case CR_BASE_OCT:
+          _value              = cr_oct_to_long(str);
+          break;
+
+     case CR_BASE_ASCII:
+          _value              = cr_ascii_to_long(str);
+          break;
+
+     default:
+          fprintf(stderr, "%s: internal error (base = 0x%08X)\n",
+                  G.prgname, re->base);
+          exit(1);
+     }
+
+     return _value;
+}
+
+/* cr_convert() }}} */
+/* cr_decode_alternate() {{{ */
+
 /******************************************************************************
 
                               CR_DECODE_ALTERNATE
@@ -622,6 +1009,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
 
 //X
      _re                      = cr_new_re_desc();
+     _re->alternate           = TRUE;
      _re->cflags              = G.cflags;
      _re->col.col_num         = 0;
      _re->col.intensity       = 0;
@@ -820,12 +1208,14 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
           }
      }
 
-     _selector++;   // '0' => regexp number 1
+     if (!G.consistency) {
+          _selector++;   // '0' => regexp number 1
+     }
      _re->idx_regex_select    = _selector;
      _re->regex[0]            = _regexp;
      _re->regex[1]            = NULL;
 
-     if (G.debug) {
+     if (G.debug || G.verbose) {
           struct cr_color     *_color;
 
           printf("Selector  = %d\n",   _re->idx_regex_select);
@@ -838,6 +1228,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                }
                printf("Color[%d]  = (%d, %d)  (%p)\n", _i, _color->intensity, _color->col_num, _color);
           }
+          printf("\n");
      }
 
      if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
@@ -849,6 +1240,382 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
 
      return _re;
 }
+
+/* cr_decode_alternate() }}} */
+/* cr_decode_sequential() {{{ */
+
+/******************************************************************************
+
+                              CR_DECODE_SEQUENTIAL
+
+******************************************************************************/
+struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
+{
+     // for Sequential option
+     int                       _state, _curr_col_idx, _selector, _lg, _size;
+     char                      _c, _next_char, *_regexp;
+     struct cr_ptrs           *_ptrs;
+     struct cr_color         **_alt_colors;
+     struct cr_re_desc        *_re;
+     int                       _error, _i, _idx;
+     char                      _errbuf[256], *_p, _str_c[2], _param[32], *_fmt;
+
+     _re                      = cr_new_re_desc();
+     _re->sequential          = TRUE;
+     _re->cflags              = G.cflags;
+     _re->col.col_num         = 0;
+     _re->col.intensity       = 0;
+     _re->col.out             = G.out;
+     _re->max_sub             = 1;
+     _re->alt_idx             = 0;
+     _re->idx_regex_select    = 0;
+     _re->matching_str        = NULL;
+     _re->change_on_diff      = TRUE;
+     _re->change_on_bad_next  = TRUE;
+     _re->val                 = 0;
+     _re->param               = 1;
+     _re->op                  = CR_OP_ADD;
+     _re->base                = CR_BASE_DEC;
+     G.out                    = stdout;
+
+     _state                   = CR_STATE_INITIAL;
+     _curr_col_idx            = 0;
+     _selector                = 0;
+
+     _regexp                  = NULL;
+
+     if ((_ptrs = args->curr_ptrs) == NULL) {
+          _lg                           = 3;
+     }
+     else {
+          _lg                      = strlen(_ptrs->curr_arg);
+          if (_lg < 3) {
+               _lg                      = 3;
+          }
+     }
+
+     /* Allocate memory for the color descriptors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     _size                    = (_lg + 1) * sizeof(struct cr_color **);
+     if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
+          fprintf(stderr, cr_err_malloc, G.prgname);
+          exit(1);
+     }
+     _re->alt_cols            = _alt_colors;
+
+     for (_i = 0; _i < (_lg + 1); _i++) {
+          _alt_colors[_i]          = NULL;
+     }
+
+     _idx           = 0;
+
+     /* Decode options
+        ~~~~~~~~~~~~~~ */
+     for (_c = 0 ; ; ) {
+          if (!(_ptrs = args->curr_ptrs)) {
+               /* No more argument to treat
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               CR_DEBUG("NO MORE ARGS.\n");
+               break;
+          }
+
+          _c        = _ptrs->curr_arg[_ptrs->curr_idx];
+          CR_DEBUG("==> OPTION : '%c'\n", _c);
+          _ptrs->curr_idx++;
+          _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
+          args->optarg      = 0;
+
+          if (_next_char == 0) {
+               CR_DEBUG("    No more 1 letter option\n");
+               CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+               if (*(_ptrs->curr_argv + 1) == 0) {
+                    /* No regexp for this option
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    CR_DEBUG("No regexp for this option => use default one\n");
+                    _regexp             = CR_DEFLT_ALT_REGEXP;
+                    args->curr_ptrs     = _ptrs->prev;
+                    free(_ptrs);
+               }
+               else {
+                    _ptrs->curr_argv++;
+                    _ptrs->curr_arg     = *_ptrs->curr_argv;
+                    _ptrs->curr_idx     = 0;
+                    CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+                    if (_ptrs->curr_arg[0] != '-') {
+                         /* Regexp found !
+                            ~~~~~~~~~~~~~~ */
+                         _regexp             = _ptrs->curr_arg;
+                         _ptrs->curr_argv++;
+                         _ptrs->curr_arg     = *_ptrs->curr_argv;
+                    }
+                    else {
+                         /* No regexp : use default one
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _regexp             = CR_DEFLT_ALT_REGEXP;
+                    }
+               }
+          }
+
+          switch (_state) {
+
+          case CR_STATE_INITIAL:
+               if (cr_is_op(_c)) {
+                    _re->op        = cr_op(_c);
+                    _state         = CR_STATE_W_PARAM;
+               }
+               else if (cr_is_int(_c)) {
+                    _param[_idx++] = _c;
+                    _param[_idx]   = 0;
+                    _state         = CR_STATE_W_BASE;
+               }
+               else if (cr_is_base(_c)) {
+                    _re->base      = cr_base(_c);
+                    _state         = CR_STATE_W_SEPARATOR_2;
+               }
+               else if (_c == ',') {
+                    _selector      = 0;
+                    _state         = CR_STATE_W_INTENSITY;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_DEBUG("Syntax error: STATE_INITIAL c='%c'\n", _c);
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_PARAM:
+               if (cr_is_int(_c)) {
+                    _param[_idx++] = _c;
+                    _param[_idx]   = 0;
+                    _state         = CR_STATE_W_BASE;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_BASE:
+               if (cr_is_int(_c)) {
+                    _param[_idx++] = _c;
+                    _param[_idx]   = 0;
+                    _state         = CR_STATE_W_BASE;
+               }
+               else if (cr_is_base(_c)) {
+                    _re->base      = cr_base(_c);
+                    _state         = CR_STATE_W_SEPARATOR_2;
+               }
+               else if (_c == ':') {
+                    _state         = CR_STATE_W_SELECTOR_ID;
+               }
+               else if (_c == '\0') {
+                    _state         = CR_STATE_W_END;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_SEPARATOR_2:
+               if (_c == ':') {
+                    _state         = CR_STATE_W_SELECTOR_ID;
+               }
+               else if (_c == '\0') {
+                    _state         = CR_STATE_W_END;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_SELECTOR_ID:
+               if (cr_is_int(_c)) {
+                    _selector      = _c - '0';
+                    _state         = CR_STATE_W_SEPARATOR;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_SEPARATOR:
+               if (_c == ',') {
+                    _state         = CR_STATE_W_INTENSITY;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_INTENSITY:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    _state         = CR_STATE_W_COLOR;
+               }
+               else if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    _state         = CR_STATE_W_END;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COLOR:
+               if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+               }
+               _state         = CR_STATE_W_END;
+               break;
+
+          case CR_STATE_W_END:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    _state         = CR_STATE_W_COLOR;
+               }
+               else if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    _state         = CR_STATE_W_END;
+               }
+               else {
+                    /* Syntax error
+                       ~~~~~~~~~~~~ */
+                    CR_SYNTAX_OPT(_c);
+                    exit(1);
+               }
+               break;
+
+          default:
+               /* Syntax error
+                  ~~~~~~~~~~~~ */
+               CR_SYNTAX_OPT(_c);
+               exit(1);
+               break;
+          }
+
+          if (_regexp != NULL) {
+               /* Regex initialized : get out of the loop
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               break;
+          }
+     }
+
+//printf("END OF LOOP : regexp initialized : [%s]\n", _regexp);
+//cr_dump_args(args);
+     _alt_colors[_curr_col_idx++]  = NULL;
+//printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
+
+     if (_alt_colors[0] == NULL) {
+          _alt_colors[0]           = G.deflt_alt_col_1;
+     }
+     if (_alt_colors[1] == NULL) {
+          _alt_colors[1]           = G.deflt_alt_col_2;
+     }
+     if (_regexp == NULL) {
+          _regexp                  = CR_DEFLT_ALT_REGEXP;
+     }
+
+     /* Count number of possible sub strings
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_p = _regexp; (*_p); _p++) {
+          if (*_p == '(') {
+               _re->max_sub++;
+          }
+     }
+
+     _re->idx_regex_select    = _selector;
+     _re->regex[0]            = _regexp;
+     _re->regex[1]            = NULL;
+     if (_idx > 0) {
+          if (_re->base == CR_BASE_ASCII) {
+               _re->param               = cr_dec_to_long(_param);
+          }
+          else {
+               _re->param               = cr_convert(_re, _param);
+          }
+     }
+
+     if (G.debug || G.verbose) {
+          struct cr_color     *_color;
+
+          printf("Selector  = %d\n",   _re->idx_regex_select);
+          printf("regex[0]  = [%s]\n", _re->regex[0]);
+          printf("regex[1]  = %p\n",   _re->regex[1]);
+          printf("base      = %s\n",   cr_base_to_str(_re->base));
+          printf("operator  = %s\n",   cr_op_to_str(_re->op));
+          printf("_param    = %s\n",   _param);
+
+          switch (_re->base) {
+
+          case CR_BASE_DEC:
+               _fmt                = "param     = %ld\n";
+               break;
+
+          case CR_BASE_OCT:
+               _fmt                = "param     = %lo\n";
+               break;
+
+          case CR_BASE_HEX:
+               _fmt                = "param     = 0x%lX\n";
+               break;
+
+          case CR_BASE_ASCII:
+               _fmt                = "param     = '%c'\n";
+               break;
+
+          default:
+               _fmt                = "*** UNKNOWN BASE !!! ***\n";
+               break;
+          }
+          printf(_fmt, _re->param);
+
+          for (_i = 0; ; _i++) {
+               _color              = _re->alt_cols[_i];
+               if (_color == NULL) {
+                    break;
+               }
+               printf("Color[%d]  = (%d, %d)  (%p)\n", _i, _color->intensity, _color->col_num, _color);
+          }
+          printf("\n");
+     }
+
+     if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
+          (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+          fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                  G.prgname, _regexp, _errbuf);
+          exit(1);
+     }
+
+     return _re;
+}
+
+/* cr_decode_sequential() }}} */
+/* cr_getopt() {{{ */
 
 /******************************************************************************
 
@@ -996,6 +1763,9 @@ int cr_getopt(struct cr_args *args)
      return _c;
 }
 
+/* cr_getopt() }}} */
+/* cr_set_args() {{{ */
+
 /******************************************************************************
 
                               CR_SET_ARGS
@@ -1027,6 +1797,9 @@ struct cr_args *cr_set_args(int argc, char **argv, char *opts,
      return _args;
 }
 
+/* cr_set_args() }}} */
+/* cr_add_to_list() {{{ */
+
 /******************************************************************************
 
                          CR_ADD_TO_LIST
@@ -1044,6 +1817,9 @@ void cr_add_to_list(struct cr_re_desc *re)
      }
 }
 
+/* cr_add_to_list() }}} */
+/* cr_clear_marker_flags() {{{ */
+
 /******************************************************************************
 
                          CR_CLEAR_MARKER_FLAGS
@@ -1054,6 +1830,9 @@ inline void cr_clear_marker_flags(void)
      G.begin_specified        = FALSE;
      G.end_specified          = FALSE;
 }
+
+/* cr_clear_marker_flags() }}} */
+/* cr_add_regexp() {{{ */
 
 /******************************************************************************
 
@@ -1115,6 +1894,9 @@ void cr_add_regexp(int color, char *regexp)
           G.last_color             = 0;
      }
 }
+
+/* cr_add_regexp() }}} */
+/* cr_get_deflt_alt_col() {{{ */
 
 /******************************************************************************
 
@@ -1190,6 +1972,9 @@ struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
      return _color;
 }
 
+/* cr_get_deflt_alt_col() }}} */
+/* cr_init_deflt_alt_col() {{{ */
+
 /******************************************************************************
 
                          CR_INIT_DEFLT_ALT_COL
@@ -1205,6 +1990,9 @@ void cr_init_deflt_alt_col()
                                       CR_DEFLT_ALT_INTENSITY_2,
                                       CR_DEFLT_ALT_COLOR_2);
 }
+
+/* cr_init_deflt_alt_col() }}} */
+/* print_trace() {{{ */
 
 #if defined(HL_BACKTRACE)
 /******************************************************************************
@@ -1241,6 +2029,139 @@ void print_trace(int signum)
 }
 #endif    /* HL_BACKTRACE */
 
+/* print_trace() }}} */
+/* cr_display_config() {{{ */
+
+/******************************************************************************
+
+                         CR_DISPLAY_CONFIG
+
+******************************************************************************/
+void cr_display_config(int search_mode, char *re)
+{
+#define   NB_MATCH  12
+     struct cr_config         *_config;
+     char                      _c, _next_char, *_regexp;
+     struct cr_re_desc        *_re;
+     int                       _error, _i, _so, _eo;
+     char                      _errbuf[256], *_p;
+     size_t                    _nmatch  = NB_MATCH;
+     regmatch_t                _pmatch[NB_MATCH];
+     regex_t                   _reg;
+
+     switch (search_mode) {
+
+     case CR_CONF_LIST_ALL:
+          fprintf(G.usage_out, "  Configurations :\n");
+          break;
+
+     case CR_CONF_SEARCH_BY_REGEXP:
+          if ((_error = regcomp(&_reg, re, G.cflags)) != 0) {
+               (void) regerror(_error, &_reg, _errbuf, sizeof(_errbuf));
+               fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                       G.prgname, _regexp, _errbuf);
+               exit(1);
+          }
+          break;
+     }
+
+     for (_config = G.configs.extract; _config != 0; _config = _config->next) {
+          switch (G.verbose) {
+
+          case 0:
+               switch (search_mode) {
+
+               case CR_CONF_LIST_ALL:
+                    fprintf(G.usage_out, "    --%s\n", _config->name);
+                    break;
+
+               case CR_CONF_SEARCH_BY_REGEXP:
+                    if ((_error = regexec(&_reg, _config->name, _nmatch, _pmatch, 0)) == 0) {
+                         for (_i = 0; _i < _nmatch; _i++) {
+                              _so       = _pmatch[_i].rm_so;
+                              _eo       = _pmatch[_i].rm_eo;
+                              if (_so != -1) {
+                                   fprintf(G.usage_out, "%-*s : %s\n",
+                                           CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                              }
+                         }
+                    }
+                    else {
+                         _error    = regerror(_error, &_reg, _errbuf, sizeof(_errbuf));
+                    }
+                    break;
+               }
+               break;
+
+          case 1:
+               switch (search_mode) {
+
+               case CR_CONF_LIST_ALL:
+                    fprintf(G.usage_out, "%-*s : %s\n",
+                            CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                    break;
+
+               case CR_CONF_SEARCH_BY_REGEXP:
+                    if ((_error = regexec(&_reg, _config->name, _nmatch, _pmatch, 0)) == 0) {
+                         for (_i = 0; _i < _nmatch; _i++) {
+                              _so       = _pmatch[_i].rm_so;
+                              _eo       = _pmatch[_i].rm_eo;
+                              if (_so != -1) {
+                                   fprintf(G.usage_out, "# %s\n%-*s :\n",
+                                           _config->config_file, CR_SZ_CFG_FILE,
+                                           _config->name);
+                              }
+                         }
+                         cr_display_args(_config);
+                    }
+                    else {
+                         _error    = regerror(_error, &_reg, _errbuf, sizeof(_errbuf));
+                    }
+                    break;
+
+               }
+               break;
+
+          default:
+               switch (search_mode) {
+
+               case CR_CONF_LIST_ALL:
+                    fprintf(G.usage_out, "%-*s : %s\n",
+                            CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                    cr_display_args(_config);
+                    break;
+
+               case CR_CONF_SEARCH_BY_REGEXP:
+                    if ((_error = regexec(&_reg, _config->name, _nmatch, _pmatch, 0)) == 0) {
+                         for (_i = 0; _i < _nmatch; _i++) {
+                              _so       = _pmatch[_i].rm_so;
+                              _eo       = _pmatch[_i].rm_eo;
+                              if (_so != -1) {
+                                   fprintf(G.usage_out, "# %s\n%-*s :\n",
+                                           _config->config_file, CR_SZ_CFG_FILE,
+                                           _config->name);
+                              }
+                         }
+                         cr_display_args(_config);
+                    }
+                    else {
+                         _error    = regerror(_error, &_reg, _errbuf, sizeof(_errbuf));
+                    }
+                    break;
+
+               }
+               break;
+          }
+     }
+
+     if (re) {
+          regfree(&_reg);
+     }
+}
+
+/* cr_display_config() }}} */
+/* main() {{{ */
+
 /******************************************************************************
 
                               MAIN
@@ -1265,10 +2186,13 @@ int main(int argc, char *argv[])
 #endif    /* HL_BACKTRACE */
      G.prgname           = argv[0];
      G.selector_string   = CR_SELECTOR_STRING;
-     G.color_string      = CR_COLORS_STRING;
+     G.int_string        = CR_INT_STRING;
      G.intensity_string  = CR_INTENSITY_STRING;
+     G.color_string      = CR_COLORS_STRING;
+     G.op_string         = CR_OP_STRING;
+     G.base_string       = CR_BASE_STRING;
      G.out               = stdout;
-	G.usage_out		= stderr;
+     G.usage_out         = stderr;
 
      switch (argc) {
 
@@ -1328,7 +2252,7 @@ int main(int argc, char *argv[])
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(_argc, _argv,
-                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!A{I{",
+                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{P!p!",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -1434,7 +2358,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.93");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.101");
                exit(1);
                break;
 
@@ -1468,6 +2392,17 @@ int main(int argc, char *argv[])
                cr_add_regexp(G.last_color, _args->optarg);
                break;
 
+          case 'N':
+               /* By default (i.e. without specification of -N), sub-expression (1)
+                * in : (...(1)...) is numbered 1 in option -A and -I, which is
+                * inconsistent with the numbering in option -s where the same
+                * sub-expression is numbered 2.
+                * To make -A/-I and -s consistent, the -N option has been added so that
+                * the sub-expression is numbered identically in all these options.
+                */
+               G.consistency  = TRUE;
+               break;
+
           case 'A':
                G.cflags  |= REG_EXTENDED;
                if (_args->special_opt) {
@@ -1486,9 +2421,31 @@ int main(int argc, char *argv[])
                }
                break;
 
-		case 'o':
-			G.usage_out	= stdout;
-			break;
+          case 's':
+               G.cflags  |= REG_EXTENDED;
+               if (_args->special_opt) {
+                    _re                 = cr_decode_sequential(_args);
+                    _re->change_on_bad_next = TRUE;
+                    cr_add_to_list(_re);
+               }
+               break;
+
+          case 'o':
+               G.usage_out    = stdout;
+               break;
+
+          case 'p':
+               cr_read_config_files();
+               cr_display_config(CR_CONF_SEARCH_BY_REGEXP,
+                                 cr_glob_to_regexp(_args->optarg));
+               exit(1);
+               break;
+
+          case 'P':
+               cr_read_config_files();
+               cr_display_config(CR_CONF_SEARCH_BY_REGEXP, _args->optarg);
+               exit(1);
+               break;
 
           default:
                fprintf(stderr, "%s: unknown option '%c' !\n", G.prgname, _opt);
@@ -1539,6 +2496,9 @@ int main(int argc, char *argv[])
      return 0;
 }
 
+/* main() }}} */
+/* cr_usage() {{{ */
+
 /******************************************************************************
 
                          CR_USAGE
@@ -1552,11 +2512,11 @@ void cr_usage(bool disp_config)
                               *_env_var_conf,      *_env_val_conf,
                               *_env_var_conf_glob, *_env_val_conf_glob,
                               *_msg,               *_undefined,
-						 _deflt_alt_1[4],	  _deflt_alt_2[4],
-						 _deflt_conf[128];
+                               _deflt_alt_1[4],     _deflt_alt_2[4],
+                               _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.93");
-     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.101");
+     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNP] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
      fprintf(G.usage_out, "  -h  : help\n");
@@ -1597,6 +2557,20 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
      fprintf(G.usage_out, "         and c1, c2, ... cn are color specifiers to use\n");
      fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
+     fprintf(G.usage_out, "  -s  : alternate colors when the string matched by the selection regex is the image\n");
+     fprintf(G.usage_out, "        by a simple function (+, -, * or /) of the value of the previous matching string\n");
+     fprintf(G.usage_out, "        Syntax for sequential control option : -s[[-+*/]p[%s]:][n],c1c2...cn]\n", G.base_string);
+     fprintf(G.usage_out, "         where p is a positive integer (parameter),\n");
+     fprintf(G.usage_out, "         n is a number from 0 to 9 indicating the selection regexp number,\n");
+     fprintf(G.usage_out, "         and c1, c2, ... cn are color specifiers to use\n");
+     fprintf(G.usage_out, "           d : decimal (default)\n");
+     fprintf(G.usage_out, "           o : octal\n");
+     fprintf(G.usage_out, "           x : hexadecimal\n");
+     fprintf(G.usage_out, "           a : ascii (first character of the matching string)\n");
+     fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
+     fprintf(G.usage_out, "  -N  : consistent numbering of sub-expressions in -A/-I and -s\n");
+     fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
+     fprintf(G.usage_out, "  -P  : display configuration(s) matching regexp\n");
 
      _env_var            = CR_ENV_DEFLT;
      _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;
@@ -1613,21 +2587,21 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, _msg, _env_var, _env_val);
      }
      if ((_env_val1 = getenv(_env_var1)) == NULL) {
-		sprintf(_deflt_alt_1, "%d%c", CR_DEFLT_ALT_INTENSITY_1, CR_DEFLT_ALT_COLOR_1);
+          sprintf(_deflt_alt_1, "%d%c", CR_DEFLT_ALT_INTENSITY_1, CR_DEFLT_ALT_COLOR_1);
           fprintf(G.usage_out, _undefined, _env_var1, _deflt_alt_1);
      }
      else {
           fprintf(G.usage_out, _msg, _env_var1, _env_val1);
      }
      if ((_env_val2 = getenv(_env_var2)) == NULL) {
-		sprintf(_deflt_alt_2, "%d%c", CR_DEFLT_ALT_INTENSITY_2, CR_DEFLT_ALT_COLOR_2);
+          sprintf(_deflt_alt_2, "%d%c", CR_DEFLT_ALT_INTENSITY_2, CR_DEFLT_ALT_COLOR_2);
           fprintf(G.usage_out, _undefined, _env_var2, _deflt_alt_2);
      }
      else {
           fprintf(G.usage_out, _msg, _env_var2, _env_val2);
      }
      if ((_env_val_conf = getenv(_env_var_conf)) == NULL) {
-		sprintf(_deflt_conf, "~/%s:%s", CR_CONFIG_FILENAME, CR_DEFLT_CONFIG_FILE);
+          sprintf(_deflt_conf, "~/%s:%s", CR_CONFIG_FILENAME, CR_DEFLT_CONFIG_FILE);
           fprintf(G.usage_out, _undefined, _env_var_conf, _deflt_conf);
      }
      else {
@@ -1641,10 +2615,13 @@ void cr_usage(bool disp_config)
      }
 
      if (disp_config) {
-          cr_display_config();
+          cr_display_config(CR_CONF_LIST_ALL, NULL);
      }
      exit(1);
 }
+
+/* cr_usage() }}} */
+/* cr_display_args_list() {{{ */
 
 /******************************************************************************
 
@@ -1661,6 +2638,9 @@ void cr_display_args_list(struct cr_config *config)
      fprintf(stderr, "\n");
 }
 
+/* cr_display_args_list() }}} */
+/* cr_display_args() {{{ */
+
 /******************************************************************************
 
                          CR_DISPLAY_ARGS
@@ -1669,76 +2649,48 @@ void cr_display_args_list(struct cr_config *config)
 void cr_display_args(struct cr_config *config)
 {
      char                    **_argv;
-	int					 _opt_displayed = FALSE, _opt_len;
+     int                       _opt_displayed = FALSE, _opt_len;
 
-#define	OPT_WIDTH			(5)
+#define   OPT_WIDTH           (5)
 
      for (_argv = config->argv + 1; *_argv != 0; _argv++) {
-		if ((*_argv)[0] == '-') {
-			if (_opt_displayed) {
-				fprintf(G.usage_out, "\n");
-			}
+          if ((*_argv)[0] == '-') {
+               if (_opt_displayed) {
+                    fprintf(G.usage_out, "\n");
+               }
 
-			if ((*_argv)[1] == '-') {
-				/* --XXXXXXXXX : config name
-				   ~~~~~~~~~~~~~~~~~~~~~~~~~ */
-				fprintf(G.usage_out, "      %s\n", *_argv);
-				_opt_displayed			= FALSE;
-			}
-			else {
-				/* -XXXXXXXX : option
-				   ~~~~~~~~~~~~~~~~~~ */
-				fprintf(G.usage_out, "      %s", *_argv);
-				_opt_len				= strlen(*_argv);
-				_opt_displayed			= TRUE;
-			}
-		}
-		else {
-			/* Argument
-			   ~~~~~~~~ */
-			fprintf(G.usage_out, "%*s '%s'\n",
-			        _opt_len < OPT_WIDTH ? OPT_WIDTH - _opt_len : 1, "",
-				   *_argv);
-			_opt_displayed			= FALSE;
-		}
+               if ((*_argv)[1] == '-') {
+                    /* --XXXXXXXXX : config name
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    fprintf(G.usage_out, "      %s\n", *_argv);
+                    _opt_displayed           = FALSE;
+               }
+               else {
+                    /* -XXXXXXXX : option
+                       ~~~~~~~~~~~~~~~~~~ */
+                    fprintf(G.usage_out, "      %s", *_argv);
+                    _opt_len                 = strlen(*_argv);
+                    _opt_displayed           = TRUE;
+               }
+          }
+          else {
+               /* Argument
+                  ~~~~~~~~ */
+               fprintf(G.usage_out, "%*s '%s'\n",
+                       _opt_len < OPT_WIDTH ? OPT_WIDTH - _opt_len : 1, "",
+                       *_argv);
+               _opt_displayed           = FALSE;
+          }
      }
 
-	if (_opt_displayed) {
-		fprintf(G.usage_out, "\n");
-	}
+     if (_opt_displayed) {
+          fprintf(G.usage_out, "\n");
+     }
      fprintf(G.usage_out, "\n");
 }
 
-/******************************************************************************
-
-                         CR_DISPLAY_CONFIG
-
-******************************************************************************/
-void cr_display_config(void)
-{
-     struct cr_config         *_config;
-
-     fprintf(G.usage_out, "  Configurations :\n");
-     for (_config = G.configs.extract; _config != 0; _config = _config->next) {
-		switch (G.verbose) {
-
-		case 0:
-			fprintf(G.usage_out, "    --%s\n", _config->name);
-			break;
-
-		case	1:
-			fprintf(G.usage_out, "%-*s : %s\n",
-				   CR_SZ_CFG_FILE, _config->config_file, _config->name);
-			break;
-
-		default:
-			fprintf(G.usage_out, "%-*s : %s\n",
-				   CR_SZ_CFG_FILE, _config->config_file, _config->name);
-			cr_display_args(_config);
-			break;
-		}
-     }
-}
+/* cr_display_args() }}} */
+/* cr_init_list() {{{ */
 
 /******************************************************************************
 
@@ -1754,6 +2706,9 @@ void cr_init_list(void)
      }
      G.idx_list     = 0;
 }
+
+/* cr_init_list() }}} */
+/* cr_add_config() {{{ */
 
 /******************************************************************************
 
@@ -1771,6 +2726,9 @@ void cr_add_config(struct cr_config *config)
           G.configs.insert         = config;
      }
 }
+
+/* cr_add_config() }}} */
+/* cr_add_arg() {{{ */
 
 /******************************************************************************
 
@@ -1797,6 +2755,9 @@ void cr_add_arg(struct cr_arg *arg)
 
 }
 
+/* cr_add_arg() }}} */
+/* cr_free_re() {{{ */
+
 /******************************************************************************
 
                          CR_FREE_RE
@@ -1810,6 +2771,9 @@ void cr_free_RE(void)
           regfree(&_re->reg[0]);
      }
 }
+
+/* cr_free_re() }}} */
+/* cr_marker2color() {{{ */
 
 /******************************************************************************
 
@@ -1866,6 +2830,9 @@ void cr_marker2color( struct cr_re_desc *re)
 //fprintf(stderr, "[%2d] <<< curr_level : %d\n", _i, _curr_level);
 }
 
+/* cr_marker2color() }}} */
+/* cr_set_desc() {{{ */
+
 /******************************************************************************
 
                          CR_SET_DESC
@@ -1908,6 +2875,9 @@ void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
      }
 }
 
+/* cr_set_desc() }}} */
+/* cr_set_desc_alt() {{{ */
+
 /******************************************************************************
 
                          CR_SET_DESC_ALT
@@ -1928,6 +2898,48 @@ void cr_set_desc_alt(struct cr_re_desc *re, int offset, int s, int e, struct cr_
      }
 }
 
+/* cr_set_desc_alt() }}} */
+/* cr_next_val() {{{ */
+
+/******************************************************************************
+
+                         CR_NEXT_VAL
+
+******************************************************************************/
+long cr_next_val(struct cr_re_desc *re)
+{
+     long                 _result;
+
+     switch (re->op) {
+
+     case CR_OP_ADD:
+          _result             = re->val + re->param;
+          break;
+
+     case CR_OP_SUB:
+          _result             = re->val - re->param;
+          break;
+
+     case CR_OP_MUL:
+          _result             = re->val * re->param;
+          break;
+
+     case CR_OP_DIV:
+          _result             = re->val / re->param;
+          break;
+
+     default:
+          fprintf(stderr, "%s: internal error (operator = 0x%08X)\n",
+                  G.prgname, re->op);
+          exit(1);
+     }
+
+     return _result;
+}
+
+/* cr_next_val() }}} */
+/* cr_read_input() {{{ */
+
 /******************************************************************************
 
                          CR_READ_INPUT
@@ -1945,6 +2957,7 @@ void cr_read_input(void)
      char                      _debug_str[CR_SIZE + 1];
      char                      _matching_str[CR_SIZE + 1];
      bool                      _change;
+     long                      _new_val, _expected;
 
      _nmatch        = sizeof(_pmatch) / sizeof(_pmatch[0]);
 
@@ -1969,86 +2982,13 @@ void cr_read_input(void)
                fprintf(stderr, "LINE   : [%s] :\n", G.line);
           }
 
-//X
           /* Loop on regexp
              ~~~~~~~~~~~~~~ */
           for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
                /* Loop on BEGIN / END regexp
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                for (_i = 0; _i < 2; _i++) {
-//X
-                    if (_re->alt_cols == NULL) {
-//X
-                         if (_re->regex[_i]) {
-                              if (_i == 1 && _re->begin_is_end) {
-                                   break;
-                              }
-                              /* Search for multiple matches on the line
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                              for (_off = 0, _eflags = 0;
-                                   _off < G.length &&
-                                   regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
-                                   _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
-
-                                   if (G.debug) {
-                                        fprintf(stderr, "  Match for [%s] // [%s]\n",
-                                                G.line + _off, _re->regex[_i]);
-                                        fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
-                                   }
-
-                                   /* Loop on substrings
-                                      ~~~~~~~~~~~~~~~~~~ */
-                                   for (_j = 0; _j < _re->max_sub; _j++) {
-                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
-                                             continue;
-                                        }
-
-                                        _s   = _pmatch[_j].rm_so;
-                                        _e   = _pmatch[_j].rm_eo - 1;
-
-                                        if (G.debug) {
-                                             strncpy(_debug_str,
-                                                     G.line + _off + _s, _e - _s + 1);
-                                             _debug_str[_e -_s + 1]   = 0;
-                                             fprintf(stderr,
-                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-                                                     _off, _s, _e, _re->regex[_i], _debug_str);
-                                        }
-
-                                        if (!_re->begin_is_end) {
-                                             if (_i == 0)   _marker   =  1;
-                                             else           _marker   = -1;
-                                        }
-                                        else {
-                                             _re->inside_zone    = !_re->inside_zone;
-                                             if (_re->inside_zone)    _marker   =  1;
-                                             else                     _marker   = -1;
-                                        }
-                                        if (_s >= 0) {
-                                             cr_set_desc(_re, _off, _s, _e, _marker);
-                                        }
-
-                                        if (G.debug) {
-                                             fprintf(stderr, "cr_set_desc : %d, %d => %d, %d\n",
-                                                     _off, _s, _e, _marker);
-                                             fprintf(stderr, "\n");
-                                        }
-                                   }
-
-                                   /* To handle empty strings
-                                      ~~~~~~~~~~~~~~~~~~~~~~~ */
-                                   if (_e < 0) {
-                                        _e   = 0;
-                                   }
-                              }
-
-                              if (G.debug) {
-                                   fprintf(stderr, "  NO MATCH for [%s] // [%s]\n",
-                                           G.line + _off, _re->regex[_i]);
-                              }
-                         }
-                    }
-                    else {
+                    if (_re->alternate) {
                          if (G.debug) {
                               printf("ALTERNATE COLORS ...\n");
                          }
@@ -2169,7 +3109,6 @@ void cr_read_input(void)
                                    }
 
                                    if (_j == 0 && _pmatch[1].rm_so != -1) {
-//                                 if (_pmatch[1].rm_so != -1) {
                                         continue;
                                    }
 
@@ -2205,6 +3144,217 @@ void cr_read_input(void)
                          }
                          break;
                     }
+                    else if (_re->sequential) {
+                         if (G.debug) {
+                              printf("CHECK SEQUENTIALITY ...\n");
+                         }
+
+                         /* Search for multiple matches on the line
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _search_no     = 1;
+                         for (_off = 0, _eflags = 0;
+                              _off < G.length &&
+                              regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
+
+                              if (G.debug) {
+                                   fprintf(stderr, "  Search %3d : Match for [%s] // [%s] _i = %d\n",
+                                           _search_no, G.line + _off, _re->regex[_i], _i);
+                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
+                              }
+
+                              _change        = FALSE;
+                              if ((_search_no == 1) && (_re->idx_regex_select < _re->max_sub)) {
+                                   /* Check if the string matching the selection regexp has changed
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   _j   = _re->idx_regex_select;
+                                   if (G.debug) {
+                                        printf("Search %3d : Selection regexp number = %d\n", _search_no, _j);
+                                   }
+
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
+
+                                   if (G.debug) {
+                                        strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
+                                        _debug_str[_e -_s + 1]   = 0;
+                                        fprintf(stderr, "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                   }
+
+                                   strncpy(_matching_str, G.line + _off + _s, _e - _s + 1);
+                                   _matching_str[_e -_s + 1]   = 0;
+                                   if (G.debug) {
+                                        printf("String matching the selection regexp : [%s]\n", _matching_str);
+                                   }
+                                   if (_re->matching_str == NULL) {
+                                        if (G.debug) {
+                                             printf("NO MATCHING STRING STORED YET : storing [%s]\n", _matching_str);
+                                        }
+
+                                        /* No previous match for the selection regexp
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                        _re->matching_str   = strdup(_matching_str);
+                                        _re->val            = cr_convert(_re, _matching_str);
+                                   }
+                                   else {
+                                        if (G.debug) {
+                                             printf("Comparing [%s] and [%s] ...\n", _re->matching_str, _matching_str);
+                                        }
+
+                                        _new_val            = cr_convert(_re, _matching_str);
+                                        _expected           = cr_next_val(_re);
+
+                                        if (_new_val == _expected) {
+                                             /* Current match is the expected value
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                             if (G.debug) {
+                                                  printf("EXPECTED VALUE\n");
+                                                  printf("No change !!!\n");
+                                             }
+                                        }
+                                        else {
+                                             /* Current match differs from the previous match
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                             if (G.debug) {
+                                                  printf("UNEXPECTED VALUE\n");
+                                                  printf("CHANGE !!!\n");
+                                             }
+                                             _change   = TRUE;
+                                        }
+
+                                        free(_re->matching_str);
+                                        _re->matching_str   = strdup(_matching_str);
+                                        _re->val            = _new_val;
+                                   }
+                              }
+
+                              if (_change) {
+                                   /* Color change : select next color
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   _re->alt_idx++;
+                                   if (_re->alt_cols[_re->alt_idx] == NULL) {
+                                        _re->alt_idx   = 0;
+                                   }
+
+                                   if (G.debug) {
+                                        printf("***** CHANGE COLOR ***** : alt_idx = %d\n", _re->alt_idx);
+                                   }
+                              }
+
+                              /* Loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~ */
+                              for (_j = 0; _j < _re->max_sub; _j++) {
+                                   if (G.debug) {
+                                        printf("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                                   }
+
+                                   if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                        continue;
+                                   }
+
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
+
+                                   if (G.debug) {
+                                        strncpy(_debug_str,
+                                                G.line + _off + _s, _e - _s + 1);
+                                        _debug_str[_e -_s + 1]   = 0;
+                                        fprintf(stderr,
+                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                   }
+
+                                   if (_s >= 0) {
+                                        cr_set_desc_alt(_re, _off, _s, _e, _re->alt_cols[_re->alt_idx]);
+
+                                        if (G.debug) {
+                                             cr_dump_color(_re->alt_cols[_re->alt_idx]);
+                                             fprintf(stderr, "cr_set_desc_alt : offset = %d, [%d => %d], col = %d\n",
+                                                     _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
+                                             fprintf(stderr, "\n");
+                                        }
+                                   }
+                              }
+
+                              /* To handle empty strings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if (_e < 0) {
+                                   _e   = 0;
+                              }
+                         }
+                         break;
+                    }
+                    else {
+                         if (_re->regex[_i]) {
+                              if (_i == 1 && _re->begin_is_end) {
+                                   break;
+                              }
+                              /* Search for multiple matches on the line
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              for (_off = 0, _eflags = 0;
+                                   _off < G.length &&
+                                   regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                                   _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
+
+                                   if (G.debug) {
+                                        fprintf(stderr, "  Match for [%s] // [%s]\n",
+                                                G.line + _off, _re->regex[_i]);
+                                        fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
+                                   }
+
+                                   /* Loop on substrings
+                                      ~~~~~~~~~~~~~~~~~~ */
+                                   for (_j = 0; _j < _re->max_sub; _j++) {
+                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                             continue;
+                                        }
+
+                                        _s   = _pmatch[_j].rm_so;
+                                        _e   = _pmatch[_j].rm_eo - 1;
+
+                                        if (G.debug) {
+                                             strncpy(_debug_str,
+                                                     G.line + _off + _s, _e - _s + 1);
+                                             _debug_str[_e -_s + 1]   = 0;
+                                             fprintf(stderr,
+                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s]\n",
+                                                     _off, _s, _e, _re->regex[_i], _debug_str);
+                                        }
+
+                                        if (!_re->begin_is_end) {
+                                             if (_i == 0)   _marker   =  1;
+                                             else           _marker   = -1;
+                                        }
+                                        else {
+                                             _re->inside_zone    = !_re->inside_zone;
+                                             if (_re->inside_zone)    _marker   =  1;
+                                             else                     _marker   = -1;
+                                        }
+                                        if (_s >= 0) {
+                                             cr_set_desc(_re, _off, _s, _e, _marker);
+                                        }
+
+                                        if (G.debug) {
+                                             fprintf(stderr, "cr_set_desc : %d, %d => %d, %d\n",
+                                                     _off, _s, _e, _marker);
+                                             fprintf(stderr, "\n");
+                                        }
+                                   }
+
+                                   /* To handle empty strings
+                                      ~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   if (_e < 0) {
+                                        _e   = 0;
+                                   }
+                              }
+
+                              if (G.debug) {
+                                   fprintf(stderr, "  NO MATCH for [%s] // [%s]\n",
+                                           G.line + _off, _re->regex[_i]);
+                              }
+                         }
+                    }
 
                     if (G.debug) {
                          fprintf(stderr, "\n");
@@ -2223,6 +3373,9 @@ void cr_read_input(void)
           cr_disp_line();
      }
 }
+
+/* cr_read_input() }}} */
+/* cr_start_color() {{{ */
 
 /******************************************************************************
 
@@ -2304,6 +3457,9 @@ void cr_start_color(struct cr_color *col)
      }
 }
 
+/* cr_start_color() }}} */
+/* cr_end_color() {{{ */
+
 /******************************************************************************
 
                          CR_END_COLOR
@@ -2320,6 +3476,9 @@ void cr_end_color(struct cr_color *col)
           fprintf(_out, "\033[0m");
      }
 }
+
+/* cr_end_color() }}} */
+/* cr_init_desc() {{{ */
 
 /******************************************************************************
 
@@ -2340,6 +3499,9 @@ void cr_init_desc(void)
      }
 }
 
+/* cr_init_desc() }}} */
+/* cr_same_colors() {{{ */
+
 /******************************************************************************
 
                          CR_SAME_COLORS
@@ -2350,6 +3512,9 @@ inline bool cr_same_colors(struct cr_color *col1, struct cr_color *col2)
      return (col1->col_num   == col2->col_num)
          && (col1->intensity == col2->intensity);
 }
+
+/* cr_same_colors() }}} */
+/* cr_disp_line() {{{ */
 
 /******************************************************************************
 
@@ -2436,3 +3601,5 @@ void cr_disp_line(void)
 
      G.curr_col     = NULL;
 }
+
+/* cr_disp_line() }}} */

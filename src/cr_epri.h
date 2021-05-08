@@ -22,7 +22,7 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.21 du 19/06/02 - 
+ *   @(#)  [MB] cr_epri.h Version 1.23 du 21/05/08 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -42,7 +42,8 @@ extern FILE                                            *yyin;
 /* Error messages
    ~~~~~~~~~~~~~~ */
 extern char                                            *cr_err_malloc,
-											*cr_err_syntax;
+											*cr_err_syntax,
+											*cr_err_syntax_opt;
 
 extern int                                              cr_col_codes[8][3];
 extern char                                            *cr_best_fg[8][3];
@@ -51,7 +52,6 @@ extern char                                            *cr_best_fg[8][3];
  * ~~~~~~~~~ */
 void                                     cr_usage(bool);
 void                                     cr_display_args(struct cr_config *);
-void                                     cr_display_config(void);
 void                                     cr_init_list(void);
 void                                     cr_init_col_names(void);
 CR_DECL_NEW(config);

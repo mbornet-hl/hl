@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2019, Martial Bornet
+ * Copyright (C) 2015-2021, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.42 du 20/05/20 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.50 du 21/05/08 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -53,6 +53,9 @@
 
 #define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
 #define   CR_DEFLT_CONF_GLOB            "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
+
+#define   CR_CONF_LIST_ALL              (1)
+#define   CR_CONF_SEARCH_BY_REGEXP      (2)
 
 #define   bool                          int
 #if ! defined(FALSE)
@@ -91,8 +94,11 @@
  * alternate options
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SELECTOR_STRING            "0123456789"
+#define   CR_INT_STRING                 "0123456789"
 #define   CR_INTENSITY_STRING           "12345"
 #define   CR_COLORS_STRING              "rgybmcwnRGYBMCW"
+#define   CR_OP_STRING                  "+-*/"
+#define   CR_BASE_STRING                "adox"
  
 /* Line size, number of different intervals
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -126,17 +132,37 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   yyin                          CR_in
 #endif
 
+#define   CR_SYNTAX_OPT(x)              fprintf(stderr, cr_err_syntax_opt, G.prgname, x, __func__, __FILE__, __LINE__)
+
 /* Parser states for the decoding of option -A
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_STATE_INITIAL              (1)
-#define   CR_STATE_W_SEPARATOR          (2)
-#define   CR_STATE_W_INTENSITY          (3)
-#define   CR_STATE_W_COLOR              (4)
-#define   CR_STATE_W_END                (5)
+#define   CR_STATE_W_PARAM              (2)
+#define   CR_STATE_W_BASE               (3)
+#define   CR_STATE_W_SEPARATOR_2        (4)
+#define   CR_STATE_W_SELECTOR_ID        (5)
+#define   CR_STATE_W_SEPARATOR          (6)
+#define   CR_STATE_W_INTENSITY          (7)
+#define   CR_STATE_W_COLOR              (8)
+#define   CR_STATE_W_END                (9)
 
 /* Formatting parameters
    ~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_SZ_CFG_FILE                (50)
+#define   CR_SZ_CFG_FILE                (60)
+
+/* Bases for seq control
+   ~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_BASE_DEC                   (0x1001)
+#define   CR_BASE_HEX                   (0x1002)
+#define   CR_BASE_OCT                   (0x1003)
+#define   CR_BASE_ASCII                 (0x1004)
+
+/* Operations for seq control
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_OP_ADD                     (0x2001)
+#define   CR_OP_SUB                     (0x2002)
+#define   CR_OP_MUL                     (0x2003)
+#define   CR_OP_DIV                     (0x2004)
 
 /* Structures
    ~~~~~~~~~~ */
@@ -156,12 +182,19 @@ struct cr_re_desc {
      struct cr_color                     col;
      struct cr_re_desc                  *next;
      int                                 max_sub;
-     struct cr_color                   **alt_cols;          /* Array for alternate colors */
-     int                                 alt_idx;           /* Current alternate index    */
-     int                                 idx_regex_select;  /* Index of selector regex    */
-     char                               *matching_str;      /* String matching the        */
-                                                            /* selector regex             */
-     bool                                change_on_diff;    /* Change on difference       */
+     struct cr_color                   **alt_cols;               /* Array for alternate colors */
+     int                                 alt_idx;                /* Current alternate index    */
+     int                                 idx_regex_select;       /* Index of selector regex    */
+     char                               *matching_str;           /* String matching the        */
+                                                                 /* selector regex             */
+     bool                                alternate,              /* Alternate                  */
+                                         sequential;             /* Sequential                 */
+     bool                                change_on_diff;         /* Change on difference       */
+     bool                                change_on_bad_next;     /* Change on bad next value   */
+     long                                val;                    /* Last value for seq control */
+     long                                param;                  /* Parameter for seq control  */
+     int                                 op;                     /* Operation for seq control  */
+     int                                 base;                   /* Base for seq control       */
 };
 
 struct cr_col_desc {
@@ -178,7 +211,7 @@ struct cr_arg {
 struct cr_config {
      char                               *name;
      bool                                visited;
-	char							*config_file;
+     char                               *config_file;
      struct cr_config                   *next;
      struct cr_arg                      *extract,
                                         *insert;
@@ -215,7 +248,10 @@ struct cr_global {
 
      char                               *selector_string,
                                         *color_string,
-                                        *intensity_string;
+                                        *intensity_string,
+                                        *int_string,
+                                        *op_string,
+                                        *base_string;
      char                               *cfg_filename;
      struct cr_color                     color_RE[CR_NB_COLORS];
      struct cr_color                    *curr_col;
@@ -232,8 +268,11 @@ struct cr_global {
                                          disp_regex,
                                          disp_lex,
                                          config_file_read;
+     bool                                consistency;            /* Consistent numbering of    */
+                                                                 /* sub regex between -A/-I    */
+                                                                 /* and -s                     */
      FILE                               *out,
-								*usage_out;
+                                        *usage_out;
      bool                                newline;
      bool                                begin_specified,
                                          end_specified;
