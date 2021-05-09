@@ -22,13 +22,14 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.101 du 21/05/08 - 
+ *   @(#)  [MB] cr_main.c Version 1.102 du 21/05/09 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
  *
  */
 
+/* includes {{{ */
 #if defined(HL_BACKTRACE)
 #define _GNU_SOURCE
 #endif    /* HL_BACKTRACE */
@@ -48,7 +49,9 @@
 #endif    /* HL_BACKTRACE */
 
 #include "cr_epri.h"
+/* includes }}} */
 
+/* macros {{{ */
 #define   X0     fprintf(stderr, "%s(%d)\n", __FILE__, __LINE__);
 #define   X      if (G.debug) fprintf(stderr, "%s(%d)\n", __FILE__, __LINE__);
 #define   SC     if (G.debug) fprintf(stderr, "==> %s(%d) Start color : [%c]\n", __FILE__, __LINE__, _c);
@@ -56,6 +59,7 @@
 #define   EC     if (G.debug) fprintf(stderr, "==> %s(%d) End color\n", __FILE__, __LINE__);
 
 #define   inline /* empty : for compilers that do not know the inline directive */
+/* macros }}} */
 
 /* cr_list2argv() {{{ */
 
@@ -2358,7 +2362,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.101");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.102");
                exit(1);
                break;
 
@@ -2515,7 +2519,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.101");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.102");
      fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNP] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -2978,8 +2982,8 @@ void cr_read_input(void)
           }
 
           if (G.debug) {
-               fprintf(stderr, "LENGTH : %4d\n", G.length);
-               fprintf(stderr, "LINE   : [%s] :\n", G.line);
+               fprintf(stderr, "LINE (length = %3d) : [%s]\n",
+                       G.length, G.line);
           }
 
           /* Loop on regexp
@@ -3002,9 +3006,9 @@ void cr_read_input(void)
                               _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
 
                               if (G.debug) {
-                                   fprintf(stderr, "  Search %3d : Match for [%s] // [%s] _i = %d\n",
+                                   fprintf(stderr, "  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
                                            _search_no, G.line + _off, _re->regex[_i], _i);
-                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
+//                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
                               }
 
                               _change        = FALSE;
@@ -3129,9 +3133,9 @@ void cr_read_input(void)
 
                                         if (G.debug) {
                                              cr_dump_color(_re->alt_cols[_re->alt_idx]);
-                                             fprintf(stderr, "cr_set_desc_alt : offset = %d, [%d => %d], col = %d\n",
+                                             fprintf(stderr, "    offset = %d, [%d => %d], col = %d\n",
                                                      _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
-                                             fprintf(stderr, "\n");
+//                                             fprintf(stderr, "\n");
                                         }
                                    }
                               }
@@ -3158,9 +3162,9 @@ void cr_read_input(void)
                               _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
 
                               if (G.debug) {
-                                   fprintf(stderr, "  Search %3d : Match for [%s] // [%s] _i = %d\n",
+                                   fprintf(stderr, "  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
                                            _search_no, G.line + _off, _re->regex[_i], _i);
-                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
+//                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
                               }
 
                               _change        = FALSE;
@@ -3270,9 +3274,9 @@ void cr_read_input(void)
 
                                         if (G.debug) {
                                              cr_dump_color(_re->alt_cols[_re->alt_idx]);
-                                             fprintf(stderr, "cr_set_desc_alt : offset = %d, [%d => %d], col = %d\n",
+                                             fprintf(stderr, "    offset = %d, [%d => %d], col = %d\n",
                                                      _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
-                                             fprintf(stderr, "\n");
+//                                             fprintf(stderr, "\n");
                                         }
                                    }
                               }
@@ -3298,9 +3302,9 @@ void cr_read_input(void)
                                    _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL) {
 
                                    if (G.debug) {
-                                        fprintf(stderr, "  Match for [%s] // [%s]\n",
-                                                G.line + _off, _re->regex[_i]);
-                                        fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
+                                        fprintf(stderr, "  MATCH FOR    [%s] : [%s]\n",
+									   _re->regex[_i], G.line + _off);
+//                                        fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
                                    }
 
                                    /* Loop on substrings
@@ -3318,8 +3322,8 @@ void cr_read_input(void)
                                                      G.line + _off + _s, _e - _s + 1);
                                              _debug_str[_e -_s + 1]   = 0;
                                              fprintf(stderr,
-                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s]\n",
-                                                     _off, _s, _e, _re->regex[_i], _debug_str);
+                                                     "    Offset = %3d [%3d => %3d] marker = %2d [%s]\n",
+                                                     _off, _s, _e, _marker, _debug_str);
                                         }
 
                                         if (!_re->begin_is_end) {
@@ -3335,11 +3339,13 @@ void cr_read_input(void)
                                              cr_set_desc(_re, _off, _s, _e, _marker);
                                         }
 
+#if 0
                                         if (G.debug) {
-                                             fprintf(stderr, "cr_set_desc : %d, %d => %d, %d\n",
+                                             fprintf(stderr, "    offset = %3d :  %3d => %4d, marker = %d\n",
                                                      _off, _s, _e, _marker);
-                                             fprintf(stderr, "\n");
+//                                             fprintf(stderr, "\n");
                                         }
+#endif
                                    }
 
                                    /* To handle empty strings
@@ -3350,25 +3356,27 @@ void cr_read_input(void)
                               }
 
                               if (G.debug) {
-                                   fprintf(stderr, "  NO MATCH for [%s] // [%s]\n",
-                                           G.line + _off, _re->regex[_i]);
+//                                   fprintf(stderr, "  NO MATCH for [%s] // [%s]\n",
+//                                           G.line + _off, _re->regex[_i]);
+                                   fprintf(stderr, "  No match for [%s]\n", _re->regex[_i]);
                               }
                          }
                     }
 
-                    if (G.debug) {
-                         fprintf(stderr, "\n");
-                    }
+//                    if (G.debug) {
+//                         fprintf(stderr, "\n");
+//                    }
                }
 
                if (_re->regex[1]) {
                     cr_marker2color(_re);
                }
           
-               if (G.debug) {
-                    fprintf(stderr, "\n");
-               }
           }
+
+		if (G.debug) {
+			fprintf(stderr, "\n");
+		}
 
           cr_disp_line();
      }
