@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool	Version 1.4 du 21/05/29 - 
+#	@(#)	[MB] ek_hl_tool	Version 1.6 du 21/05/30 - 
 #
 
 # usage {{{
@@ -23,8 +23,11 @@ usage()
 	fi
 
 	cat <<- EOF | $FILTER
-		Usage: $PROGNAME [-h|-c|-d|-f|-l|-m|-s] [args]
+		Usage: $PROGNAME [-h|-C|-c|-d|-f|-l|-m|-s] [args]
 		  -h : help (this message)
+		
+		  -C : list configurations files pathnames
+		       $(usage_list_config_files)
 		
 		  -c : count configurations occurrences in configurations files
 		       $(usage_config_occurrences)
@@ -49,6 +52,16 @@ usage()
 	EOF
 }
 # usage }}}
+# usage_list_config_files {{{
+
+usage_list_config_files()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -C
+	EOF
+}
+
+# usage_list_config_files }}}
 # usage_config_occurrences {{{
 
 usage_config_occurrences()
@@ -109,6 +122,14 @@ usage_specific_to()
 }
 
 # usage_specific_to }}}
+# list_config_files {{{
+
+list_config_files()
+{
+	hl -op '*' | awk '{ print $1 }' | sort -u
+}
+
+# list_config_files }}}
 # config_occurrences {{{
 
 config_occurrences()
@@ -256,11 +277,16 @@ if [ "$1" = '' ]; then
 	exit 1
 fi
 
-while getopts 'hcdflms' opt
+while getopts 'hCcdflms' opt
 do
 	case "$opt" in
 		c)		shift
 				config_occurrences "$@"
+				exit
+				;;
+
+		C)		shift
+				list_config_files "$@"
 				exit
 				;;
 
