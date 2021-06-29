@@ -8,7 +8,7 @@
  *
  *   File         :     cr_lex.l
  *
- *   @(#)  cr_lex.l  1.10  21/05/02  MB  
+ *   @(#)  cr_lex.l  1.11  21/06/29  MB  
  *
  * ============================================================================
  */
@@ -21,6 +21,7 @@ int					fileno(FILE *);
 
 %}
 
+comment				([ \t]*#.*\n)
 config                   ([a-zA-Z][-._a-zA-Z0-9_]*)
 options                  (-[a-zA-Z0-9%.][-+*\/a-zA-Z0-9%.,:]*)
 args                     ('.*')
@@ -32,8 +33,9 @@ sep                      (:)
 
 %%
 
-^#.*                     {
-                              CR_DISP_LEX("COMMENT : %s\n", yytext);
+^{comment}               {
+						yytext[strlen(yytext) - 1]	= 0;
+                              CR_DISP_LEX("COMMENT : [%s]\n", yytext);
                          }
 
 {config}                 {
