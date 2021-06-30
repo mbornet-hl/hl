@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#	List all hl configurations
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] 	Version 1.1 du 21/05/29 - 
+#
+
+hl -op '*' | sort -k3,3 -s | hl --dupA3 | less -RX

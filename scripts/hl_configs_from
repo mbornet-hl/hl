@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+#	List configurations from an hl configuration file
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] 	Version 1.1 du 21/05/29 - 
+#
+
+usage()
+{
+	cat <<- EOF
+		Usage: $PROGNAME hl_config_filename
+	EOF
+}
+
+PROGNAME=`basename "$0"`
+
+if [ "$1" = '' ]; then
+	usage
+	exit 1
+fi
+
+config_file="$1"
+
+HL_CONF="$config_file" hl -op '*' | awk '{ print $3 }' | sort
