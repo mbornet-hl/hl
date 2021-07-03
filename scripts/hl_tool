@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool Version 1.12 du 21/07/03 - 
+#	@(#)	[MB] ek_hl_tool Version 1.13 du 21/07/03 - 
 #
 
 # usage {{{
@@ -23,37 +23,40 @@ usage()
 	fi
 
 	cat <<- EOF | $FILTER
-		Usage: $PROGNAME [-h|-C|-c|-D|-d|-f|-l|-m|-s|-x] [args]
-		Version 1.12
+		Usage: $PROGNAME [-h|-C|-c|-D|-d|-f|-L|-l|-m|-s|-x] [args]
+		Version 1.13
 
 		  -h : help (this message)
 		
 		  -C : list configurations files pathnames
-			  $(usage_list_config_files)
+		       $(usage_list_config_files)
 		
 		  -c : count configurations occurrences in configurations files
-			  $(usage_config_occurrences)
+		       $(usage_config_occurrences)
 		
 		  -d : differences between a specified configuration in two configurations files
-			  $(usage_diff_config)
+		       $(usage_diff_config)
 		
 		  -D : list configuration directories from \$HL_CONF
-			  $(usage_list_dirs)
+		       $(usage_list_dirs)
 		
 		  -f : list configuration names from a specified configurations file
-			  $(usage_configs_from)
+		       $(usage_configs_from)
 		
+		  -L : list files containing a specified configuration
+		       $(usage_list_files)
+
 		  -l : list all configurations
-			  $(usage_list_configs)
+		       $(usage_list_configs)
 		
 		  -m : compute MD5 checksum from a specific configuration
-			  $(usage_all_md5_config)
+		       $(usage_all_md5_config)
 		
 		  -s : show configurations specific to a specified configurations file
-			  $(usage_specific_to)
+		       $(usage_specific_to)
 
 		  -x : display options counts for all configurations
-			  $(usage_opts_count)
+		       $(usage_opts_count)
 
 		HL_CONF="$HL_CONF"
 		HL_CONF_GLOB="$HL_CONF_GLOB"
@@ -150,6 +153,16 @@ EOF
 }
 
 # usage_opts_count }}}
+# usage_list_files {{{
+
+usage_list_files()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -L config_name
+EOF
+}
+
+# usage_list_files }}}
 # list_config_files {{{
 
 list_config_files()
@@ -317,6 +330,19 @@ all_md5_config()
 }
 
 # all_md5_config }}}
+# list_files {{{
+
+list_files()
+{
+	if [ "$1" = '' -o "$2" != '' ]; then
+		usage_list_files
+		exit 1
+	fi
+	config_name="$1"
+
+	ls -ltr $(hl -op "$config_name" | awk '{ print $1 }')
+}
+# list_files }}}
 # hl_conf {{{
 hl_conf()
 {
@@ -344,7 +370,7 @@ if [ "$1" = '' ]; then
 	exit 1
 fi
 
-while getopts 'hCcDdflmsx' opt
+while getopts 'hCcDdfLlmsx' opt
 do
 	case "$opt" in
 		c)		shift
@@ -369,6 +395,11 @@ do
 
 		f)		shift
 				configs_from "$@"
+				exit
+				;;
+
+		L)		shift
+				list_files "$@"
 				exit
 				;;
 
