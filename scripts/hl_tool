@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool Version 1.15 du 21/07/04 - 
+#	@(#)	[MB] ek_hl_tool Version 1.16 du 21/07/04 - 
 #
 
 # usage {{{
@@ -24,7 +24,7 @@ usage()
 
 	cat <<- EOF | $FILTER
 		Usage: $PROGNAME [-h|-C|-c|-D|-d|-f|-L|-l|-M|-m|-s|-x] [args]
-		Version 1.15
+		Version 1.16
 
 		  -h : help (this message)
 		
@@ -362,7 +362,7 @@ all_md5_configs()
 
 			MD5=$(HL_CONF="$file" hl -v -oP "\<$cfg\>" | sed '1d' | md5sum | sed 's/ -.*//')
 			printf "%s %-30s %s\n" "$MD5" "$cfg" "$file"
-		done
+		done | sort -k1,1
 		echo
 
 	done | hl -A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A0,2G3g '^([^ ]+) '
