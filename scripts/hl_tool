@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool Version 1.13 du 21/07/03 - 
+#	@(#)	[MB] ek_hl_tool Version 1.15 du 21/07/04 - 
 #
 
 # usage {{{
@@ -23,8 +23,8 @@ usage()
 	fi
 
 	cat <<- EOF | $FILTER
-		Usage: $PROGNAME [-h|-C|-c|-D|-d|-f|-L|-l|-m|-s|-x] [args]
-		Version 1.13
+		Usage: $PROGNAME [-h|-C|-c|-D|-d|-f|-L|-l|-M|-m|-s|-x] [args]
+		Version 1.15
 
 		  -h : help (this message)
 		
@@ -48,6 +48,9 @@ usage()
 
 		  -l : list all configurations
 		       $(usage_list_configs)
+		
+		  -M : compute MD5 checksum from all configurations
+		       $(usage_all_md5_configs)
 		
 		  -m : compute MD5 checksum from a specific configuration
 		       $(usage_all_md5_config)
@@ -133,6 +136,16 @@ usage_all_md5_config()
 }
 
 # usage_all_md5_config }}}
+# usage_all_md5_configs {{{
+
+usage_all_md5_configs()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -M
+	EOF
+}
+
+# usage_all_md5_configs }}}
 # usage_specific_to {{{
 
 usage_specific_to()
@@ -330,6 +343,32 @@ all_md5_config()
 }
 
 # all_md5_config }}}
+# all_md5_configs {{{
+
+all_md5_configs()
+{
+	if [ "$1" != '' ]; then
+		usage_all_md5_configs
+		exit 1
+	fi
+
+	for cfg in $(hl -op '*' | awk '{ print $(NF) }' | sort -k3,3 | uniq)
+	do
+		for file in $(hl -oP "\<$cfg\>" | awk '{ print $1}' | sort -u)
+		do
+			# echo "$file" > /dev/tty
+			# args HL_CONF='/DATA3/projets/hl/config_files/hl_HW.cfg' hl -v -oP "\<$cfg\>" > /dev/tty
+			# HL_CONF="$file" hl -v -oP "\<$cfg\>" > /dev/tty
+
+			MD5=$(HL_CONF="$file" hl -v -oP "\<$cfg\>" | sed '1d' | md5sum | sed 's/ -.*//')
+			printf "%s %-30s %s\n" "$MD5" "$cfg" "$file"
+		done
+		echo
+
+	done | hl -A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A0,2G3g '^([^ ]+) '
+}
+
+# all_md5_configs }}}
 # list_files {{{
 
 list_files()
@@ -370,7 +409,7 @@ if [ "$1" = '' ]; then
 	exit 1
 fi
 
-while getopts 'hCcDdfLlmsx' opt
+while getopts 'hCcDdfLlMmsx' opt
 do
 	case "$opt" in
 		c)		shift
@@ -405,6 +444,11 @@ do
 
 		l)		shift
 				list_configs "$@"
+				exit
+				;;
+
+		M)		shift
+				all_md5_configs "$@"
 				exit
 				;;
 
