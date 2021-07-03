@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *	@(#)	[MB] cr_gpri.c	Version 1.15 du 21/05/02 - 
+ *   @(#)  [MB] cr_gpri.c Version 1.16 du 21/07/03 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -36,8 +36,8 @@ struct cr_global                                  G         = { 0 };
 /* Error messages
    ~~~~~~~~~~~~~~ */
 char                *cr_err_malloc      = "%s: cannot allocate memory !\n",
-				*cr_err_syntax		= "%s: syntax error !\n",
-				*cr_err_syntax_opt	= "%s: syntax error on '%c' ! [%s() - %s(%d)]\n";
+                    *cr_err_syntax      = "%s: syntax error !\n",
+                    *cr_err_syntax_opt  = "%s: syntax error on '%c' ! [%s() - %s(%d)]\n";
 
 int                  cr_col_codes[8][3] = {
      {  88,    160,      196  },

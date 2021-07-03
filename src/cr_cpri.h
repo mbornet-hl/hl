@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.50 du 21/05/08 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.52 du 21/07/03 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -217,6 +217,7 @@ struct cr_config {
                                         *insert;
      int                                 argc;
      char                              **argv;
+     int                                 nb_opts;
 };
 
 struct cr_configs {
@@ -265,6 +266,7 @@ struct cr_global {
      int                                 length;
      bool                                debug,
                                          verbose,
+                                         disp_nb_opts,
                                          disp_regex,
                                          disp_lex,
                                          config_file_read;

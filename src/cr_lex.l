@@ -8,20 +8,20 @@
  *
  *   File         :     cr_lex.l
  *
- *   @(#)  cr_lex.l  1.11  21/06/29  MB  
+ *   @(#)  cr_lex.l  1.13  21/07/03  MB  
  *
  * ============================================================================
  */
 
-#include	<stdio.h>
+#include  <stdio.h>
 #include  <string.h>
 #include  "cr_epri.h"
 
-int					fileno(FILE *);
+int                      fileno(FILE *);
 
 %}
 
-comment				([ \t]*#.*\n)
+comment                  ([ \t]*#.*\n)
 config                   ([a-zA-Z][-._a-zA-Z0-9_]*)
 options                  (-[a-zA-Z0-9%.][-+*\/a-zA-Z0-9%.,:]*)
 args                     ('.*')
@@ -34,7 +34,7 @@ sep                      (:)
 %%
 
 ^{comment}               {
-						yytext[strlen(yytext) - 1]	= 0;
+                              yytext[strlen(yytext) - 1]    = 0;
                               CR_DISP_LEX("COMMENT : [%s]\n", yytext);
                          }
 
@@ -44,9 +44,9 @@ sep                      (:)
                               BEGIN CONFIG;
                               CR_DISP_LEX("CONFIG  : %s\n", yytext);
 
-                              _config        		= cr_new_config();
-                              _config->name  		= strdup(yytext);
-						_config->config_file	= G.cfg_filename;
+                              _config                  = cr_new_config();
+                              _config->name            = strdup(yytext);
+                              _config->config_file     = G.cfg_filename;
 
                               cr_add_config(_config);
                          }
@@ -68,7 +68,7 @@ sep                      (:)
                               _arg           = cr_new_arg();
                               _arg->value    = strdup(yytext);
 
-                              cr_add_arg(_arg);
+                              cr_add_arg(_arg, TRUE);
                          }
 
 <ARGS>{options}          {
@@ -78,7 +78,7 @@ sep                      (:)
                               _arg           = cr_new_arg();
                               _arg->value    = strdup(yytext);
 
-                              cr_add_arg(_arg);
+                              cr_add_arg(_arg, TRUE);
                          }
 
 <ARGS>{args}             {
@@ -91,7 +91,7 @@ sep                      (:)
                               _arg           = cr_new_arg();
                               _arg->value    = strdup(yytext + 1);
 
-                              cr_add_arg(_arg);
+                              cr_add_arg(_arg, FALSE);
                          }
 
 <ARGS>^[ \t]*\n          {

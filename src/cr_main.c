@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.104 du 21/06/29 - 
+ *   @(#)  [MB] cr_main.c Version 1.106 du 21/07/03 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -2101,8 +2101,15 @@ void cr_display_config(int search_mode, char *re)
                switch (search_mode) {
 
                case CR_CONF_LIST_ALL:
-                    fprintf(G.usage_out, "%-*s : %s\n",
-                            CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                    if (!G.disp_nb_opts) {
+                         fprintf(G.usage_out, "%-*s : %s\n",
+                                 CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                    }
+                    else {
+                         fprintf(G.usage_out, "%-*s : %3d %s\n",
+                                 CR_SZ_CFG_FILE, _config->config_file,
+                                 _config->nb_opts, _config->name);
+                    }
                     break;
 
                case CR_CONF_SEARCH_BY_REGEXP:
@@ -2130,8 +2137,15 @@ void cr_display_config(int search_mode, char *re)
                switch (search_mode) {
 
                case CR_CONF_LIST_ALL:
-                    fprintf(G.usage_out, "%-*s : %s\n",
-                            CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                    if (!G.disp_nb_opts) {
+                         fprintf(G.usage_out, "%-*s : %s\n",
+                                 CR_SZ_CFG_FILE, _config->config_file, _config->name);
+                    }
+                    else {
+                         fprintf(G.usage_out, "%-*s : %3d %s\n",
+                                 CR_SZ_CFG_FILE, _config->config_file,
+                                 _config->nb_opts, _config->name);
+                    }
                     cr_display_args(_config);
                     break;
 
@@ -2256,7 +2270,7 @@ int main(int argc, char *argv[])
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(_argc, _argv,
-                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{P!p!",
+                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{P!p!x",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -2362,7 +2376,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.104");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.106");
                exit(1);
                break;
 
@@ -2451,6 +2465,10 @@ int main(int argc, char *argv[])
                exit(1);
                break;
 
+          case 'x':
+               G.disp_nb_opts = TRUE;
+               break;
+
           default:
                fprintf(stderr, "%s: unknown option '%c' !\n", G.prgname, _opt);
                cr_usage(FALSE);
@@ -2494,6 +2512,15 @@ int main(int argc, char *argv[])
           }
      }
 
+     if (G.disp_nb_opts) {
+          /* Only display configuration pathname, options count and config name
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          G.verbose      = 1;
+          cr_read_config_files();
+          cr_display_config(CR_CONF_LIST_ALL, NULL);
+          exit(1);
+     }
+
      cr_read_input();
 
      cr_free_RE();
@@ -2519,8 +2546,8 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.104");
-     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpP] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.106");
+     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
      fprintf(G.usage_out, "  -h  : help\n");
@@ -2575,6 +2602,7 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "  -N  : consistent numbering of sub-expressions in -A/-I and -s\n");
      fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
      fprintf(G.usage_out, "  -P  : display configuration(s) matching regexp\n");
+     fprintf(G.usage_out, "  -x  : display options count for each config (with -vH options)\n");
 
      _env_var            = CR_ENV_DEFLT;
      _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;
@@ -2739,7 +2767,7 @@ void cr_add_config(struct cr_config *config)
                          CR_ADD_ARG
 
 ******************************************************************************/
-void cr_add_arg(struct cr_arg *arg)
+void cr_add_arg(struct cr_arg *arg, bool is_option)
 {
      struct cr_config         *_config;
 
@@ -2757,6 +2785,9 @@ void cr_add_arg(struct cr_arg *arg)
 
      _config->argc++;
 
+     if (is_option) {
+          _config->nb_opts++;
+     }
 }
 
 /* cr_add_arg() }}} */
@@ -3303,7 +3334,7 @@ void cr_read_input(void)
 
                                    if (G.debug) {
                                         fprintf(stderr, "  MATCH FOR    [%s] : [%s]\n",
-									   _re->regex[_i], G.line + _off);
+                                                _re->regex[_i], G.line + _off);
 //                                        fprintf(stderr, "    LINE : [%s] :\n", G.line + _off);
                                    }
 
@@ -3374,9 +3405,9 @@ void cr_read_input(void)
           
           }
 
-		if (G.debug) {
-			fprintf(stderr, "\n");
-		}
+          if (G.debug) {
+               fprintf(stderr, "\n");
+          }
 
           cr_disp_line();
      }
