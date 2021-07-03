@@ -53,8 +53,8 @@ Usage
 -----
 
 ```
-hl: version 1.102
-Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNP] regexp ...][--config_name ...] ]
+hl: version 1.106
+Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -h  : help
   -H  : help + configuration names
@@ -108,10 +108,11 @@ Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNP] regexp ...][
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
+  -x  : display options count for each config (with -vH options)
 Environment variable HL_DEFAULT is undefined. Default value = "3Y".
 Environment variable HL_A1 is undefined. Default value = "2B".
 Environment variable HL_A2 is undefined. Default value = "1n".
-Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf:/etc/default/hl"
+Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf"
 Environment variable HL_CONF_GLOB is undefined. Default value = "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg".
 ```
 
@@ -123,40 +124,44 @@ Examples
 --------
 
 ```
-/sbin/ifconfig -a | hl -ei -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'       \
-			 -b '^(eth|(vir)?br|vnet)[0-9.]*\.[0-9]+\>'             \
-			 -c '([0-9a-f]{2}:){5}[0-9a-f]{2}'                      \
-			 -g '\<UP\>|\<RUNNING\>|([0-9]{1,3}\.){3}[0-9]{1,3}\>'  \
-			 -y '^(eth|(vir)?br|vnet)[0-9.:]*\>'
+# /sbin/ifconfig -a | hl -ei -m '^(eth|(vir)?br|vnet)[0-9.]*:[0-9]+\>'       \
+                -b '^(eth|(vir)?br|vnet)[0-9.]*\.[0-9]+\>'                   \
+                -c '([0-9a-f]{2}:){5}[0-9a-f]{2}'                            \
+                -g '\<UP\>|\<RUNNING\>|([0-9]{1,3}\.){3}[0-9]{1,3}\>'        \
+                -y '^(eth|(vir)?br|vnet)[0-9.:]*\>'
 
-/sbin/ifconfig -a | hl --ifconfig
+# /sbin/ifconfig -a | hl --ifconfig
 
-/sbin/ifconfig -a | hl --IP --MAC --eth
+# /sbin/ifconfig -a | hl --IP --MAC --eth
 
-cat firewall_rules | hl -e -c INPUT                    \
-				   -y 'FORWARD|POSTROUTING'    \
-				   -b '#.*'                    \
-				   -W 'OUTPUT'                 \
-				   -g '.*ACCEPT.*'             \
-				   -r '.*(DROP|REJECT).*'      \
-				   -m 'iptables.*-F.*'         \
-				   -w '^iptables .*'
+$ cat firewall_rules | hl -e -c INPUT              \
+                       -y 'FORWARD|POSTROUTING'    \
+                       -b '#.*'                    \
+                       -W 'OUTPUT'                 \
+                       -g '.*ACCEPT.*'             \
+                       -r '.*(DROP|REJECT).*'      \
+                       -m 'iptables.*-F.*'         \
+                       -w '^iptables .*'
 
-cat firewall_rules | hl --iptables
+$ cat firewall_rules | hl --iptables
 
-df -h | hl --df
+$ df -h | hl --df
+
+$ hl -p df
+
+$ hl -ovp ifconfig
 ```
 ![df](https://github.com/mbornet-hl/hl/blob/master/images/df.png)
 
 ```
 
-fdisk -l | hl --fdisk
+# fdisk -l | hl --fdisk
 ```
 ![fdisk](https://github.com/mbornet-hl/hl/blob/master/images/fdisk.png)
 
 Alternate colors on the first 15 lines of `vmstat` :
 ```
-vmstat 1 | head -n 15 | hl -A,2B3w
+# vmstat 1 | head -n 15 | hl -A,2B3w
 ```
 ![vmstat](https://github.com/mbornet-hl/hl/blob/master/images/fig12.png)
 
