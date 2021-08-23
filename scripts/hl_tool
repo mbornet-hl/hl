@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool Version 1.16 du 21/07/04 - 
+#	@(#)	[MB] ek_hl_tool Version 1.17 du 21/08/18 - 
 #
 
 # usage {{{
@@ -23,38 +23,41 @@ usage()
 	fi
 
 	cat <<- EOF | $FILTER
-		Usage: $PROGNAME [-h|-C|-c|-D|-d|-f|-L|-l|-M|-m|-s|-x] [args]
-		Version 1.16
+		Usage: $PROGNAME [-h|-A|-C|-c|-D|-d|-f|-L|-l|-M|-m|-s|-x] [args]
+		Version 1.17
 
 		  -h : help (this message)
-		
+
+		  -A : list one letter options used and unused by hl
+		       $(usage_list_1_letter_opts)
+
 		  -C : list configurations files pathnames
 		       $(usage_list_config_files)
-		
+
 		  -c : count configurations occurrences in configurations files
 		       $(usage_config_occurrences)
-		
+
 		  -d : differences between a specified configuration in two configurations files
 		       $(usage_diff_config)
-		
+
 		  -D : list configuration directories from \$HL_CONF
 		       $(usage_list_dirs)
-		
+
 		  -f : list configuration names from a specified configurations file
 		       $(usage_configs_from)
-		
+
 		  -L : list files containing a specified configuration
 		       $(usage_list_files)
 
 		  -l : list all configurations
 		       $(usage_list_configs)
-		
+
 		  -M : compute MD5 checksum from all configurations
 		       $(usage_all_md5_configs)
-		
+
 		  -m : compute MD5 checksum from a specific configuration
 		       $(usage_all_md5_config)
-		
+
 		  -s : show configurations specific to a specified configurations file
 		       $(usage_specific_to)
 
@@ -66,6 +69,16 @@ usage()
 	EOF
 }
 # usage }}}
+# usage_list_1_letter_opts {{{
+
+usage_list_1_letter_opts()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -A
+	EOF
+}
+
+# usage_list_1_letter_opts }}}
 # usage_list_config_files {{{
 
 usage_list_config_files()
@@ -382,6 +395,21 @@ list_files()
 	ls -ltr $(hl -op "$config_name" | awk '{ print $1 }')
 }
 # list_files }}}
+# list_1 letter_opts {{{
+list_1_letter_opts()
+{
+	[ "$HL_A1" != '' ] || HL_A1='3c'
+	[ "$HL_A2" != '' ] || HL_A2='3y'
+
+	echo "Used options :" | hl --hi_blue
+	hl -oh | sed -n 's/^[ 	]*\(-[a-zA-Z]\)[ 	].*/\1/p' | LANG=C sort | hl -sa:1,3c3y '^-([a-zA-Z])'
+
+	echo
+	echo "Unused options :" | hl --hi_blue
+	LANG=C comm -3 <(hl -oh | sed -n 's/^[ 	]*\(-[a-zA-Z]\)[ 	].*/\1/p' | LANG=C sort) <(for l in {A..Z} {a..z}; do printf "%s\n" '-'$l; done) | sed 's/^[ 	]*//' | hl --hi_green
+}
+
+# list_1_letter_opts }}}
 # hl_conf {{{
 hl_conf()
 {
@@ -409,9 +437,14 @@ if [ "$1" = '' ]; then
 	exit 1
 fi
 
-while getopts 'hCcDdfLlMmsx' opt
+while getopts 'AhCcDdfLlMmsx' opt
 do
 	case "$opt" in
+		A)		shift
+				list_1_letter_opts "$@"
+				exit
+				;;
+
 		c)		shift
 				config_occurrences "$@"
 				exit
