@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.107 du 21/09/07 - 
+ *   @(#)  [MB] cr_main.c Version 1.108 du 21/09/07 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -1380,10 +1380,10 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
                     _selector      = 0;
                     _state         = CR_STATE_W_INTENSITY;
                }
-			else if (_c == ':') {
+               else if (_c == ':') {
                     _selector      = 0;
                     _state         = CR_STATE_W_SELECTOR_ID;
-			}
+               }
                else {
                     /* Syntax error
                        ~~~~~~~~~~~~ */
@@ -2380,7 +2380,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.107");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.108");
                exit(1);
                break;
 
@@ -2550,7 +2550,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.107");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.108");
      fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
