@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool Version 1.17 du 21/08/18 - 
+#	@(#)	[MB] ek_hl_tool	Version 1.18 du 21/09/12 - 
 #
 
 # usage {{{
@@ -214,7 +214,7 @@ config_occurrences()
 	#	for cfg in $(HL_CONF=/DATA3/projets/hl/config_files/hl.cfg hl -op '*' | awk '{ print $3 }')
 		for cfg in $(hl -op '*' | awk '{ print $3 }' | sort -u)
 		do
-			nb=$(hl -oP "\<$cfg\>" | wc -l)
+			nb=$(hl -oP "^$cfg$" | wc -l)
 			printf "%-20s : %3d\n" "$cfg" "$nb"
 		done
 	) | sort -k3,3g
