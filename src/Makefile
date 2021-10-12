@@ -2,7 +2,7 @@
 #	Makefile
 #	~~~~~~~~
 #
-#	@(#)	[MB] cr_Makefile	Version 1.1 du 20/02/22 - 
+#	@(#)	[MB] cr_Makefile	Version 1.2 du 21/10/12 - 
 #
 
 AIX_CC		= gxlc
@@ -22,3 +22,6 @@ aix_hl		: cr_main.o cr_gpri.o cr_lex.o
 			@ $(AIX_CC) -o hl cr_main.o cr_gpri.o cr_lex.o
 			@ strip hl
 			-@ ./hl -V || :
+
+clean		:
+			@ rm -f hl cr_main.o cr_gpri.o cr_lex.o cr_lex.c
