@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.108 du 21/09/07 - 
+ *	@(#)	[MB] cr_main.c	Version 1.109 du 21/10/12 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -170,7 +170,12 @@ char *cr_glob_to_regexp(char *glob_expr)
 ******************************************************************************/
 void cr_read_config_file(char *cfg_file)
 {
-//fprintf(stderr, "        %s (%d) : cfg_file = [%s]\n", __func__, __LINE__, cfg_file);
+     struct stat               _st_buf;
+
+	if (G.debug) {
+		fprintf(stderr, "%s(%s) ...\n", __func__, cfg_file);
+	}
+
      if (access(cfg_file, 0) != 0) {
 #if 0
           fprintf(stderr, "%s: config file \"%s\" does not exist !\n",
@@ -181,15 +186,32 @@ void cr_read_config_file(char *cfg_file)
 #endif
      }
 
-     if ((yyin = fopen(cfg_file, "r")) == NULL) {
-          fprintf(stderr, "%s: cannot open \"%s\" !\n",
+	if (stat(cfg_file, &_st_buf) < 0) {
+#if 0
+		fprintf(stderr, "%s: cannot stat \"%s\" !\n",
                   G.prgname, cfg_file);
-          perror("fopen");
+          perror("stat");
           exit(1);
-     }
+#else
+          return;
+#endif
+	}
 
-     G.cfg_filename           = strdup(cfg_file);
-     yylex();
+	if ((_st_buf.st_mode & S_IFMT) != S_IFREG) {
+		fprintf(stderr, "%s: %s() : \"%s\" is not a regular file !\n",
+                  G.prgname, __func__, cfg_file);
+	}
+	else {
+		if ((yyin = fopen(cfg_file, "r")) == NULL) {
+			fprintf(stderr, "%s: cannot open \"%s\" !\n",
+				   G.prgname, cfg_file);
+			perror("fopen");
+			exit(1);
+		}
+
+		G.cfg_filename           = strdup(cfg_file);
+		yylex();
+	}
 
 //     cr_lists2argv(&G.configs);
 }
@@ -2380,7 +2402,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.108");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.109");
                exit(1);
                break;
 
@@ -2550,7 +2572,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.108");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.109");
      fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
