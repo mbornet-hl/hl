@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool	Version 1.18 du 21/09/12 - 
+#	@(#)	[MB] ek_hl_tool	Version 1.19 du 21/10/23 - 
 #
 
 # usage {{{
@@ -289,7 +289,10 @@ configs_specific_to()
 		) | sort -k1,1 > "$TMP2"
 	)
 
-	join -a 1 -a 2 -j 1 -e '---' -o '0 1.2 2.2 1.3 2.3' "$TMP2" "$TMP1" | hl -3R '\--- '"$config_file" -3g "$config_file" | less -RX
+	join -a 1 -a 2 -j 1 -e '---' -o '0 1.2 2.2 1.3 2.3' "$TMP2" "$TMP1" | hl -e \
+		-3R '\--- '"$config_file"	\
+		-3c '([^ ]+) +\--- '"$config_file"	\
+		-3g "$config_file" | less -RX
 
 	rm -f "$TMP1" "$TMP2"
 }
