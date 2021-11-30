@@ -5,7 +5,7 @@
 hl		:
 	cd src; make
 	mv src/hl .
-	- ./hl -V
+	- ./hl -V || :
 
 clean	:
 	rm -f hl src/hl src/*.o
