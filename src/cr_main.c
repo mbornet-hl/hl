@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *	@(#)	[MB] cr_main.c	Version 1.109 du 21/10/12 - 
+ *	@(#)	[MB] cr_main.c	Version 1.110 du 22/01/06 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -2402,7 +2402,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.109");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.110");
                exit(1);
                break;
 
@@ -2572,7 +2572,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.109");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.110");
      fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -2629,6 +2629,7 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
      fprintf(G.usage_out, "  -P  : display configuration(s) matching regexp\n");
      fprintf(G.usage_out, "  -x  : display options count for each config (with -vH options)\n");
+	fprintf(G.usage_out, "Buffer size = %d Ko\n", CR_SIZE / 1024);
 
      _env_var            = CR_ENV_DEFLT;
      _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;

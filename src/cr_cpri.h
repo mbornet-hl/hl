@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.52 du 21/07/03 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.53 du 22/01/06 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -102,7 +102,7 @@
  
 /* Line size, number of different intervals
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_SIZE                       (1024)
+#define   CR_SIZE                       (65536)
 
 #define   CR_DISP_LEX(...)              if (G.disp_lex) fprintf(stderr, __VA_ARGS__)
 #define   CR_DEBUG(...)                 if (G.debug) {                                              \
