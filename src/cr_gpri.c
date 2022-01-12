@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2019, Martial Bornet
+ * Copyright (C) 2015-2022, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2019.
+ *   (C) Copyright Martial Bornet, 2015-2022.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  [MB] cr_gpri.c Version 1.16 du 21/07/03 - 
+ *   @(#)  [MB] cr_gpri.c Version 1.17 du 22/01/12 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl

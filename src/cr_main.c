@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2021, Martial Bornet
+ * Copyright (C) 2015-2022, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2021.
+ *   (C) Copyright Martial Bornet, 2015-2022.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *	@(#)	[MB] cr_main.c	Version 1.110 du 22/01/06 - 
+ *	@(#)	[MB] cr_main.c	Version 1.111 du 22/01/12 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -2402,7 +2402,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.110");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.111");
                exit(1);
                break;
 
@@ -2572,7 +2572,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.110");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.111");
      fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");

@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2021, Martial Bornet
+ * Copyright (C) 2015-2022, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2020.
+ *   (C) Copyright Martial Bornet, 2015-2022.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.53 du 22/01/06 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.55 du 22/01/12 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -37,14 +37,90 @@
 #include <sys/types.h>
 #include <regex.h>
 
+/* Default configuration files
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_CONFIG_FILENAME            ".hl.cfg"
 #define   CR_DEFLT_CONFIG_FILE          "/etc/default/hl"
+
+/* Environment variable for default color
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_DEFLT                  "HL_DEFAULT"
+
+/* Environment variables for alternate options
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_DEFLT_ALTERNATE_1      "HL_A1"
 #define   CR_ENV_DEFLT_ALTERNATE_2      "HL_A2"
+
+/* Environment variables for configurations
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_CONF                   "HL_CONF"
 #define   CR_ENV_CONF_GLOB              "HL_CONF_GLOB"
 
+/* Environment variables for thresholds
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_T_2_1                  "HL_T_2_1"
+#define   CR_ENV_T_2_2                  "HL_T_2_2"
+
+#define   CR_ENV_T_3_1                  "HL_T_3_1"
+#define   CR_ENV_T_3_2                  "HL_T_3_2"
+#define   CR_ENV_T_3_3                  "HL_T_3_3"
+
+#define   CR_ENV_T_4_1                  "HL_T_4_1"
+#define   CR_ENV_T_4_2                  "HL_T_4_2"
+#define   CR_ENV_T_4_3                  "HL_T_4_3"
+#define   CR_ENV_T_4_4                  "HL_T_4_4"
+
+#define   CR_ENV_T_5_1                  "HL_T_5_1"
+#define   CR_ENV_T_5_2                  "HL_T_5_2"
+#define   CR_ENV_T_5_3                  "HL_T_5_3"
+#define   CR_ENV_T_5_4                  "HL_T_5_4"
+#define   CR_ENV_T_5_5                  "HL_T_5_5"
+
+#define   CR_ENV_T_6_1                  "HL_T_6_1"
+#define   CR_ENV_T_6_2                  "HL_T_6_2"
+#define   CR_ENV_T_6_3                  "HL_T_6_3"
+#define   CR_ENV_T_6_4                  "HL_T_6_4"
+#define   CR_ENV_T_6_5                  "HL_T_6_5"
+#define   CR_ENV_T_6_6                  "HL_T_6_6"
+
+#define   CR_ENV_T_7_1                  "HL_T_7_1"
+#define   CR_ENV_T_7_2                  "HL_T_7_2"
+#define   CR_ENV_T_7_3                  "HL_T_7_3"
+#define   CR_ENV_T_7_4                  "HL_T_7_4"
+#define   CR_ENV_T_7_5                  "HL_T_7_5"
+#define   CR_ENV_T_7_6                  "HL_T_7_6"
+#define   CR_ENV_T_7_7                  "HL_T_7_7"
+
+#define   CR_ENV_T_8_1                  "HL_T_8_1"
+#define   CR_ENV_T_8_2                  "HL_T_8_2"
+#define   CR_ENV_T_8_3                  "HL_T_8_3"
+#define   CR_ENV_T_8_4                  "HL_T_8_4"
+#define   CR_ENV_T_8_5                  "HL_T_8_5"
+#define   CR_ENV_T_8_6                  "HL_T_8_6"
+#define   CR_ENV_T_8_7                  "HL_T_8_7"
+#define   CR_ENV_T_8_8                  "HL_T_8_8"
+
+#define   CR_ENV_T_9_1                  "HL_T_9_1"
+#define   CR_ENV_T_9_2                  "HL_T_9_2"
+#define   CR_ENV_T_9_3                  "HL_T_9_3"
+#define   CR_ENV_T_9_4                  "HL_T_9_4"
+#define   CR_ENV_T_9_5                  "HL_T_9_5"
+#define   CR_ENV_T_9_6                  "HL_T_9_6"
+#define   CR_ENV_T_9_7                  "HL_T_9_7"
+#define   CR_ENV_T_9_8                  "HL_T_9_8"
+
+/* Environment variables for days of the week
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_SUNDAY                 "HL_SUNDAY"
+#define   CR_ENV_MONDAY                 "HL_MONDAY"
+#define   CR_ENV_TUESDAY                "HL_TUESDAY"
+#define   CR_ENV_WEDNESDAY              "HL_WEDNESDAY"
+#define   CR_ENV_THURSDAY               "HL_THURSDAY"
+#define   CR_ENV_FRIDAY                 "HL_FRIDAY"
+#define   CR_ENV_SATURDAY               "HL_SATURDAY"
+
+/* Default values for environment variables
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_DEFLT_COLOR                "3Y"
 #define   CR_DEFLT_ALT_INTENSITY_1      (2)
 #define   CR_DEFLT_ALT_COLOR_1          'B'
