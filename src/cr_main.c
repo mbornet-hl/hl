@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *	@(#)	[MB] cr_main.c	Version 1.111 du 22/01/12 - 
+ *   @(#)  [MB] cr_main.c Version 1.114 du 22/01/14 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -172,9 +172,9 @@ void cr_read_config_file(char *cfg_file)
 {
      struct stat               _st_buf;
 
-	if (G.debug) {
-		fprintf(stderr, "%s(%s) ...\n", __func__, cfg_file);
-	}
+     if (G.debug) {
+          fprintf(stderr, "%s(%s) ...\n", __func__, cfg_file);
+     }
 
      if (access(cfg_file, 0) != 0) {
 #if 0
@@ -186,32 +186,32 @@ void cr_read_config_file(char *cfg_file)
 #endif
      }
 
-	if (stat(cfg_file, &_st_buf) < 0) {
+     if (stat(cfg_file, &_st_buf) < 0) {
 #if 0
-		fprintf(stderr, "%s: cannot stat \"%s\" !\n",
+          fprintf(stderr, "%s: cannot stat \"%s\" !\n",
                   G.prgname, cfg_file);
           perror("stat");
           exit(1);
 #else
           return;
 #endif
-	}
+     }
 
-	if ((_st_buf.st_mode & S_IFMT) != S_IFREG) {
-		fprintf(stderr, "%s: %s() : \"%s\" is not a regular file !\n",
+     if ((_st_buf.st_mode & S_IFMT) != S_IFREG) {
+          fprintf(stderr, "%s: %s() : \"%s\" is not a regular file !\n",
                   G.prgname, __func__, cfg_file);
-	}
-	else {
-		if ((yyin = fopen(cfg_file, "r")) == NULL) {
-			fprintf(stderr, "%s: cannot open \"%s\" !\n",
-				   G.prgname, cfg_file);
-			perror("fopen");
-			exit(1);
-		}
+     }
+     else {
+          if ((yyin = fopen(cfg_file, "r")) == NULL) {
+               fprintf(stderr, "%s: cannot open \"%s\" !\n",
+                       G.prgname, cfg_file);
+               perror("fopen");
+               exit(1);
+          }
 
-		G.cfg_filename           = strdup(cfg_file);
-		yylex();
-	}
+          G.cfg_filename           = strdup(cfg_file);
+          yylex();
+     }
 
 //     cr_lists2argv(&G.configs);
 }
@@ -1645,6 +1645,452 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
 }
 
 /* cr_decode_sequential() }}} */
+/* cr_transition() {{{ */
+
+/******************************************************************************
+
+                         CR_TRANSITION
+
+******************************************************************************/
+void cr_transition(char c, int *ref_state, int new_state)
+{
+//     fprintf(stderr, "'%c' : state %2d => state %2d\n", c, *ref_state, new_state);
+     *ref_state               = new_state;
+}
+
+/* cr_transition() }}} */
+/* cr_syntax_error() {{{ */
+
+/******************************************************************************
+
+                         CR_SYNTAX_ERROR
+
+******************************************************************************/
+void cr_syntax_error(char *option, char *current, char c)
+{
+     *current                 = 0;
+     printf("Syntax error on '%c' after \"%s\"\n",
+            c, option);
+}
+
+/* cr_syntax_error() }}} */
+/* cr_set_ptr() {{{ */
+
+/******************************************************************************
+
+                         CR_SET_PTR
+
+******************************************************************************/
+void cr_set_ptr(int **ref_date_elt, int *date_elt_addr, char *date_type)
+{
+     if (*date_elt_addr != CR_UNINITIALIZED) {
+          printf("%s already specified ! (previous value = %d)\n",
+                 date_type, *date_elt_addr);
+          exit(1);
+     }
+
+     *ref_date_elt            = date_elt_addr;
+}
+
+/* cr_set_ptr() }}} */
+/* cr_pos_unspecified() {{{ */
+
+/******************************************************************************
+
+                         CR_POS_UNSPECIFIED
+
+******************************************************************************/
+void cr_pos_unspecified(char *date_elt_name)
+{
+     printf("%s position unspecified !\n", date_elt_name);
+}
+
+/* cr_pos_unspecified() }}} */
+/* cr_pos_inconsistency() {{{ */
+
+/******************************************************************************
+
+                         CR_POS_INCONSISTENCY
+
+******************************************************************************/
+void cr_pos_inconsistency(char *date_elt_1, char *date_elt_2)
+{
+     printf("Regex numbers for %s and %s are identical !\n",
+            date_elt_1, date_elt_2);
+}
+
+/* cr_pos_inconsistency() }}} */
+/* cr_decode_dow() {{{ */
+
+/******************************************************************************
+
+                              CR_DECODE_DOW
+
+******************************************************************************/
+struct cr_re_desc *cr_decode_dow(struct cr_args *args)
+{
+     // for DOW option
+     int                       _state, _curr_col_idx, _selector, _lg, _size;
+     char                      _c, _next_char, *_regexp;
+     struct cr_ptrs           *_ptrs;
+     struct cr_color         **_dow_colors;
+     struct cr_re_desc        *_re;
+     int                       _error, _i;
+     char                      _errbuf[256], *_p;
+
+     char                     *_option;
+     int                      _year_RE_num, _month_RE_num, _day_RE_num,
+						_nb_sub, *_ref_date_elt, _color_count;
+     char                     *_Y_str = "year",
+                              *_m_str = "month",
+                              *_d_str = "day";
+
+     _re                      = cr_new_re_desc();
+     _re->dow.used            = TRUE;
+     _re->cflags              = G.cflags;
+     _re->col.col_num         = 0;
+     _re->col.intensity       = 0;
+     _re->col.out             = G.out;
+     _re->max_sub             = 1;
+     _re->dow.idx             = 0;
+     _re->idx_regex_select    = 0;
+     _re->matching_str        = NULL;
+     _re->change_on_diff      = TRUE;
+     G.out                    = stdout;
+
+     _state                   = CR_STATE_INITIAL;
+     _curr_col_idx            = 0;
+     _selector                = 0;
+
+     _regexp                  = NULL;
+
+     _year_RE_num             = CR_UNINITIALIZED;
+     _month_RE_num            = CR_UNINITIALIZED;
+     _day_RE_num              = CR_UNINITIALIZED;
+     _color_count             = 0;
+
+     _lg                      = 7;
+     _ptrs                    = args->curr_ptrs;
+     _option                  = _ptrs->curr_arg;
+
+     /* Allocate memory for the color descriptors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     _size                    = (_lg + 1) * sizeof(struct cr_color **);
+     if ((_dow_colors = (struct cr_color **) malloc(_size)) == NULL) {
+          fprintf(stderr, cr_err_malloc, G.prgname);
+          exit(1);
+     }
+     _re->dow.cols            = _dow_colors;
+
+     for (_i = 0; _i < (_lg + 1); _i++) {
+          _dow_colors[_i]          = NULL;
+     }
+
+     /* Decode options
+        ~~~~~~~~~~~~~~ */
+     for (_c = 0 ; ; ) {
+          if (!(_ptrs = args->curr_ptrs)) {
+               /* No more argument to treat
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               CR_DEBUG("NO MORE ARGS.\n");
+               break;
+          }
+
+          _c        = _ptrs->curr_arg[_ptrs->curr_idx];
+          CR_DEBUG("==> OPTION : '%c'\n", _c);
+          _ptrs->curr_idx++;
+          _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
+          args->optarg      = 0;
+
+          if (_next_char == 0) {
+               CR_DEBUG("    No more 1 letter option\n");
+               CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+               if (*(_ptrs->curr_argv + 1) == 0) {
+                    /* No regexp for this option
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    CR_DEBUG("No regexp for this option => use default one\n");
+                    _regexp             = CR_DEFLT_ALT_REGEXP;
+                    args->curr_ptrs     = _ptrs->prev;
+                    free(_ptrs);
+               }
+               else {
+                    _ptrs->curr_argv++;
+                    _ptrs->curr_arg     = *_ptrs->curr_argv;
+                    _ptrs->curr_idx     = 0;
+                    CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+                    if (_ptrs->curr_arg[0] != '-') {
+                         /* Regexp found !
+                            ~~~~~~~~~~~~~~ */
+                         _regexp             = _ptrs->curr_arg;
+                         _ptrs->curr_argv++;
+                         _ptrs->curr_arg     = *_ptrs->curr_argv;
+//                         args->curr_ptrs     = _ptrs;  // XXX !?!?!?!?
+                    }
+                    else {
+                         /* No regexp : use default one
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _regexp             = CR_DEFLT_ALT_REGEXP;
+                    }
+               }
+          }
+
+          switch (_state) {
+          
+          case CR_STATE_INITIAL:
+               switch (_c) {
+
+               case 'Y' :
+                    cr_set_ptr(&_ref_date_elt, &_year_RE_num, _Y_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case 'm' :
+                    cr_set_ptr(&_ref_date_elt, &_month_RE_num, _m_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case 'd' :
+                    cr_set_ptr(&_ref_date_elt, &_day_RE_num, _d_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_NUM:
+               if (_c >= '0' && _c <= '9') {
+                    *_ref_date_elt           = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_DMY);
+               }
+               else {
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_DMY:
+               switch (_c) {
+
+               case 'Y' :
+                    cr_set_ptr(&_ref_date_elt, &_year_RE_num, _Y_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case 'm' :
+                    cr_set_ptr(&_ref_date_elt, &_month_RE_num, _m_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case 'd' :
+                    cr_set_ptr(&_ref_date_elt, &_day_RE_num, _d_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case ':' :
+                    cr_transition(_c, &_state, CR_STATE_W_DMY2);
+                    break;
+
+               case ',' :
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_DMY2:
+               switch (_c) {
+
+               case 'Y' :
+                    cr_set_ptr(&_ref_date_elt, &_year_RE_num, _Y_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case 'm' :
+                    cr_set_ptr(&_ref_date_elt, &_month_RE_num, _m_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               case 'd' :
+                    cr_set_ptr(&_ref_date_elt, &_day_RE_num, _d_str);
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_INTENSITY:
+          case CR_STATE_W_INTENSITY2:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
+               }
+               else if (cr_is_a_color(_c)) {
+                    _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+//cr_dump_color(_dow_colors[_curr_col_idx - 1]);
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
+               }
+               else {
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COLOR:
+               if (cr_is_a_color(_c)) {
+                    if (_color_count++ >= CR_MAX_DAYS) {
+                         printf("Too many colors specified !\n");
+                         exit(1);
+                    }
+                    _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+//cr_dump_color(_dow_colors[_curr_col_idx - 1]);
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
+               }
+               else {
+                    *_p                 = 0;
+                    printf("Invalid color specifier (%c) after \"%s\" !\n",
+                           _c, _option);
+                    exit(1);
+               }
+               break;
+
+          default:
+               cr_syntax_error(_option, _p, _c);
+               exit(1);
+               break;
+          }
+
+          if (_regexp != NULL) {
+               /* Regex initialized : get out of the loop
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               break;
+          }
+     }
+
+     switch (_state) {
+
+     case CR_STATE_W_DMY:
+     case CR_STATE_W_INTENSITY2:
+          break;
+
+     default:
+          printf("Incomplete option \"%s\" !\n", _option);
+          exit(1);
+     }
+
+     if (_year_RE_num == CR_UNINITIALIZED) {
+          cr_pos_unspecified(_Y_str);
+          exit(1);
+     }
+     if (_month_RE_num == CR_UNINITIALIZED) {
+          cr_pos_unspecified(_m_str);
+          exit(1);
+     }
+     if (_day_RE_num == CR_UNINITIALIZED) {
+          cr_pos_unspecified(_d_str);
+          exit(1);
+     }
+     if (_year_RE_num == _month_RE_num) {
+          cr_pos_inconsistency(_Y_str, _m_str);
+          exit(1);
+     }
+     if (_year_RE_num == _day_RE_num) {
+          cr_pos_inconsistency(_Y_str, _d_str);
+          exit(1);
+     }
+     if (_month_RE_num == _day_RE_num) {
+          cr_pos_inconsistency(_m_str, _d_str);
+          exit(1);
+     }
+
+     /* Copy RE numbers into the DOW descriptor
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     _re->dow.year_RE_num     = _year_RE_num;
+     _re->dow.month_RE_num    = _month_RE_num;
+     _re->dow.day_RE_num      = _day_RE_num;
+
+//printf("END OF LOOP : regexp initialized : [%s]\n", _regexp);
+//cr_dump_args(args);
+//printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
+
+     if (_regexp == NULL) {
+fprintf(stderr, "%s: option %s : missing regular expression !\n",
+        G.prgname, _option);
+exit(1);
+     }
+
+     /* Count number of possible sub strings
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_p = _regexp; (*_p); _p++) {
+          if (*_p == '(') {
+               _re->max_sub++;
+          }
+     }
+
+	_nb_sub				= _re->max_sub - 1;
+
+	if ((_year_RE_num  > _nb_sub)
+	||  (_month_RE_num > _nb_sub)
+	||  (_day_RE_num   > _nb_sub)) {
+		fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
+	             G.prgname, _nb_sub);
+		exit(1);
+	}
+
+     if (!G.consistency) {
+          _selector++;   // '0' => regexp number 1
+     }
+     _re->idx_regex_select    = _selector;
+     _re->regex[0]            = _regexp;
+     _re->regex[1]            = NULL;
+
+	/* Initialize missing colors with default colors
+	   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+	for (_i = 0; _i < CR_MAX_DAYS; _i++) {
+		if (_re->dow.cols[_i] == NULL) {
+			_re->dow.cols[_i]		= G.deflt_dow[_i];
+//			printf("Color[%d] : using default\n", _i);
+		}
+	}
+	
+     if (G.debug || G.verbose) {
+          struct cr_color     *_color;
+
+          printf("Selector  = %d\n",   _re->idx_regex_select);
+          printf("regex[0]  = [%s]\n", _re->regex[0]);
+          printf("regex[1]  = %p\n",   _re->regex[1]);
+          for (_i = 0; ; _i++) {
+               _color              = _re->dow.cols[_i];
+               if (_color == NULL) {
+                    break;
+               }
+               printf("Color[%d]  = (%d, %d)  (%p)\n", _i, _color->intensity, _color->col_num, _color);
+          }
+          printf("\n");
+     }
+
+     if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
+          (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+          fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                  G.prgname, _regexp, _errbuf);
+          exit(1);
+     }
+
+     return _re;
+}
+
+/* cr_decode_dow() }}} */
 /* cr_getopt() {{{ */
 
 /******************************************************************************
@@ -2003,25 +2449,57 @@ struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
 }
 
 /* cr_get_deflt_alt_col() }}} */
-/* cr_init_deflt_alt_col() {{{ */
+/* cr_disp_env_vars() {{{
 
 /******************************************************************************
 
-                         CR_INIT_DEFLT_ALT_COL
+                         CR_DISP_ENV_VARS
 
 ******************************************************************************/
-void cr_init_deflt_alt_col()
+void cr_disp_env_vars(struct cr_env_var_desc *vars)
 {
-     G.deflt_alt_col_1   = cr_get_deflt_alt_col(CR_ENV_DEFLT_ALTERNATE_1,
-                                      CR_DEFLT_ALT_INTENSITY_1,
-                                      CR_DEFLT_ALT_COLOR_1);
+     struct cr_env_var_desc        *_pvar;
+     char                           _deflt[4], *_undefined, *_msg,
+                                   *_env_val;
 
-     G.deflt_alt_col_2   = cr_get_deflt_alt_col(CR_ENV_DEFLT_ALTERNATE_2,
-                                      CR_DEFLT_ALT_INTENSITY_2,
-                                      CR_DEFLT_ALT_COLOR_2);
+     _undefined          = "Environment variable %-14s is undefined. Default value = \"%s\".\n";
+     _msg                = "Environment variable %-14s = \"%s\"\n";
+
+     for (_pvar = vars; _pvar->name != NULL; _pvar++) {
+//          printf("%-20s %d%c\n", _pvar->name, _pvar->deflt_intens, _pvar->deflt_color);
+
+          if ((_env_val = getenv(_pvar->name)) == NULL) {
+               sprintf(_deflt, "%d%c", _pvar->deflt_intens, _pvar->deflt_color);
+               fprintf(G.usage_out, _undefined, _pvar->name, _deflt);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _pvar->name, _env_val);
+          }
+     }
 }
 
-/* cr_init_deflt_alt_col() }}} */
+/* cr_disp_env_vars() }}}
+/* cr_init_deflt_colors() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_DEFLT_COLORS
+
+******************************************************************************/
+void cr_init_deflt_colors()
+{
+     struct cr_env_var_desc        *_pvar;
+     char                           _deflt[4], *_env_val;
+
+     for (_pvar = cr_env_vars; _pvar->name != NULL; _pvar++) {
+          *_pvar->color_desc       = cr_get_deflt_alt_col(_pvar->name,
+                                                          _pvar->deflt_intens,
+                                                          _pvar->deflt_color);
+
+     }
+}
+
+/* cr_init_deflt_colors() }}} */
 /* print_trace() {{{ */
 
 #if defined(HL_BACKTRACE)
@@ -2289,14 +2767,14 @@ int main(int argc, char *argv[])
      cr_init_list();
      G.intensity    = CR_DEFLT_INTENSITY;
 
-     cr_init_deflt_alt_col();
+     cr_init_deflt_colors();
 
      cr_clear_marker_flags();
 
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(_argc, _argv,
-                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{P!p!x",
+                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{J{P!p!x",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -2402,7 +2880,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.111");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.114");
                exit(1);
                break;
 
@@ -2470,6 +2948,15 @@ int main(int argc, char *argv[])
                if (_args->special_opt) {
                     _re                 = cr_decode_sequential(_args);
                     _re->change_on_bad_next = TRUE;
+                    cr_add_to_list(_re);
+               }
+               break;
+
+          case 'J':
+               G.cflags  |= REG_EXTENDED;
+               if (_args->special_opt) {
+                    _re                 = cr_decode_dow(_args);
+                    _re->dow.used       = TRUE;
                     cr_add_to_list(_re);
                }
                break;
@@ -2564,16 +3051,14 @@ int main(int argc, char *argv[])
 void cr_usage(bool disp_config)
 {
      char                     *_env_var,           *_env_val,
-                              *_env_var1,          *_env_var2,
-                              *_env_val1,          *_env_val2,
                               *_env_var_conf,      *_env_val_conf,
                               *_env_var_conf_glob, *_env_val_conf_glob,
                               *_msg,               *_undefined,
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.111");
-     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.114");
+     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
      fprintf(G.usage_out, "  -h  : help\n");
@@ -2614,9 +3099,15 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
      fprintf(G.usage_out, "         and c1, c2, ... cn are color specifiers to use\n");
      fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
+     if (G.verbose) {
+          fprintf(G.usage_out, "        Example : -A2,2By  '(^([^ ]+ [0-9]{2} ..:..):..)'\n");
+          fprintf(G.usage_out, "        Example : -A1 '(.*([12][0-9]{3}[-/][0-9]{2}[-/][0-9]{2})[   ]+.*)'\n");
+          fprintf(G.usage_out, "        Example : -I1 '^([^:]*:[^:]*:([^:]*)[:]*.*)'\n");
+     }
      fprintf(G.usage_out, "  -s  : alternate colors when the string matched by the selection regex is the image\n");
      fprintf(G.usage_out, "        by a simple function (+, -, * or /) of the value of the previous matching string\n");
-     fprintf(G.usage_out, "        Syntax for sequential control option : -s[[-+*/]p[%s]:][n],c1c2...cn]\n", G.base_string);
+     fprintf(G.usage_out, "        Syntax for sequential control option : -s[[-+*/]p[%s]:][n],c1c2...cn]\n",
+             G.base_string);
      fprintf(G.usage_out, "         where p is a positive integer (parameter),\n");
      fprintf(G.usage_out, "         n is a number from 0 to 9 indicating the selection regexp number,\n");
      fprintf(G.usage_out, "         and c1, c2, ... cn are color specifiers to use\n");
@@ -2625,56 +3116,68 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "           x : hexadecimal\n");
      fprintf(G.usage_out, "           a : ascii (first character of the matching string)\n");
      fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
+     if (G.verbose) {
+          fprintf(G.usage_out, "        Example : -s1:2,3b3r  '^(#[   ]*define[      ]+[^      ]+[  ]+\\(([   ]*-?[0-9]+)\\))'\n");
+          fprintf(G.usage_out, "        Example : -s-5:2,1G1B  '^(Countdown[    ]*:[      ]*([0-9]{2}))'\\(([      ]*-?[0-9]+)\\))'\n");
+          fprintf(G.usage_out, "        Example : -s*2x:2,3g3m  '^(#[      ]*define[      ]+[^      ]+[  ]+0x([0-9a-fA-F]+))'\\(([     ]*-?[0-9]+)\\))'\n");
+     }
+     fprintf(G.usage_out, "  -J  : Colorize date according to the day of the week\n");
+     fprintf(G.usage_out, "        Syntax for day of week option : -JYs1ms2ds3[,c1c2...c7]\n");
+     fprintf(G.usage_out, "         where :\n");
+     fprintf(G.usage_out, "           s1 : number of the sub-regex for the year\n");
+     fprintf(G.usage_out, "           s2 : number of the sub-regex for the month\n");
+     fprintf(G.usage_out, "           s3 : number of the sub-regex for the day of the month\n");
+     fprintf(G.usage_out, "        and c1c2...c7 are the optional color specifiers for Sunday to Saturday\n");
+     if (G.verbose) {
+          fprintf(G.usage_out, "        Example : -JY2m3d4,3R1b1g2b2g3b3r '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
+          fprintf(G.usage_out, "        Example : -Jm2:d3:Y4,3R1g1g1g1g1g3R '^(.* ([0-9]{2})/([0-9]{2})/([0-9]{4}))'\n");
+          fprintf(G.usage_out, "        Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
+     }
      fprintf(G.usage_out, "  -N  : consistent numbering of sub-expressions in -A/-I and -s\n");
      fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
      fprintf(G.usage_out, "  -P  : display configuration(s) matching regexp\n");
      fprintf(G.usage_out, "  -x  : display options count for each config (with -vH options)\n");
-	fprintf(G.usage_out, "Buffer size = %d Ko\n", CR_SIZE / 1024);
 
-     _env_var            = CR_ENV_DEFLT;
-     _env_var1           = CR_ENV_DEFLT_ALTERNATE_1;
-     _env_var2           = CR_ENV_DEFLT_ALTERNATE_2;
-     _env_var_conf       = CR_ENV_CONF;
-     _env_var_conf_glob  = CR_ENV_CONF_GLOB;
-     _undefined          = "Environment variable %s is undefined. Default value = \"%s\".\n";
-     _msg                = "Environment variable %-14s = \"%s\"\n";
+     if (G.verbose) {
+          fprintf(G.usage_out, "Buffer size = %d Ko\n", CR_SIZE / 1024);
 
-     if ((_env_val = getenv(_env_var)) == NULL) {
-          fprintf(G.usage_out, _undefined, _env_var, CR_DEFLT_COLOR);
-     }
-     else {
-          fprintf(G.usage_out, _msg, _env_var, _env_val);
-     }
-     if ((_env_val1 = getenv(_env_var1)) == NULL) {
-          sprintf(_deflt_alt_1, "%d%c", CR_DEFLT_ALT_INTENSITY_1, CR_DEFLT_ALT_COLOR_1);
-          fprintf(G.usage_out, _undefined, _env_var1, _deflt_alt_1);
-     }
-     else {
-          fprintf(G.usage_out, _msg, _env_var1, _env_val1);
-     }
-     if ((_env_val2 = getenv(_env_var2)) == NULL) {
-          sprintf(_deflt_alt_2, "%d%c", CR_DEFLT_ALT_INTENSITY_2, CR_DEFLT_ALT_COLOR_2);
-          fprintf(G.usage_out, _undefined, _env_var2, _deflt_alt_2);
-     }
-     else {
-          fprintf(G.usage_out, _msg, _env_var2, _env_val2);
-     }
-     if ((_env_val_conf = getenv(_env_var_conf)) == NULL) {
-          sprintf(_deflt_conf, "~/%s:%s", CR_CONFIG_FILENAME, CR_DEFLT_CONFIG_FILE);
-          fprintf(G.usage_out, _undefined, _env_var_conf, _deflt_conf);
-     }
-     else {
-          fprintf(G.usage_out, _msg, _env_var_conf, _env_val_conf);
-     }
-     if ((_env_val_conf_glob = getenv(_env_var_conf_glob)) == NULL) {
-          fprintf(G.usage_out, _undefined, _env_var_conf_glob, CR_DEFLT_CONF_GLOB);
-     }
-     else {
-          fprintf(G.usage_out, _msg, _env_var_conf_glob, _env_val_conf_glob);
+          _env_var            = CR_ENV_DEFLT;
+          _env_var_conf       = CR_ENV_CONF;
+          _env_var_conf_glob  = CR_ENV_CONF_GLOB;
+          _undefined          = "Environment variable %-14s is undefined. Default value = \"%s\".\n";
+          _msg                = "Environment variable %-14s = \"%s\"\n";
+
+          /* Configuration variables
+             ~~~~~~~~~~~~~~~~~~~~~~~ */
+          if ((_env_val_conf = getenv(_env_var_conf)) == NULL) {
+               sprintf(_deflt_conf, "~/%s:%s", CR_CONFIG_FILENAME, CR_DEFLT_CONFIG_FILE);
+               fprintf(G.usage_out, _undefined, _env_var_conf, _deflt_conf);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _env_var_conf, _env_val_conf);
+          }
+          if ((_env_val_conf_glob = getenv(_env_var_conf_glob)) == NULL) {
+               fprintf(G.usage_out, _undefined, _env_var_conf_glob, CR_DEFLT_CONF_GLOB);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _env_var_conf_glob, _env_val_conf_glob);
+          }
+
+          /* Colorization variables
+             ~~~~~~~~~~~~~~~~~~~~~~ */
+          if ((_env_val = getenv(_env_var)) == NULL) {
+               fprintf(G.usage_out, _undefined, _env_var, CR_DEFLT_COLOR);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _env_var, _env_val);
+          }
      }
 
      if (disp_config) {
           cr_display_config(CR_CONF_LIST_ALL, NULL);
+     }
+     if (G.verbose) {
+          cr_disp_env_vars(cr_env_vars);
      }
      exit(1);
 }
@@ -2961,6 +3464,29 @@ void cr_set_desc_alt(struct cr_re_desc *re, int offset, int s, int e, struct cr_
 }
 
 /* cr_set_desc_alt() }}} */
+/* cr_set_desc_dow() {{{ */
+
+/******************************************************************************
+
+                         CR_SET_DESC_DOW
+
+******************************************************************************/
+void cr_set_desc_dow(struct cr_re_desc *re, int offset, int s, int e, struct cr_color *col)
+{
+     int                  _i;
+     struct cr_col_desc  *_desc;
+
+     /* RE descriptor does not define a range
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
+          if (!_desc->used) {
+               _desc->used    = TRUE;
+               _desc->col     = col;
+          }
+     }
+}
+
+/* cr_set_desc_dow() }}} */
 /* cr_next_val() {{{ */
 
 /******************************************************************************
@@ -3000,6 +3526,35 @@ long cr_next_val(struct cr_re_desc *re)
 }
 
 /* cr_next_val() }}} */
+/* cr_dow() {{{ */
+
+/******************************************************************************
+
+                         CR_DOW
+
+******************************************************************************/
+/*
+ *   Computes the day of the week from YYYY, mm, dd
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *   From https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week
+ *
+ *   1 <= month <= 12,
+ *   year > 1752 (in the U.K.)
+ */
+int cr_day_of_the_week(int year, int month, int day)
+{
+     static int          _t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+
+//fprintf(stderr, "DAY OF THE WEEK : YEAR = %4d Month = %2d Day = %2d\n", year, month, day);
+     if (month < 3 ) {
+          year                -= 1;
+     }
+
+     return (year + year/4 - year/100 + year/400 + _t[month - 1] + day) % 7;
+}
+
+/* cr_dow() }}} */
 /* cr_read_input() {{{ */
 
 /******************************************************************************
@@ -3016,10 +3571,11 @@ void cr_read_input(void)
      regmatch_t                _pmatch[CR_SIZE + 1];
      int                       _eflags = 0;
 
-     char                      _debug_str[CR_SIZE + 1];
+     char                      _tmp_str[CR_SIZE + 1];
      char                      _matching_str[CR_SIZE + 1];
      bool                      _change;
      long                      _new_val, _expected;
+     int                       _year, _month, _day, _dow;
 
      _nmatch        = sizeof(_pmatch) / sizeof(_pmatch[0]);
 
@@ -3028,6 +3584,10 @@ void cr_read_input(void)
           /* Reset of color descriptors
              ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
           cr_init_desc();
+
+//          _year               = 0,
+//          _month              = 0;
+//          _day                = 0;
 
           G.length       = strlen(G.line);
           _idx_last      = G.length - 1;
@@ -3082,10 +3642,10 @@ void cr_read_input(void)
                                    _e   = _pmatch[_j].rm_eo - 1;
 
                                    if (G.debug) {
-                                        strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
-                                        _debug_str[_e -_s + 1]   = 0;
+                                        strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
                                         fprintf(stderr, "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
                                    }
 
                                    strncpy(_matching_str, G.line + _off + _s, _e - _s + 1);
@@ -3178,12 +3738,12 @@ void cr_read_input(void)
                                    _e   = _pmatch[_j].rm_eo - 1;
 
                                    if (G.debug) {
-                                        strncpy(_debug_str,
+                                        strncpy(_tmp_str,
                                                 G.line + _off + _s, _e - _s + 1);
-                                        _debug_str[_e -_s + 1]   = 0;
+                                        _tmp_str[_e -_s + 1]   = 0;
                                         fprintf(stderr,
                                                 "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
                                    }
 
                                    if (_s >= 0) {
@@ -3238,10 +3798,10 @@ void cr_read_input(void)
                                    _e   = _pmatch[_j].rm_eo - 1;
 
                                    if (G.debug) {
-                                        strncpy(_debug_str, G.line + _off + _s, _e - _s + 1);
-                                        _debug_str[_e -_s + 1]   = 0;
+                                        strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
                                         fprintf(stderr, "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
                                    }
 
                                    strncpy(_matching_str, G.line + _off + _s, _e - _s + 1);
@@ -3319,12 +3879,12 @@ void cr_read_input(void)
                                    _e   = _pmatch[_j].rm_eo - 1;
 
                                    if (G.debug) {
-                                        strncpy(_debug_str,
+                                        strncpy(_tmp_str,
                                                 G.line + _off + _s, _e - _s + 1);
-                                        _debug_str[_e -_s + 1]   = 0;
+                                        _tmp_str[_e -_s + 1]   = 0;
                                         fprintf(stderr,
                                                 "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                _off, _s, _e, _re->regex[_i], _debug_str, _j);
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
                                    }
 
                                    if (_s >= 0) {
@@ -3335,6 +3895,125 @@ void cr_read_input(void)
                                              fprintf(stderr, "    offset = %d, [%d => %d], col = %d\n",
                                                      _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
 //                                             fprintf(stderr, "\n");
+                                        }
+                                   }
+                              }
+
+                              /* To handle empty strings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if (_e < 0) {
+                                   _e   = 0;
+                              }
+                         }
+                         break;
+                    }
+                    else if (_re->dow.used) {
+                         if (G.debug) {
+                              printf("DOW COLORS ...\n");
+                         }
+
+                         /* Search for multiple matches on the line
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _search_no     = 1;
+                         for (_off = 0, _eflags = 0;
+                              _off < G.length &&
+                              regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
+
+                              if (G.debug) {
+                                   fprintf(stderr, "  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
+                                           _search_no, G.line + _off, _re->regex[_i], _i);
+//                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
+                              }
+
+                              /* Reset date elements
+                                 ~~~~~~~~~~~~~~~~~~~ */
+                              _year               = 0,
+                              _month              = 0;
+                              _day                = 0;
+                              _dow                = CR_UNINITIALIZED;
+
+                              /* Search for the date :loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              for (_j = 0; _j < _re->max_sub; _j++) {
+                                   if (G.debug) {
+                                        printf("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                                   }
+
+                                   if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                        continue;
+                                   }
+
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
+
+                                   if (G.debug) {
+                                        strncpy(_tmp_str,
+                                                G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
+                                        fprintf(stderr,
+                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                   }
+
+                                   strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                   _tmp_str[_e -_s + 1]   = 0;
+
+                                   if (_j == _re->dow.year_RE_num) {
+                                        _year          = atoi(_tmp_str);
+//                                        fprintf(stderr, "Year  found (RE_num = %d) : %4d\n", _re->dow.year_RE_num, _year);
+                                   }
+                                   else if (_j == _re->dow.month_RE_num) {
+                                        _month         = atoi(_tmp_str);
+//                                        fprintf(stderr, "Month found (RE_num = %d) : %4d\n", _re->dow.month_RE_num, _month);
+                                   }
+                                   if (_j == _re->dow.day_RE_num) {
+                                        _day      = atoi(_tmp_str);
+//                                        fprintf(stderr, "Day   found (RE_num = %d) : %4d\n", _re->dow.day_RE_num, _day);
+                                   }
+
+                                   if (_year != 0 && _month != 0 && _day != 0) {
+                                        _dow           = cr_day_of_the_week(_year, _month, _day);
+//                                        fprintf(stderr, "Day of week = %d (%4d-%02d-%02d)\n", _dow, _year, _month, _day);
+                                   }
+                              }
+
+                              /* Colorize : loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if (_dow != CR_UNINITIALIZED) {
+                                   for (_j = 0; _j < _re->max_sub; _j++) {
+                                        if (G.debug) {
+                                             printf("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                                        }
+
+                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                             continue;
+                                        }
+
+                                        _s   = _pmatch[_j].rm_so;
+                                        _e   = _pmatch[_j].rm_eo - 1;
+
+                                        if (G.debug) {
+                                             strncpy(_tmp_str,
+                                                     G.line + _off + _s, _e - _s + 1);
+                                             _tmp_str[_e -_s + 1]   = 0;
+                                             fprintf(stderr,
+                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                     _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                        }
+
+                                        strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
+
+                                        if (_s >= 0) {
+                                             cr_set_desc_dow(_re, _off, _s, _e, _re->dow.cols[_dow]);
+
+                                             if (G.debug) {
+                                                  cr_dump_color(_re->dow.cols[_re->dow.idx]);
+                                                  fprintf(stderr, "    offset = %d, [%d => %d], col = %d\n",
+                                                          _off, _s, _e, _re->dow.cols[_re->dow.idx]->col_num);
+//                                                fprintf(stderr, "\n");
+                                             }
                                         }
                                    }
                               }
@@ -3376,12 +4055,12 @@ void cr_read_input(void)
                                         _e   = _pmatch[_j].rm_eo - 1;
 
                                         if (G.debug) {
-                                             strncpy(_debug_str,
+                                             strncpy(_tmp_str,
                                                      G.line + _off + _s, _e - _s + 1);
-                                             _debug_str[_e -_s + 1]   = 0;
+                                             _tmp_str[_e -_s + 1]   = 0;
                                              fprintf(stderr,
                                                      "    Offset = %3d [%3d => %3d] marker = %2d [%s]\n",
-                                                     _off, _s, _e, _marker, _debug_str);
+                                                     _off, _s, _e, _marker, _tmp_str);
                                         }
 
                                         if (!_re->begin_is_end) {

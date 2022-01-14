@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.55 du 22/01/12 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.57 du 22/01/14 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -46,15 +46,25 @@
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_DEFLT                  "HL_DEFAULT"
 
-/* Environment variables for alternate options
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_ENV_DEFLT_ALTERNATE_1      "HL_A1"
-#define   CR_ENV_DEFLT_ALTERNATE_2      "HL_A2"
-
 /* Environment variables for configurations
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_CONF                   "HL_CONF"
 #define   CR_ENV_CONF_GLOB              "HL_CONF_GLOB"
+
+/* Environment variables for alternate options
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_ALTERNATE_1            "HL_A1"
+#define   CR_ENV_ALTERNATE_2            "HL_A2"
+
+/* Environment variables for days of the week
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_DOW_SUNDAY             "HL_SUNDAY"
+#define   CR_ENV_DOW_MONDAY             "HL_MONDAY"
+#define   CR_ENV_DOW_TUESDAY            "HL_TUESDAY"
+#define   CR_ENV_DOW_WEDNESDAY          "HL_WEDNESDAY"
+#define   CR_ENV_DOW_THURSDAY           "HL_THURSDAY"
+#define   CR_ENV_DOW_FRIDAY             "HL_FRIDAY"
+#define   CR_ENV_DOW_SATURDAY           "HL_SATURDAY"
 
 /* Environment variables for thresholds
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -108,27 +118,237 @@
 #define   CR_ENV_T_9_6                  "HL_T_9_6"
 #define   CR_ENV_T_9_7                  "HL_T_9_7"
 #define   CR_ENV_T_9_8                  "HL_T_9_8"
+#define   CR_ENV_T_9_9                  "HL_T_9_9"
 
-/* Environment variables for days of the week
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_ENV_SUNDAY                 "HL_SUNDAY"
-#define   CR_ENV_MONDAY                 "HL_MONDAY"
-#define   CR_ENV_TUESDAY                "HL_TUESDAY"
-#define   CR_ENV_WEDNESDAY              "HL_WEDNESDAY"
-#define   CR_ENV_THURSDAY               "HL_THURSDAY"
-#define   CR_ENV_FRIDAY                 "HL_FRIDAY"
-#define   CR_ENV_SATURDAY               "HL_SATURDAY"
+#define   CR_ENV_T_10_1                 "HL_T_10_1"
+#define   CR_ENV_T_10_2                 "HL_T_10_2"
+#define   CR_ENV_T_10_3                 "HL_T_10_3"
+#define   CR_ENV_T_10_4                 "HL_T_10_4"
+#define   CR_ENV_T_10_5                 "HL_T_10_5"
+#define   CR_ENV_T_10_6                 "HL_T_10_6"
+#define   CR_ENV_T_10_7                 "HL_T_10_7"
+#define   CR_ENV_T_10_8                 "HL_T_10_8"
+#define   CR_ENV_T_10_9                 "HL_T_10_9"
+#define   CR_ENV_T_10_10                "HL_T_10_10"
 
 /* Default values for environment variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
+#define   CR_DEFLT_CONF_GLOB            "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
+
 #define   CR_DEFLT_COLOR                "3Y"
+
+/* Default values for 'alternate' variables
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_DEFLT_ALT_INTENSITY_1      (2)
 #define   CR_DEFLT_ALT_COLOR_1          'B'
 #define   CR_DEFLT_ALT_INTENSITY_2      (1)
 #define   CR_DEFLT_ALT_COLOR_2          'n'
 
-#define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
-#define   CR_DEFLT_CONF_GLOB            "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
+/* Default values for DOW variables
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_DEFLT_DOW_SUNDAY_INTENS    (3)
+#define   CR_DEFLT_DOW_SUNDAY_COLOR     'R'
+
+#define   CR_DEFLT_DOW_MONDAY_INTENS    (2)
+#define   CR_DEFLT_DOW_MONDAY_COLOR     'b'
+
+#define   CR_DEFLT_DOW_TUESDAY_INTENS   (2)
+#define   CR_DEFLT_DOW_TUESDAY_COLOR    'c'
+
+#define   CR_DEFLT_DOW_WEDNESDAY_INTENS (2)
+#define   CR_DEFLT_DOW_WEDNESDAY_COLOR  'g'
+
+#define   CR_DEFLT_DOW_THURSDAY_INTENS  (3)
+#define   CR_DEFLT_DOW_THURSDAY_COLOR   'g'
+
+#define   CR_DEFLT_DOW_FRIDAY_INTENS    (3)
+#define   CR_DEFLT_DOW_FRIDAY_COLOR     'y'
+
+#define   CR_DEFLT_DOW_SATURDAY_INTENS  (3)
+#define   CR_DEFLT_DOW_SATURDAY_COLOR   'r'
+
+/* Default values for threshold variables
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* 2 ranges */
+#define   CR_DEFLT_T_2_1_INTENS         (2)
+#define   CR_DEFLT_T_2_1_COLOR          'b'
+
+#define   CR_DEFLT_T_2_2_INTENS         (2)
+#define   CR_DEFLT_T_2_2_COLOR          'b'
+
+
+/* 3 ranges */
+#define   CR_DEFLT_T_3_1_INTENS         (2)
+#define   CR_DEFLT_T_3_1_COLOR          'b'
+
+#define   CR_DEFLT_T_3_2_INTENS         (2)
+#define   CR_DEFLT_T_3_2_COLOR          'b'
+
+#define   CR_DEFLT_T_3_3_INTENS         (2)
+#define   CR_DEFLT_T_3_3_COLOR          'b'
+
+
+/* 4 ranges */
+#define   CR_DEFLT_T_4_1_INTENS         (2)
+#define   CR_DEFLT_T_4_1_COLOR          'b'
+
+#define   CR_DEFLT_T_4_2_INTENS         (2)
+#define   CR_DEFLT_T_4_2_COLOR          'b'
+
+#define   CR_DEFLT_T_4_3_INTENS         (2)
+#define   CR_DEFLT_T_4_3_COLOR          'b'
+
+#define   CR_DEFLT_T_4_4_INTENS         (2)
+#define   CR_DEFLT_T_4_4_COLOR          'b'
+
+
+/* 5 ranges */
+#define   CR_DEFLT_T_5_1_INTENS         (2)
+#define   CR_DEFLT_T_5_1_COLOR          'b'
+
+#define   CR_DEFLT_T_5_2_INTENS         (2)
+#define   CR_DEFLT_T_5_2_COLOR          'b'
+
+#define   CR_DEFLT_T_5_3_INTENS         (2)
+#define   CR_DEFLT_T_5_3_COLOR          'b'
+
+#define   CR_DEFLT_T_5_4_INTENS         (2)
+#define   CR_DEFLT_T_5_4_COLOR          'b'
+
+#define   CR_DEFLT_T_5_5_INTENS         (2)
+#define   CR_DEFLT_T_5_5_COLOR          'b'
+
+
+/* 6 ranges */
+#define   CR_DEFLT_T_6_1_INTENS         (2)
+#define   CR_DEFLT_T_6_1_COLOR          'b'
+
+#define   CR_DEFLT_T_6_2_INTENS         (2)
+#define   CR_DEFLT_T_6_2_COLOR          'b'
+
+#define   CR_DEFLT_T_6_3_INTENS         (2)
+#define   CR_DEFLT_T_6_3_COLOR          'b'
+
+#define   CR_DEFLT_T_6_4_INTENS         (2)
+#define   CR_DEFLT_T_6_4_COLOR          'b'
+
+#define   CR_DEFLT_T_6_5_INTENS         (2)
+#define   CR_DEFLT_T_6_5_COLOR          'b'
+
+#define   CR_DEFLT_T_6_6_INTENS         (2)
+#define   CR_DEFLT_T_6_6_COLOR          'b'
+
+
+/* 7 ranges */
+#define   CR_DEFLT_T_7_1_INTENS         (2)
+#define   CR_DEFLT_T_7_1_COLOR          'b'
+
+#define   CR_DEFLT_T_7_2_INTENS         (2)
+#define   CR_DEFLT_T_7_2_COLOR          'b'
+
+#define   CR_DEFLT_T_7_3_INTENS         (2)
+#define   CR_DEFLT_T_7_3_COLOR          'b'
+
+#define   CR_DEFLT_T_7_4_INTENS         (2)
+#define   CR_DEFLT_T_7_4_COLOR          'b'
+
+#define   CR_DEFLT_T_7_5_INTENS         (2)
+#define   CR_DEFLT_T_7_5_COLOR          'b'
+
+#define   CR_DEFLT_T_7_6_INTENS         (2)
+#define   CR_DEFLT_T_7_6_COLOR          'b'
+
+#define   CR_DEFLT_T_7_7_INTENS         (2)
+#define   CR_DEFLT_T_7_7_COLOR          'b'
+
+
+/* 8 ranges */
+#define   CR_DEFLT_T_8_1_INTENS         (2)
+#define   CR_DEFLT_T_8_1_COLOR          'b'
+
+#define   CR_DEFLT_T_8_2_INTENS         (2)
+#define   CR_DEFLT_T_8_2_COLOR          'b'
+
+#define   CR_DEFLT_T_8_3_INTENS         (2)
+#define   CR_DEFLT_T_8_3_COLOR          'b'
+
+#define   CR_DEFLT_T_8_4_INTENS         (2)
+#define   CR_DEFLT_T_8_4_COLOR          'b'
+
+#define   CR_DEFLT_T_8_5_INTENS         (2)
+#define   CR_DEFLT_T_8_5_COLOR          'b'
+
+#define   CR_DEFLT_T_8_6_INTENS         (2)
+#define   CR_DEFLT_T_8_6_COLOR          'b'
+
+#define   CR_DEFLT_T_8_7_INTENS         (2)
+#define   CR_DEFLT_T_8_7_COLOR          'b'
+
+#define   CR_DEFLT_T_8_8_INTENS         (2)
+#define   CR_DEFLT_T_8_8_COLOR          'b'
+
+
+/* 9 ranges */
+#define   CR_DEFLT_T_9_1_INTENS         (2)
+#define   CR_DEFLT_T_9_1_COLOR          'b'
+
+#define   CR_DEFLT_T_9_2_INTENS         (2)
+#define   CR_DEFLT_T_9_2_COLOR          'b'
+
+#define   CR_DEFLT_T_9_3_INTENS         (2)
+#define   CR_DEFLT_T_9_3_COLOR          'b'
+
+#define   CR_DEFLT_T_9_4_INTENS         (2)
+#define   CR_DEFLT_T_9_4_COLOR          'b'
+
+#define   CR_DEFLT_T_9_5_INTENS         (2)
+#define   CR_DEFLT_T_9_5_COLOR          'b'
+
+#define   CR_DEFLT_T_9_6_INTENS         (2)
+#define   CR_DEFLT_T_9_6_COLOR          'b'
+
+#define   CR_DEFLT_T_9_7_INTENS         (2)
+#define   CR_DEFLT_T_9_7_COLOR          'b'
+
+#define   CR_DEFLT_T_9_8_INTENS         (2)
+#define   CR_DEFLT_T_9_8_COLOR          'b'
+
+#define   CR_DEFLT_T_9_9_INTENS         (2)
+#define   CR_DEFLT_T_9_9_COLOR          'b'
+
+
+/* 10 ranges */
+#define   CR_DEFLT_T_10_1_INTENS        (2)
+#define   CR_DEFLT_T_10_1_COLOR         'b'
+
+#define   CR_DEFLT_T_10_2_INTENS        (2)
+#define   CR_DEFLT_T_10_2_COLOR         'b'
+
+#define   CR_DEFLT_T_10_3_INTENS        (2)
+#define   CR_DEFLT_T_10_3_COLOR         'b'
+
+#define   CR_DEFLT_T_10_4_INTENS        (2)
+#define   CR_DEFLT_T_10_4_COLOR         'b'
+
+#define   CR_DEFLT_T_10_5_INTENS        (2)
+#define   CR_DEFLT_T_10_5_COLOR         'b'
+
+#define   CR_DEFLT_T_10_6_INTENS        (2)
+#define   CR_DEFLT_T_10_6_COLOR         'b'
+
+#define   CR_DEFLT_T_10_7_INTENS        (2)
+#define   CR_DEFLT_T_10_7_COLOR         'b'
+
+#define   CR_DEFLT_T_10_8_INTENS        (2)
+#define   CR_DEFLT_T_10_8_COLOR         'b'
+
+#define   CR_DEFLT_T_10_9_INTENS        (2)
+#define   CR_DEFLT_T_10_9_COLOR         'b'
+
+#define   CR_DEFLT_T_10_10_INTENS       (2)
+#define   CR_DEFLT_T_10_10_COLOR        'b'
+
 
 #define   CR_CONF_LIST_ALL              (1)
 #define   CR_CONF_SEARCH_BY_REGEXP      (2)
@@ -210,17 +430,24 @@ struct cr_##name *cr_new_##name(void)                                      \
 
 #define   CR_SYNTAX_OPT(x)              fprintf(stderr, cr_err_syntax_opt, G.prgname, x, __func__, __FILE__, __LINE__)
 
-/* Parser states for the decoding of option -A
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-#define   CR_STATE_INITIAL              (1)
-#define   CR_STATE_W_PARAM              (2)
-#define   CR_STATE_W_BASE               (3)
-#define   CR_STATE_W_SEPARATOR_2        (4)
-#define   CR_STATE_W_SELECTOR_ID        (5)
-#define   CR_STATE_W_SEPARATOR          (6)
-#define   CR_STATE_W_INTENSITY          (7)
-#define   CR_STATE_W_COLOR              (8)
-#define   CR_STATE_W_END                (9)
+/* Parser states for the decoding of option -A, -I, -J
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_STATE_INITIAL              ( 1)
+#define   CR_STATE_W_PARAM              ( 2)
+#define   CR_STATE_W_BASE               ( 3)
+#define   CR_STATE_W_SEPARATOR_2        ( 4)
+#define   CR_STATE_W_SELECTOR_ID        ( 5)
+#define   CR_STATE_W_SEPARATOR          ( 6)
+#define   CR_STATE_W_INTENSITY          ( 7)
+#define   CR_STATE_W_INTENSITY2         ( 8)
+#define   CR_STATE_W_COLOR              ( 9)
+#define   CR_STATE_W_NUM                (10)
+#define   CR_STATE_W_DMY                (11)
+#define   CR_STATE_W_DMY2               (12)
+#define   CR_STATE_W_END                (13)
+
+#define   CR_UNINITIALIZED              (-1)
+#define   CR_MAX_DAYS                   (7)
 
 /* Formatting parameters
    ~~~~~~~~~~~~~~~~~~~~~ */
@@ -248,6 +475,17 @@ struct cr_color {
      FILE                               *out;
 };
 
+struct cr_RE_dow_desc {
+     struct cr_color                   **cols;                   /* Array for DOW colors       */
+     int                                 idx;                    /* Current DOW index          */
+     bool                                used;                   /* Colorize day of week       */
+     int                                 year_RE_num;            /* Number of sub-RE for year  */
+     int                                 month_RE_num;           /* Number of sub-RE for month */
+     int                                 day_RE_num;             /* Number of sub-RE for day   */
+};
+
+/* Regexp descriptor
+   ~~~~~~~~~~~~~~~~~ */
 struct cr_re_desc {
      regex_t                             reg[2];
      char                               *regex[2];
@@ -260,6 +498,7 @@ struct cr_re_desc {
      int                                 max_sub;
      struct cr_color                   **alt_cols;               /* Array for alternate colors */
      int                                 alt_idx;                /* Current alternate index    */
+     struct cr_RE_dow_desc               dow;
      int                                 idx_regex_select;       /* Index of selector regex    */
      char                               *matching_str;           /* String matching the        */
                                                                  /* selector regex             */
@@ -273,6 +512,8 @@ struct cr_re_desc {
      int                                 base;                   /* Base for seq control       */
 };
 
+/* Color descriptor
+   ~~~~~~~~~~~~~~~~ */
 struct cr_col_desc {
      bool                                used;
      struct cr_color                    *col;
@@ -320,6 +561,19 @@ struct cr_args {
      int                                 special_opt;
 };
 
+/* Environment variable descriptor
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_env_var_desc {
+     struct cr_color                   **color_desc;
+     char                               *name;
+     char                                deflt_intens,
+                                         deflt_color;
+     int                                 intensity;
+     char                                color;
+};
+
+/* Global structure descriptor
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 struct cr_global {
      char                               *prgname;
 
@@ -334,6 +588,7 @@ struct cr_global {
      struct cr_color                    *curr_col;
      struct cr_color                    *deflt_alt_col_1,
                                         *deflt_alt_col_2;
+     struct cr_color                    *deflt_dow[7];
      int                                 cflags;
      int                                 list[CR_NB_COLORS];
      int                                 idx_list;
