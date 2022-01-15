@@ -268,3 +268,21 @@ or in another way using many colors :
 /bin/ls -l | hl -A1,2Y3c2B2r2G '(^[-d].*[       ](.).*)$'
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_example_alternate.png)
+
+Colorize dates based on the day of the week :
+```
+$ ./dates_gen | hl --dow
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/dates_gen_colorized.png)
+
+Colorize dates based on the working day or the week-end :
+```
+$ ./dates_gen | hl --dow_WE
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/dates_gen_week-end.png)
+
+Colorize files modification dates based on the working day or the week-end :
+```
+$ /bin/ls -ltr --full-time /bin | hl --dow_A
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/ls_bin_dow_colors.png)
