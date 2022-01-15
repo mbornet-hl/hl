@@ -286,3 +286,9 @@ Colorize files modification dates based on the working day or the week-end :
 $ /bin/ls -ltr --full-time /bin | hl --dow_A
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/ls_bin_dow_colors.png)
+
+Colorize hl configurations :
+```
+$ hl -vop '*' | hl_conf
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_conf_example.png)
