@@ -5,7 +5,7 @@ Purpose
 -------
 **In short** :
 
-**hl** is a binary program compiled from **C** and **lex** source which can greatly **help you read log files**, the **output of commands** or **scripts**, **configuration files**, **text files**. It can **highlight thresholds**, **colorize blocks of text** delimited by markers, **alternate colors** when the value of an element **changes** (or on the contrary when it **does not change**), check values **consistency** on a line, **colorize fields** of text, and so on. **Many configurations** have been created, and you can **easily create yours** to suit your needs, using **simple text strings** or **regular expressions**.
+**hl** is a binary program compiled from **C** and **lex** source which can greatly **help you read log files**, the **output of commands** or **scripts**, **configuration files**, **text files**. It can **highlight thresholds**, **colorize blocks of text** delimited by markers, **alternate colors** when the value of an element **changes** (or on the contrary when it **does not change**), check values **consistency** on a line, colorize dates based on the **day of the week**, **colorize fields** of text, and so on. **Many configurations** have been created, and you can **easily create yours** to suit your needs, using **simple text strings** or **regular expressions**.
 
 Its purpose is to colorize **what is important in the text you read**. It has been designed to **help you get straight to the point**. It's **fast** and **efficient**.
 
