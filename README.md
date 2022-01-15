@@ -53,8 +53,8 @@ Usage
 -----
 
 ```
-hl: version 1.106
-Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...][--config_name ...] ]
+hl: version 1.114
+Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -h  : help
   -H  : help + configuration names
@@ -105,17 +105,107 @@ Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPx] regexp ...
            x : hexadecimal
            a : ascii (first character of the matching string)
         Alternate colors implies extended regular expressions (-e)
+  -J  : Colorize date according to the day of the week
+        Syntax for day of week option : -JYs1ms2ds3[,c1c2...c7]
+         where :
+           s1 : number of the sub-regex for the year
+           s2 : number of the sub-regex for the month
+           s3 : number of the sub-regex for the day of the month
+        and c1c2...c7 are the optional color specifiers for Sunday to Saturday
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
   -x  : display options count for each config (with -vH options)
-Environment variable HL_DEFAULT is undefined. Default value = "3Y".
-Environment variable HL_A1 is undefined. Default value = "2B".
-Environment variable HL_A2 is undefined. Default value = "1n".
-Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf"
-Environment variable HL_CONF_GLOB is undefined. Default value = "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg".
 ```
 
+You can get a more verbose version of the usage with the '-v' option :
+```
+hl: version 1.114
+Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ...][--config_name ...] ]
+  -o  : usage will be displayed on stdout (default = stderr)
+  -h  : help
+  -H  : help + configuration names
+  -V  : version
+  -v  : verbose
+  -u  : do not bufferize output on stdout
+  -e  : extended regular expressions
+  -i  : ignore case
+  -E  : print on stderr
+  -r  : red
+  -g  : green
+  -y  : yellow
+  -b  : blue
+  -m  : magenta
+  -c  : cyan
+  -w  : white
+  -R  : red     (reverse video)
+  -G  : green   (reverse video)
+  -Y  : yellow  (reverse video)
+  -B  : blue    (reverse video)
+  -M  : magenta (reverse video)
+  -C  : cyan    (reverse video)
+  -W  : white   (reverse video)
+  -n  : never colorize
+  -%c : specifies the beginning of a range colorized in color 'c'
+  -.  : specifies the end of the previous range
+  -d  : debug
+  -D  : display regular expressions
+  -L  : lex debug
+  -1  : color brightness (half-bright)
+  -2  : color brightness (normal : default)
+  -3  : color brightness (bright)
+  -4  : color brightness (underscore)
+  -A  : alternate colors when string matched by selection regex changes
+  -I  : alternate colors when string matched by selection regex does not change
+        Syntax for alternate options : -{A|I}[[s],c1c2...cn]
+         where s is a number from 0 to 9 indicating the selection regexp number,
+         and c1, c2, ... cn are color specifiers to use
+        Alternate colors implies extended regular expressions (-e)
+        Example : -A2,2By  '(^([^ ]+ [0-9]{2} ..:..):..)'
+        Example : -A1 '(.*([12][0-9]{3}[-/][0-9]{2}[-/][0-9]{2})[   ]+.*)'
+        Example : -I1 '^([^:]*:[^:]*:([^:]*)[:]*.*)'
+  -s  : alternate colors when the string matched by the selection regex is the image
+        by a simple function (+, -, * or /) of the value of the previous matching string
+        Syntax for sequential control option : -s[[-+*/]p[adox]:][n],c1c2...cn]
+         where p is a positive integer (parameter),
+         n is a number from 0 to 9 indicating the selection regexp number,
+         and c1, c2, ... cn are color specifiers to use
+           d : decimal (default)
+           o : octal
+           x : hexadecimal
+           a : ascii (first character of the matching string)
+        Alternate colors implies extended regular expressions (-e)
+        Example : -s1:2,3b3r  '^(#[   ]*define[      ]+[^      ]+[  ]+\(([   ]*-?[0-9]+)\))'
+        Example : -s-5:2,1G1B  '^(Countdown[    ]*:[      ]*([0-9]{2}))'\(([      ]*-?[0-9]+)\))'
+        Example : -s*2x:2,3g3m  '^(#[      ]*define[      ]+[^      ]+[  ]+0x([0-9a-fA-F]+))'\(([     ]*-?[0-9]+)\))'
+  -J  : Colorize date according to the day of the week
+        Syntax for day of week option : -JYs1ms2ds3[,c1c2...c7]
+         where :
+           s1 : number of the sub-regex for the year
+           s2 : number of the sub-regex for the month
+           s3 : number of the sub-regex for the day of the month
+        and c1c2...c7 are the optional color specifiers for Sunday to Saturday
+        Example : -JY2m3d4,3R1b1g2b2g3b3r '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'
+        Example : -Jm2:d3:Y4,3R1g1g1g1g1g3R '^(.* ([0-9]{2})/([0-9]{2})/([0-9]{4}))'
+        Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'
+  -N  : consistent numbering of sub-expressions in -A/-I and -s
+  -p  : display configuration(s) matching glob-like expression (pattern)
+  -P  : display configuration(s) matching regexp
+  -x  : display options count for each config (with -vH options)
+Buffer size = 64 Ko
+Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf"
+Environment variable HL_CONF_GLOB   is undefined. Default value = "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg".
+Environment variable HL_DEFAULT     is undefined. Default value = "3Y".
+Environment variable HL_A1          is undefined. Default value = "2B".
+Environment variable HL_A2          is undefined. Default value = "1n".
+Environment variable HL_SUNDAY      is undefined. Default value = "3R".
+Environment variable HL_MONDAY      is undefined. Default value = "2b".
+Environment variable HL_TUESDAY     is undefined. Default value = "2c".
+Environment variable HL_WEDNESDAY   is undefined. Default value = "2g".
+Environment variable HL_THURSDAY    is undefined. Default value = "3g".
+Environment variable HL_FRIDAY      is undefined. Default value = "3y".
+Environment variable HL_SATURDAY    is undefined. Default value = "3r".
+```
 To use a colorized version of the "man" command, you should define a pager :
 MANPAGER=/usr/local/bin/hl_man_pager
 (and copy hl_man pager to /usr/local/bin).
