@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.114 du 22/01/14 - 
+ *   @(#)  [MB] cr_main.c Version 1.115 du 22/01/20 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -40,6 +40,7 @@
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <glob.h>
@@ -1211,10 +1212,8 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
           }
      }
 
-//printf("END OF LOOP : regexp initialized : [%s]\n", _regexp);
 //cr_dump_args(args);
      _alt_colors[_curr_col_idx++]  = NULL;
-//printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
 
      if (_alt_colors[0] == NULL) {
           _alt_colors[0]           = G.deflt_alt_col_1;
@@ -1555,10 +1554,8 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
           }
      }
 
-//printf("END OF LOOP : regexp initialized : [%s]\n", _regexp);
 //cr_dump_args(args);
      _alt_colors[_curr_col_idx++]  = NULL;
-//printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
 
      if (_alt_colors[0] == NULL) {
           _alt_colors[0]           = G.deflt_alt_col_1;
@@ -1645,6 +1642,103 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
 }
 
 /* cr_decode_sequential() }}} */
+/* cr_state_to_str() {{{ */
+
+/******************************************************************************
+
+					CR_STATE_TO_STR
+
+******************************************************************************/
+char *cr_state_to_str(int state)
+{
+	char					*_str;
+
+	switch (state) {
+
+	case	CR_STATE_INITIAL :
+		_str					= "INITIAL";
+		break;
+
+	case	CR_STATE_W_PARAM :
+		_str					= "W_PARAM";
+		break;
+
+	case	CR_STATE_W_BASE :
+		_str					= "W_BASE";
+		break;
+
+	case	CR_STATE_W_SEPARATOR_2 :
+		_str					= "W_SEPARATOR_2";
+		break;
+
+	case	CR_STATE_W_SELECTOR_ID :
+		_str					= "W_SELECTOR_ID";
+		break;
+
+	case	CR_STATE_W_SEPARATOR :
+		_str					= "W_SEPARATOR";
+		break;
+
+	case	CR_STATE_W_INTENSITY :
+		_str					= "W_INTENSITY";
+		break;
+
+	case	CR_STATE_W_INTENSITY2 :
+		_str					= "W_INTENSITY2";
+		break;
+
+	case	CR_STATE_W_COLOR :
+		_str					= "W_COLOR";
+		break;
+
+	case	CR_STATE_W_NUM :
+		_str					= "W_NUM";
+		break;
+
+	case	CR_STATE_W_DMY :
+		_str					= "W_DMY";
+		break;
+
+	case	CR_STATE_W_DMY2 :
+		_str					= "W_DMY2";
+		break;
+
+	case	CR_STATE_W_EQUAL :
+		_str					= "W_EQUAL";
+		break;
+
+	case	CR_STATE_W_COMMA :
+		_str					= "W_COMMA";
+		break;
+
+	case	CR_STATE_W_SIGN :
+		_str					= "W_SIGN";
+		break;
+
+	case	CR_STATE_W_DIGIT :
+		_str					= "W_DIGIT";
+		break;
+
+	case	CR_STATE_W_COLUMN :
+		_str					= "W_COLUMN";
+		break;
+
+	case	CR_STATE_W_COMMA2 :
+		_str					= "W_COMMA2";
+		break;
+
+	case	CR_STATE_W_END :
+		_str					= "W_END";
+		break;
+
+	default:
+		_str					= "<UNKNOWN>";
+		break;
+	}
+}
+
+/* cr_state_to_str() }}} */
+
 /* cr_transition() {{{ */
 
 /******************************************************************************
@@ -1654,7 +1748,16 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
 ******************************************************************************/
 void cr_transition(char c, int *ref_state, int new_state)
 {
-//     fprintf(stderr, "'%c' : state %2d => state %2d\n", c, *ref_state, new_state);
+#if 0
+	fprintf(stderr, "State %3d '%c' => state %3d\n", 
+	       *ref_state, c, new_state);
+#else
+	if (G.debug) {
+		fprintf(stderr, "State %-14s '%c' => state %-14s\n", 
+			  cr_state_to_str(*ref_state), c, cr_state_to_str(new_state));
+	}
+#endif	/* 0 */
+
      *ref_state               = new_state;
 }
 
@@ -1740,7 +1843,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
 
      char                     *_option;
      int                      _year_RE_num, _month_RE_num, _day_RE_num,
-						_nb_sub, *_ref_date_elt, _color_count;
+                              _nb_sub, *_ref_date_elt, _color_count;
      char                     *_Y_str = "year",
                               *_m_str = "month",
                               *_d_str = "day";
@@ -1796,6 +1899,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                break;
           }
 
+          _p        = &_ptrs->curr_arg[_ptrs->curr_idx];
           _c        = _ptrs->curr_arg[_ptrs->curr_idx];
           CR_DEBUG("==> OPTION : '%c'\n", _c);
           _ptrs->curr_idx++;
@@ -1824,7 +1928,6 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                          _regexp             = _ptrs->curr_arg;
                          _ptrs->curr_argv++;
                          _ptrs->curr_arg     = *_ptrs->curr_argv;
-//                         args->curr_ptrs     = _ptrs;  // XXX !?!?!?!?
                     }
                     else {
                          /* No regexp : use default one
@@ -1862,7 +1965,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                break;
 
           case CR_STATE_W_NUM:
-               if (_c >= '0' && _c <= '9') {
+               if (isdigit(_c)) {
                     *_ref_date_elt           = _c - '0';
                     cr_transition(_c, &_state, CR_STATE_W_DMY);
                }
@@ -1938,7 +2041,6 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                }
                else if (cr_is_a_color(_c)) {
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-//cr_dump_color(_dow_colors[_curr_col_idx - 1]);
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
                }
                else {
@@ -1954,7 +2056,6 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                          exit(1);
                     }
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-//cr_dump_color(_dow_colors[_curr_col_idx - 1]);
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
                }
                else {
@@ -2020,9 +2121,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
      _re->dow.month_RE_num    = _month_RE_num;
      _re->dow.day_RE_num      = _day_RE_num;
 
-//printf("END OF LOOP : regexp initialized : [%s]\n", _regexp);
 //cr_dump_args(args);
-//printf("%s %s(%d) : selector = %d\n", __func__, __FILE__, __LINE__, _selector);
 
      if (_regexp == NULL) {
 fprintf(stderr, "%s: option %s : missing regular expression !\n",
@@ -2038,15 +2137,15 @@ exit(1);
           }
      }
 
-	_nb_sub				= _re->max_sub - 1;
+     _nb_sub                  = _re->max_sub - 1;
 
-	if ((_year_RE_num  > _nb_sub)
-	||  (_month_RE_num > _nb_sub)
-	||  (_day_RE_num   > _nb_sub)) {
-		fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
-	             G.prgname, _nb_sub);
-		exit(1);
-	}
+     if ((_year_RE_num  > _nb_sub)
+     ||  (_month_RE_num > _nb_sub)
+     ||  (_day_RE_num   > _nb_sub)) {
+          fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
+                  G.prgname, _nb_sub);
+          exit(1);
+     }
 
      if (!G.consistency) {
           _selector++;   // '0' => regexp number 1
@@ -2055,15 +2154,15 @@ exit(1);
      _re->regex[0]            = _regexp;
      _re->regex[1]            = NULL;
 
-	/* Initialize missing colors with default colors
-	   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-	for (_i = 0; _i < CR_MAX_DAYS; _i++) {
-		if (_re->dow.cols[_i] == NULL) {
-			_re->dow.cols[_i]		= G.deflt_dow[_i];
-//			printf("Color[%d] : using default\n", _i);
-		}
-	}
-	
+     /* Initialize missing colors with default colors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_i = 0; _i < CR_MAX_DAYS; _i++) {
+          if (_re->dow.cols[_i] == NULL) {
+               _re->dow.cols[_i]        = G.deflt_dow[_i];
+//             printf("Color[%d] : using default\n", _i);
+          }
+     }
+
      if (G.debug || G.verbose) {
           struct cr_color     *_color;
 
@@ -2091,6 +2190,491 @@ exit(1);
 }
 
 /* cr_decode_dow() }}} */
+/* cr_init_str() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_STR
+
+******************************************************************************/
+void cr_init_str(struct cr_str *S, char *s)
+{
+	S->s				= s;
+	S->e				= s;
+}
+
+/* cr_init_str() }}} */
+/* cr_strcpy() {{{ */
+
+/******************************************************************************
+
+                         CR_STRCPY
+
+******************************************************************************/
+void cr_strcpy(struct cr_str *S, char c)
+{
+	*(S->e++)			= c;
+	*(S->e)			= '\0';
+// fprintf(stderr, "S->s = [%s]\n", S->s);
+}
+
+/* cr_strcpy() }}} */
+/* cr_get_str() {{{ */
+
+/******************************************************************************
+
+                         CR_GET_STR
+
+******************************************************************************/
+char *cr_get_str(struct cr_str *S)
+{
+	*(S->e)			= 0;
+	return S->s;
+}
+
+/* cr_get_str() }}} */
+/* cr_decode_thresholds() {{{ */
+
+/******************************************************************************
+
+                              CR_DECODE_THRESHOLDS
+
+******************************************************************************/
+struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
+{
+     int                       _state, _curr_col_idx, _selector, _lg, _size;
+     char                      _c, _next_char, *_regexp;
+     struct cr_ptrs           *_ptrs;
+     struct cr_color         **_range_colors;
+     struct cr_re_desc        *_re;
+     int                       _error, _i, _idx;
+     char                      _errbuf[256], *_p, *_val;
+
+     char                     *_option;
+     int                       _nb_sub, *_ref_date_elt, _thresholds_count,
+                               _base;
+	struct cr_str  		 _S;
+	char 				*_buf;
+
+
+     _re                      = cr_new_re_desc();
+     _re->threshold.used      = TRUE;
+     _re->cflags              = G.cflags;
+     _re->col.col_num         = 0;
+     _re->col.intensity       = 0;
+     _re->col.out             = G.out;
+     _re->max_sub             = 1;
+     _re->idx_regex_select    = 0;
+     _re->matching_str        = NULL;
+     _re->change_on_diff      = TRUE;
+     G.out                    = stdout;
+
+     _state                   = CR_STATE_INITIAL;
+     _curr_col_idx            = 0;
+     _selector                = 0;
+
+     _regexp                  = NULL;
+
+     _thresholds_count        = 0;
+     _idx                     = 0;
+     _val                     = NULL;
+
+     _lg                      = CR_MAX_THRESHOLDS;
+     _ptrs                    = args->curr_ptrs;
+     _option                  = _ptrs->curr_arg;
+
+	if ((_buf = malloc(strlen(&_ptrs->curr_arg[_ptrs->curr_idx]) + 4)) == 0) {
+		fprintf(stderr, "Malloc error\n");
+		exit(1);
+	}
+
+// X
+// fprintf(stderr, "_option = [%s]\n", _option);
+
+     /* Allocate memory for the color descriptors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     _size                    = (_lg + 1) * sizeof(struct cr_color **);
+     if ((_range_colors = (struct cr_color **) malloc(_size)) == NULL) {
+          fprintf(stderr, cr_err_malloc, G.prgname);
+          exit(1);
+     }
+     _re->threshold.cols      = _range_colors;
+
+     for (_i = 0; _i < (_lg + 1); _i++) {
+// fprintf(stderr, "_range_colors[%2d] = NULL\n", _i);
+          _range_colors[_i]          = NULL;
+     }
+
+     /* Decode options
+        ~~~~~~~~~~~~~~ */
+     for (_c = 0 ; ; ) {
+          if (!(_ptrs = args->curr_ptrs)) {
+               /* No more argument to treat
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               CR_DEBUG("NO MORE ARGS.\n");
+               break;
+          }
+
+          _p        = &_ptrs->curr_arg[_ptrs->curr_idx];
+          _c        = _ptrs->curr_arg[_ptrs->curr_idx];
+          CR_DEBUG("==> OPTION : '%c'\n", _c);
+          _ptrs->curr_idx++;
+          _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
+          args->optarg      = 0;
+
+          if (_next_char == 0) {
+               CR_DEBUG("    No more 1 letter option\n");
+               CR_DEBUG("    Current arg = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+               if (*(_ptrs->curr_argv + 1) == 0) {
+                    /* No regexp for this option
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    CR_DEBUG("No regexp for this option => use default one\n");
+                    _regexp             = CR_DEFLT_ALT_REGEXP;
+                    args->curr_ptrs     = _ptrs->prev;
+                    free(_ptrs);
+               }
+               else {
+                    _ptrs->curr_argv++;
+                    _ptrs->curr_arg     = *_ptrs->curr_argv;
+                    _ptrs->curr_idx     = 0;
+                    CR_DEBUG("  Next arg  = %p \"%s\"\n", _ptrs->curr_arg, _ptrs->curr_arg);
+                    if (_ptrs->curr_arg[0] != '-') {
+                         /* Regexp found !
+                            ~~~~~~~~~~~~~~ */
+                         _regexp             = _ptrs->curr_arg;
+                         _ptrs->curr_argv++;
+                         _ptrs->curr_arg     = *_ptrs->curr_argv;
+                    }
+                    else {
+                         /* No regexp : use default one
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _regexp             = CR_DEFLT_ALT_REGEXP;
+                    }
+               }
+          }
+
+// X
+// fprintf(stderr, "CHAR = '%c'\n", _c);
+
+          switch (_state) {
+          
+          case CR_STATE_INITIAL:
+               switch (_c) {
+
+               case '<' :
+                    cr_transition(_c, &_state, CR_STATE_W_EQUAL);
+                    break;
+
+               default:
+                    if (isdigit(_c)) {
+                         cr_transition(_c, &_state, CR_STATE_W_BASE);
+                    }
+                    else {
+                         cr_syntax_error(_option, _p, _c);
+                         exit(1);
+                    }
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_EQUAL:
+               switch (_c) {
+
+               case '=' :
+                    cr_transition(_c, &_state, CR_STATE_W_NUM);
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_NUM:
+               if (isdigit(_c)) {
+                    cr_transition(_c, &_state, CR_STATE_W_BASE);
+                    _selector           = _c - '0';
+               }
+               else {
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_BASE:
+               switch (_c) {
+
+               case 'x' :
+                    cr_transition(_c, &_state, CR_STATE_W_COMMA);
+                    _base               = CR_BASE_HEX;
+                    break;
+
+               case ',' :
+                    cr_transition(_c, &_state, CR_STATE_W_SIGN);
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COMMA:
+               switch (_c) {
+
+               case ',' :
+                    cr_transition(_c, &_state, CR_STATE_W_SIGN);
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_SIGN:
+               switch (_c) {
+
+               case '+' :
+                    cr_transition(_c, &_state, CR_STATE_W_DIGIT);
+				cr_init_str(&_S, _buf);
+				cr_strcpy(&_S, *_p);
+                    break;
+
+               case '-' :
+                    cr_transition(_c, &_state, CR_STATE_W_DIGIT);
+				cr_init_str(&_S, _buf);
+				cr_strcpy(&_S, *_p);
+                    break;
+
+               default:
+                    if (isdigit(_c) || ((_base == CR_BASE_HEX) && isxdigit(_c))) {
+                         cr_transition(_c, &_state, CR_STATE_W_COLUMN);
+					cr_init_str(&_S, _buf);
+					cr_strcpy(&_S, *_p);
+                    }
+                    else {
+                         cr_syntax_error(_option, _p, _c);
+                         exit(1);
+                    }
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_DIGIT:
+               if (isdigit(_c) || ((_base == CR_BASE_HEX) && isxdigit(_c))) {
+                    cr_transition(_c, &_state, CR_STATE_W_COLUMN);
+				cr_strcpy(&_S, *_p);
+               }
+               else {
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COLUMN:
+               switch (_c) {
+
+               case ':' :
+                    if (_thresholds_count++ >= CR_MAX_THRESHOLDS) {
+                         printf("Too many thresholds specified !\n");
+                         exit(1);
+                    }
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+				_val				= cr_get_str(&_S);
+                    _re->threshold.threshold[_idx++]   = atol(_val);
+                    break;
+
+               case ',' :
+                    if (_thresholds_count++ >= CR_MAX_THRESHOLDS) {
+                         printf("Too many thresholds specified !\n");
+                         exit(1);
+                    }
+                    cr_transition(_c, &_state, CR_STATE_W_SIGN);
+				_val				= cr_get_str(&_S);
+                    _re->threshold.threshold[_idx++]   = atol(_val);
+//fprintf(stderr, "Incrementation de _curr_col_idx (%d => %d)\n", _curr_col_idx, _curr_col_idx + 1);
+				_curr_col_idx++;
+                    break;
+
+               default:
+                    if (isdigit(_c) || ((_base == CR_BASE_HEX) && isxdigit(_c))) {
+                         cr_transition(_c, &_state, CR_STATE_W_COLUMN);
+					cr_strcpy(&_S, *_p);
+                    }
+                    else {
+                         cr_syntax_error(_option, _p, _c);
+                         exit(1);
+                    }
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_INTENSITY:
+               if (cr_is_intensity(_c)) {
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
+                    G.intensity    = _c - '0';
+               }
+               else if (cr_is_a_color(_c)) {
+                    cr_transition(_c, &_state, CR_STATE_W_COMMA2);
+//fprintf(stderr, "color(%2d) = %d%c\n", _curr_col_idx, G.intensity, _c);
+                    _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
+//fprintf(stderr, "range_colors[%d] = %p\n", _curr_col_idx, _range_colors[_curr_col_idx]);
+               }
+               else {
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COLOR:
+               if (cr_is_a_color(_c)) {
+                    cr_transition(_c, &_state, CR_STATE_W_COMMA2);
+//fprintf(stderr, "color(%2d) = %d%c\n", _curr_col_idx, G.intensity, _c);
+                    _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
+//fprintf(stderr, "range_colors[%d] = %p\n", _curr_col_idx, _range_colors[_curr_col_idx]);
+               }
+               else {
+                    *_p                 = 0;
+                    printf("Invalid color specifier (%c) after \"%s\" !\n",
+                           _c, _option);
+                    exit(1);
+               }
+               break;
+
+          case CR_STATE_W_COMMA2:
+               switch (_c) {
+
+               case ',' :
+                    cr_transition(_c, &_state, CR_STATE_W_SIGN);
+//fprintf(stderr, "Incrementation de _curr_col_idx (%d => %d)\n", _curr_col_idx, _curr_col_idx + 1);
+				_curr_col_idx++;
+                    break;
+
+               default:
+                    cr_syntax_error(_option, _p, _c);
+                    exit(1);
+                    break;
+               }
+               break;
+
+          default:
+               cr_syntax_error(_option, _p, _c);
+               exit(1);
+               break;
+               
+          }
+
+          if (_regexp != NULL) {
+               /* Regex initialized : get out of the loop
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               break;
+          }
+     }
+
+     switch (_state) {
+
+     case CR_STATE_W_COLUMN:
+          if (_thresholds_count++ >= CR_MAX_THRESHOLDS) {
+               printf("Too many thresholds specified !\n");
+               exit(1);
+          }
+		_val				= cr_get_str(&_S);
+		_re->threshold.threshold[_idx++]   = atol(_val);
+          break;
+
+     case CR_STATE_W_COMMA:
+     case CR_STATE_W_COMMA2:
+          break;
+
+     default:
+          printf("Incomplete option \"%s\" !\n", _option);
+          exit(1);
+     }
+
+     if (_regexp == NULL) {
+//fprintf(stderr, "%s: option %s : missing regular expression !\n",
+//        G.prgname, _option);
+exit(1);
+     }
+
+     /* Count number of possible sub strings
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_p = _regexp; (*_p); _p++) {
+          if (*_p == '(') {
+               _re->max_sub++;
+          }
+     }
+
+     _nb_sub                  = _re->max_sub - 1;
+
+     if (_selector  > _nb_sub) {
+          fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
+                  G.prgname, _nb_sub);
+          exit(1);
+     }
+
+     if (!G.consistency) {
+          _selector++;   // '0' => regexp number 1
+     }
+     _re->idx_regex_select         = _selector;
+     _re->regex[0]                 = _regexp;
+     _re->regex[1]                 = NULL;
+     _re->threshold.base           = _base;
+     _re->threshold.nb_thresholds  = _thresholds_count;
+
+     /* Initialize missing colors with default colors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//fprintf(stderr, "\n");
+//fprintf(stderr, "_thresholds_count = %d\n", _thresholds_count);
+     for (_i = 0; _i < CR_MAX_THRESHOLDS; _i++) {
+//fprintf(stderr, "range_colors[%d] = %p\n", _i, _range_colors[_i]);
+          if (_range_colors[_i] == NULL) {
+//fprintf(stderr, "CR_SUM(%2d) = %3d\n", _thresholds_count, CR_SUM(_thresholds_count));
+//fprintf(stderr, "CR_IDX(%2d, %2d) = %3d\n", _thresholds_count, _i, CR_IDX(_thresholds_count, _i + 1));
+               _range_colors[_i]	= G.deflt_t[CR_IDX(_thresholds_count, _i + 1)];
+			if (G.debug) {
+				printf("Color[%d] : using default\n", _i);
+			}
+          }
+		else {
+// X
+// fprintf(stderr, "_range_colors[%d] = %p\n", _i, _range_colors[_i]);
+		}
+     }
+	_range_colors[_i]	= NULL;
+
+     if (G.debug || G.verbose) {
+          struct cr_color     *_color;
+
+          printf("Selector  = %d\n",   _re->idx_regex_select);
+          printf("regex[0]  = [%s]\n", _re->regex[0]);
+          printf("regex[1]  = %p\n",   _re->regex[1]);
+
+		/* DEBUG : display colors
+		   ~~~~~~~~~~~~~~~~~~~~~~ */
+		for (_i = 0; _i < _thresholds_count; _i++) {
+			fprintf(stderr, "THRESHOLDS USED COLORS : %2d : %d %2d\n",
+				   _i, _range_colors[_i]->intensity, _range_colors[_i]->col_num);
+		}
+
+          printf("\n");
+     }
+
+     if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
+          (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+          fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                  G.prgname, _regexp, _errbuf);
+          exit(1);
+     }
+
+	free(_buf);
+
+     return _re;
+}
+
+/* cr_decode_thresholds() }}} */
 /* cr_getopt() {{{ */
 
 /******************************************************************************
@@ -2468,6 +3052,9 @@ void cr_disp_env_vars(struct cr_env_var_desc *vars)
      for (_pvar = vars; _pvar->name != NULL; _pvar++) {
 //          printf("%-20s %d%c\n", _pvar->name, _pvar->deflt_intens, _pvar->deflt_color);
 
+          if (_pvar->skip_line) {
+               fprintf(G.usage_out, "\n");
+          }
           if ((_env_val = getenv(_pvar->name)) == NULL) {
                sprintf(_deflt, "%d%c", _pvar->deflt_intens, _pvar->deflt_color);
                fprintf(G.usage_out, _undefined, _pvar->name, _deflt);
@@ -2774,7 +3361,7 @@ int main(int argc, char *argv[])
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _args               = cr_set_args(_argc, _argv,
-                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{J{P!p!x",
+                                       "ohHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{J{T{P!p!x",
                                        &G.configs);
      while ((_opt = cr_getopt(_args)) != -1) {
           switch (_opt) {
@@ -2880,7 +3467,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.114");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.115");
                exit(1);
                break;
 
@@ -2957,6 +3544,15 @@ int main(int argc, char *argv[])
                if (_args->special_opt) {
                     _re                 = cr_decode_dow(_args);
                     _re->dow.used       = TRUE;
+                    cr_add_to_list(_re);
+               }
+               break;
+
+          case 'T':
+               G.cflags  |= REG_EXTENDED;
+               if (_args->special_opt) {
+                    _re                 = cr_decode_thresholds(_args);
+                    _re->threshold.used = TRUE;
                     cr_add_to_list(_re);
                }
                break;
@@ -3057,8 +3653,8 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.114");
-     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.115");
+     fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
      fprintf(G.usage_out, "  -h  : help\n");
@@ -3132,6 +3728,26 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, "        Example : -JY2m3d4,3R1b1g2b2g3b3r '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
           fprintf(G.usage_out, "        Example : -Jm2:d3:Y4,3R1g1g1g1g1g3R '^(.* ([0-9]{2})/([0-9]{2})/([0-9]{4}))'\n");
           fprintf(G.usage_out, "        Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
+     }
+     fprintf(G.usage_out, "  -T  : Colorize string according to specified thresholds values\n");
+     fprintf(G.usage_out, "        Syntax for thresholds option : -Ts[x],s1[:c1],c2[:c2]...s10[:c10]\n");
+     fprintf(G.usage_out, "         where :\n");
+     fprintf(G.usage_out, "           s is a number from 0 to 9 indicating the selection regexp number,\n");
+     fprintf(G.usage_out, "           x indicates that thresholds are in hexadecimal\n");
+#if 0
+     fprintf(G.usage_out, "           s1 : value of the 1st threshold\n");
+     fprintf(G.usage_out, "           c1 : color of the 1st range\n");
+     fprintf(G.usage_out, "           s2 : value of the 2nd threshold\n");
+     fprintf(G.usage_out, "           c2 : color of the 2nd range\n");
+     fprintf(G.usage_out, "           ...\n");
+#else
+     fprintf(G.usage_out, "           si : value of the i-th threshold for 1 <= i <= 10\n");
+     fprintf(G.usage_out, "           c1 : color of the i-th range     for 1 <= i <= 10\n");
+#endif    /* 0 */
+     if (G.verbose) {
+//          fprintf(G.usage_out, "        Example : -JY2m3d4,3R1b1g2b2g3b3r '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
+//          fprintf(G.usage_out, "        Example : -Jm2:d3:Y4,3R1g1g1g1g1g3R '^(.* ([0-9]{2})/([0-9]{2})/([0-9]{4}))'\n");
+//          fprintf(G.usage_out, "        Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
      }
      fprintf(G.usage_out, "  -N  : consistent numbering of sub-expressions in -A/-I and -s\n");
      fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
@@ -3476,8 +4092,6 @@ void cr_set_desc_dow(struct cr_re_desc *re, int offset, int s, int e, struct cr_
      int                  _i;
      struct cr_col_desc  *_desc;
 
-     /* RE descriptor does not define a range
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      for (_i = s, _desc = &G.desc[offset + s]; _i <= e; _i++, _desc++) {
           if (!_desc->used) {
                _desc->used    = TRUE;
@@ -3610,6 +4224,7 @@ void cr_read_input(void)
                /* Loop on BEGIN / END regexp
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                for (_i = 0; _i < 2; _i++) {
+// X
                     if (_re->alternate) {
                          if (G.debug) {
                               printf("ALTERNATE COLORS ...\n");
@@ -4026,6 +4641,134 @@ void cr_read_input(void)
                          }
                          break;
                     }
+                    else if (_re->threshold.used) {
+                         double                    _value;
+					int					 _t, _range_idx;
+
+                         if (G.debug) {
+                              printf("THRESHOLDS COLORS ...\n");
+                         }
+
+                         /* Search for multiple matches on the line
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _search_no     = 1;
+                         for (_off = 0, _eflags = 0;
+                              _off < G.length &&
+                              regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
+
+                              if (G.debug) {
+                                   fprintf(stderr, "  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
+                                           _search_no, G.line + _off, _re->regex[_i], _i);
+//                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
+                              }
+
+						_range_idx		= 0;
+
+                              /* Search for the range :loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              for (_j = 0; _j < _re->max_sub; _j++) {
+                                   if (G.debug) {
+                                        printf("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                                   }
+
+                                   if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                        continue;
+                                   }
+
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
+
+                                   if (G.debug) {
+                                        strncpy(_tmp_str,
+                                                G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
+                                        fprintf(stderr,
+                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                   }
+
+                                   strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                   _tmp_str[_e -_s + 1]   = 0;
+
+                                   _value         	= atol(_tmp_str);
+// X
+// fprintf(stderr," VALUE = %g\n", _value);
+
+                                   /* Search for the right color
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+							_range_idx		= 0;
+                                   for (_t = _re->threshold.nb_thresholds - 1; _t >= 0; _t--) {
+// X
+                                        if (_value >= _re->threshold.threshold[_t]) {
+// X
+//                                             fprintf(stderr, "Threshold : value = %g threshold[%d] = %g color found ! num = %d\n",
+//                                                     _value, _t, _re->threshold.threshold[_t], _t);
+									_range_idx		= _t;
+                                             break;
+                                        }
+                                   }
+                              }
+// fprintf(stderr, "_range_idx = %d\n", _range_idx);
+
+                              /* Colorize : loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//                              if (_dow != CR_UNINITIALIZED) {
+                                   for (_j = 0; _j < _re->max_sub; _j++) {
+                                        if (G.debug) {
+                                             printf("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                                        }
+
+                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                             continue;
+                                        }
+
+                                        _s   = _pmatch[_j].rm_so;
+                                        _e   = _pmatch[_j].rm_eo - 1;
+
+// X
+                                        if (G.debug) {
+                                             strncpy(_tmp_str,
+                                                     G.line + _off + _s, _e - _s + 1);
+                                             _tmp_str[_e -_s + 1]   = 0;
+                                             fprintf(stderr,
+                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                     _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                        }
+
+// X
+                                        strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
+
+// X
+                                        if (_s >= 0) {
+// X
+                                             cr_set_desc_dow(_re, _off, _s, _e, _re->threshold.cols[_range_idx]);
+
+// X
+                                             if (G.debug) {
+// X
+                                                  cr_dump_color(_re->threshold.cols[_range_idx]);
+                                                  fprintf(stderr, "    offset = %d, [%d => %d], col = %d\n",
+                                                          _off, _s, _e, _re->threshold.cols[_range_idx]->col_num);
+//                                                fprintf(stderr, "\n");
+                                             }
+                                        }
+// X
+                                   }
+// X
+//                              }
+
+                              /* To handle empty strings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if (_e < 0) {
+                                   _e   = 0;
+                              }
+// X
+                         }
+// X
+                         break;
+                    }
                     else {
                          if (_re->regex[_i]) {
                               if (_i == 1 && _re->begin_is_end) {
@@ -4098,16 +4841,20 @@ void cr_read_input(void)
                                    fprintf(stderr, "  No match for [%s]\n", _re->regex[_i]);
                               }
                          }
+// X
                     }
+// X
 
 //                    if (G.debug) {
 //                         fprintf(stderr, "\n");
 //                    }
+// X
                }
 
                if (_re->regex[1]) {
                     cr_marker2color(_re);
                }
+// X
           
           }
 
@@ -4115,7 +4862,9 @@ void cr_read_input(void)
                fprintf(stderr, "\n");
           }
 
+// X
           cr_disp_line();
+// X
      }
 }
 

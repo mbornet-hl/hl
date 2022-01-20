@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.57 du 22/01/14 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.59 du 22/01/20 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -36,6 +36,14 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <regex.h>
+
+/* Sum of the N first numbers
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_SUM(N)                     (((N) * (N + 1)) / 2)
+
+/* Index of elements of thresholds
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_IDX(i, j)                  (CR_SUM((i)) - (i) + (j) - 1)
 
 /* Default configuration files
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -58,6 +66,8 @@
 
 /* Environment variables for days of the week
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_DOW_SPEC               "HL_DOW_SPEC"
+#define   CR_ENV_DOW_RE                 "HL_DOW_REGEX"
 #define   CR_ENV_DOW_SUNDAY             "HL_SUNDAY"
 #define   CR_ENV_DOW_MONDAY             "HL_MONDAY"
 #define   CR_ENV_DOW_TUESDAY            "HL_TUESDAY"
@@ -138,6 +148,9 @@
 
 #define   CR_DEFLT_COLOR                "3Y"
 
+#define   CR_DEFLT_DOW_SPEC             "Y2m3d4"
+#define   CR_DEFLT_DOW_RE               "(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
+
 /* Default values for 'alternate' variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_DEFLT_ALT_INTENSITY_1      (2)
@@ -171,183 +184,183 @@
 /* Default values for threshold variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* 2 ranges */
-#define   CR_DEFLT_T_2_1_INTENS         (2)
-#define   CR_DEFLT_T_2_1_COLOR          'b'
+#define   CR_DEFLT_T_2_1_INTENS         (3)
+#define   CR_DEFLT_T_2_1_COLOR          'g'
 
-#define   CR_DEFLT_T_2_2_INTENS         (2)
-#define   CR_DEFLT_T_2_2_COLOR          'b'
+#define   CR_DEFLT_T_2_2_INTENS         (3)
+#define   CR_DEFLT_T_2_2_COLOR          'r'
 
 
 /* 3 ranges */
-#define   CR_DEFLT_T_3_1_INTENS         (2)
-#define   CR_DEFLT_T_3_1_COLOR          'b'
+#define   CR_DEFLT_T_3_1_INTENS         (3)
+#define   CR_DEFLT_T_3_1_COLOR          'g'
 
-#define   CR_DEFLT_T_3_2_INTENS         (2)
-#define   CR_DEFLT_T_3_2_COLOR          'b'
+#define   CR_DEFLT_T_3_2_INTENS         (3)
+#define   CR_DEFLT_T_3_2_COLOR          'y'
 
-#define   CR_DEFLT_T_3_3_INTENS         (2)
-#define   CR_DEFLT_T_3_3_COLOR          'b'
+#define   CR_DEFLT_T_3_3_INTENS         (3)
+#define   CR_DEFLT_T_3_3_COLOR          'r'
 
 
 /* 4 ranges */
-#define   CR_DEFLT_T_4_1_INTENS         (2)
+#define   CR_DEFLT_T_4_1_INTENS         (3)
 #define   CR_DEFLT_T_4_1_COLOR          'b'
 
-#define   CR_DEFLT_T_4_2_INTENS         (2)
-#define   CR_DEFLT_T_4_2_COLOR          'b'
+#define   CR_DEFLT_T_4_2_INTENS         (3)
+#define   CR_DEFLT_T_4_2_COLOR          'g'
 
-#define   CR_DEFLT_T_4_3_INTENS         (2)
-#define   CR_DEFLT_T_4_3_COLOR          'b'
+#define   CR_DEFLT_T_4_3_INTENS         (3)
+#define   CR_DEFLT_T_4_3_COLOR          'y'
 
-#define   CR_DEFLT_T_4_4_INTENS         (2)
-#define   CR_DEFLT_T_4_4_COLOR          'b'
+#define   CR_DEFLT_T_4_4_INTENS         (3)
+#define   CR_DEFLT_T_4_4_COLOR          'r'
 
 
 /* 5 ranges */
-#define   CR_DEFLT_T_5_1_INTENS         (2)
+#define   CR_DEFLT_T_5_1_INTENS         (3)
 #define   CR_DEFLT_T_5_1_COLOR          'b'
 
-#define   CR_DEFLT_T_5_2_INTENS         (2)
-#define   CR_DEFLT_T_5_2_COLOR          'b'
+#define   CR_DEFLT_T_5_2_INTENS         (3)
+#define   CR_DEFLT_T_5_2_COLOR          'g'
 
-#define   CR_DEFLT_T_5_3_INTENS         (2)
-#define   CR_DEFLT_T_5_3_COLOR          'b'
+#define   CR_DEFLT_T_5_3_INTENS         (3)
+#define   CR_DEFLT_T_5_3_COLOR          'y'
 
 #define   CR_DEFLT_T_5_4_INTENS         (2)
-#define   CR_DEFLT_T_5_4_COLOR          'b'
+#define   CR_DEFLT_T_5_4_COLOR          'r'
 
-#define   CR_DEFLT_T_5_5_INTENS         (2)
-#define   CR_DEFLT_T_5_5_COLOR          'b'
+#define   CR_DEFLT_T_5_5_INTENS         (3)
+#define   CR_DEFLT_T_5_5_COLOR          'r'
 
 
 /* 6 ranges */
-#define   CR_DEFLT_T_6_1_INTENS         (2)
+#define   CR_DEFLT_T_6_1_INTENS         (3)
 #define   CR_DEFLT_T_6_1_COLOR          'b'
 
-#define   CR_DEFLT_T_6_2_INTENS         (2)
-#define   CR_DEFLT_T_6_2_COLOR          'b'
+#define   CR_DEFLT_T_6_2_INTENS         (3)
+#define   CR_DEFLT_T_6_2_COLOR          'c'
 
-#define   CR_DEFLT_T_6_3_INTENS         (2)
-#define   CR_DEFLT_T_6_3_COLOR          'b'
+#define   CR_DEFLT_T_6_3_INTENS         (3)
+#define   CR_DEFLT_T_6_3_COLOR          'g'
 
-#define   CR_DEFLT_T_6_4_INTENS         (2)
-#define   CR_DEFLT_T_6_4_COLOR          'b'
+#define   CR_DEFLT_T_6_4_INTENS         (3)
+#define   CR_DEFLT_T_6_4_COLOR          'y'
 
-#define   CR_DEFLT_T_6_5_INTENS         (2)
-#define   CR_DEFLT_T_6_5_COLOR          'b'
+#define   CR_DEFLT_T_6_5_INTENS         (3)
+#define   CR_DEFLT_T_6_5_COLOR          'r'
 
-#define   CR_DEFLT_T_6_6_INTENS         (2)
-#define   CR_DEFLT_T_6_6_COLOR          'b'
+#define   CR_DEFLT_T_6_6_INTENS         (3)
+#define   CR_DEFLT_T_6_6_COLOR          'w'
 
 
 /* 7 ranges */
-#define   CR_DEFLT_T_7_1_INTENS         (2)
+#define   CR_DEFLT_T_7_1_INTENS         (3)
 #define   CR_DEFLT_T_7_1_COLOR          'b'
 
-#define   CR_DEFLT_T_7_2_INTENS         (2)
-#define   CR_DEFLT_T_7_2_COLOR          'b'
+#define   CR_DEFLT_T_7_2_INTENS         (3)
+#define   CR_DEFLT_T_7_2_COLOR          'c'
 
-#define   CR_DEFLT_T_7_3_INTENS         (2)
-#define   CR_DEFLT_T_7_3_COLOR          'b'
+#define   CR_DEFLT_T_7_3_INTENS         (3)
+#define   CR_DEFLT_T_7_3_COLOR          'g'
 
-#define   CR_DEFLT_T_7_4_INTENS         (2)
-#define   CR_DEFLT_T_7_4_COLOR          'b'
+#define   CR_DEFLT_T_7_4_INTENS         (3)
+#define   CR_DEFLT_T_7_4_COLOR          'y'
 
-#define   CR_DEFLT_T_7_5_INTENS         (2)
-#define   CR_DEFLT_T_7_5_COLOR          'b'
+#define   CR_DEFLT_T_7_5_INTENS         (3)
+#define   CR_DEFLT_T_7_5_COLOR          'r'
 
-#define   CR_DEFLT_T_7_6_INTENS         (2)
-#define   CR_DEFLT_T_7_6_COLOR          'b'
+#define   CR_DEFLT_T_7_6_INTENS         (3)
+#define   CR_DEFLT_T_7_6_COLOR          'm'
 
-#define   CR_DEFLT_T_7_7_INTENS         (2)
-#define   CR_DEFLT_T_7_7_COLOR          'b'
+#define   CR_DEFLT_T_7_7_INTENS         (3)
+#define   CR_DEFLT_T_7_7_COLOR          'w'
 
 
 /* 8 ranges */
 #define   CR_DEFLT_T_8_1_INTENS         (2)
 #define   CR_DEFLT_T_8_1_COLOR          'b'
 
-#define   CR_DEFLT_T_8_2_INTENS         (2)
+#define   CR_DEFLT_T_8_2_INTENS         (3)
 #define   CR_DEFLT_T_8_2_COLOR          'b'
 
-#define   CR_DEFLT_T_8_3_INTENS         (2)
-#define   CR_DEFLT_T_8_3_COLOR          'b'
+#define   CR_DEFLT_T_8_3_INTENS         (3)
+#define   CR_DEFLT_T_8_3_COLOR          'c'
 
-#define   CR_DEFLT_T_8_4_INTENS         (2)
-#define   CR_DEFLT_T_8_4_COLOR          'b'
+#define   CR_DEFLT_T_8_4_INTENS         (3)
+#define   CR_DEFLT_T_8_4_COLOR          'g'
 
-#define   CR_DEFLT_T_8_5_INTENS         (2)
-#define   CR_DEFLT_T_8_5_COLOR          'b'
+#define   CR_DEFLT_T_8_5_INTENS         (3)
+#define   CR_DEFLT_T_8_5_COLOR          'y'
 
-#define   CR_DEFLT_T_8_6_INTENS         (2)
-#define   CR_DEFLT_T_8_6_COLOR          'b'
+#define   CR_DEFLT_T_8_6_INTENS         (3)
+#define   CR_DEFLT_T_8_6_COLOR          'r'
 
-#define   CR_DEFLT_T_8_7_INTENS         (2)
-#define   CR_DEFLT_T_8_7_COLOR          'b'
+#define   CR_DEFLT_T_8_7_INTENS         (3)
+#define   CR_DEFLT_T_8_7_COLOR          'm'
 
-#define   CR_DEFLT_T_8_8_INTENS         (2)
-#define   CR_DEFLT_T_8_8_COLOR          'b'
+#define   CR_DEFLT_T_8_8_INTENS         (3)
+#define   CR_DEFLT_T_8_8_COLOR          'w'
 
 
 /* 9 ranges */
 #define   CR_DEFLT_T_9_1_INTENS         (2)
 #define   CR_DEFLT_T_9_1_COLOR          'b'
 
-#define   CR_DEFLT_T_9_2_INTENS         (2)
+#define   CR_DEFLT_T_9_2_INTENS         (3)
 #define   CR_DEFLT_T_9_2_COLOR          'b'
 
-#define   CR_DEFLT_T_9_3_INTENS         (2)
-#define   CR_DEFLT_T_9_3_COLOR          'b'
+#define   CR_DEFLT_T_9_3_INTENS         (3)
+#define   CR_DEFLT_T_9_3_COLOR          'c'
 
 #define   CR_DEFLT_T_9_4_INTENS         (2)
-#define   CR_DEFLT_T_9_4_COLOR          'b'
+#define   CR_DEFLT_T_9_4_COLOR          'g'
 
-#define   CR_DEFLT_T_9_5_INTENS         (2)
-#define   CR_DEFLT_T_9_5_COLOR          'b'
+#define   CR_DEFLT_T_9_5_INTENS         (3)
+#define   CR_DEFLT_T_9_5_COLOR          'g'
 
-#define   CR_DEFLT_T_9_6_INTENS         (2)
-#define   CR_DEFLT_T_9_6_COLOR          'b'
+#define   CR_DEFLT_T_9_6_INTENS         (3)
+#define   CR_DEFLT_T_9_6_COLOR          'y'
 
-#define   CR_DEFLT_T_9_7_INTENS         (2)
-#define   CR_DEFLT_T_9_7_COLOR          'b'
+#define   CR_DEFLT_T_9_7_INTENS         (3)
+#define   CR_DEFLT_T_9_7_COLOR          'r'
 
-#define   CR_DEFLT_T_9_8_INTENS         (2)
-#define   CR_DEFLT_T_9_8_COLOR          'b'
+#define   CR_DEFLT_T_9_8_INTENS         (3)
+#define   CR_DEFLT_T_9_8_COLOR          'm'
 
-#define   CR_DEFLT_T_9_9_INTENS         (2)
-#define   CR_DEFLT_T_9_9_COLOR          'b'
+#define   CR_DEFLT_T_9_9_INTENS         (3)
+#define   CR_DEFLT_T_9_9_COLOR          'w'
 
 
 /* 10 ranges */
 #define   CR_DEFLT_T_10_1_INTENS        (2)
 #define   CR_DEFLT_T_10_1_COLOR         'b'
 
-#define   CR_DEFLT_T_10_2_INTENS        (2)
+#define   CR_DEFLT_T_10_2_INTENS        (3)
 #define   CR_DEFLT_T_10_2_COLOR         'b'
 
-#define   CR_DEFLT_T_10_3_INTENS        (2)
-#define   CR_DEFLT_T_10_3_COLOR         'b'
+#define   CR_DEFLT_T_10_3_INTENS        (3)
+#define   CR_DEFLT_T_10_3_COLOR         'c'
 
 #define   CR_DEFLT_T_10_4_INTENS        (2)
-#define   CR_DEFLT_T_10_4_COLOR         'b'
+#define   CR_DEFLT_T_10_4_COLOR         'g'
 
-#define   CR_DEFLT_T_10_5_INTENS        (2)
-#define   CR_DEFLT_T_10_5_COLOR         'b'
+#define   CR_DEFLT_T_10_5_INTENS        (3)
+#define   CR_DEFLT_T_10_5_COLOR         'g'
 
-#define   CR_DEFLT_T_10_6_INTENS        (2)
-#define   CR_DEFLT_T_10_6_COLOR         'b'
+#define   CR_DEFLT_T_10_6_INTENS        (3)
+#define   CR_DEFLT_T_10_6_COLOR         'y'
 
 #define   CR_DEFLT_T_10_7_INTENS        (2)
-#define   CR_DEFLT_T_10_7_COLOR         'b'
+#define   CR_DEFLT_T_10_7_COLOR         'y'
 
-#define   CR_DEFLT_T_10_8_INTENS        (2)
-#define   CR_DEFLT_T_10_8_COLOR         'b'
+#define   CR_DEFLT_T_10_8_INTENS        (3)
+#define   CR_DEFLT_T_10_8_COLOR         'r'
 
-#define   CR_DEFLT_T_10_9_INTENS        (2)
-#define   CR_DEFLT_T_10_9_COLOR         'b'
+#define   CR_DEFLT_T_10_9_INTENS        (3)
+#define   CR_DEFLT_T_10_9_COLOR         'm'
 
-#define   CR_DEFLT_T_10_10_INTENS       (2)
-#define   CR_DEFLT_T_10_10_COLOR        'b'
+#define   CR_DEFLT_T_10_10_INTENS       (3)
+#define   CR_DEFLT_T_10_10_COLOR        'w'
 
 
 #define   CR_CONF_LIST_ALL              (1)
@@ -444,10 +457,17 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_W_NUM                (10)
 #define   CR_STATE_W_DMY                (11)
 #define   CR_STATE_W_DMY2               (12)
-#define   CR_STATE_W_END                (13)
+#define   CR_STATE_W_EQUAL              (13)
+#define   CR_STATE_W_COMMA              (14)
+#define   CR_STATE_W_SIGN               (15)
+#define   CR_STATE_W_DIGIT              (16)
+#define   CR_STATE_W_COLUMN             (17)
+#define   CR_STATE_W_COMMA2             (18)
+#define   CR_STATE_W_END                (19)
 
 #define   CR_UNINITIALIZED              (-1)
-#define   CR_MAX_DAYS                   (7)
+#define   CR_MAX_DAYS                   ( 7)
+#define   CR_MAX_THRESHOLDS             (10)
 
 /* Formatting parameters
    ~~~~~~~~~~~~~~~~~~~~~ */
@@ -484,6 +504,16 @@ struct cr_RE_dow_desc {
      int                                 day_RE_num;             /* Number of sub-RE for day   */
 };
 
+struct cr_RE_threshold_desc {
+     struct cr_color                   **cols;                   /* Array for threshold colors */
+     int                                 idx;                    /* Current threshold index    */
+     bool                                used;                   /* Colorize thresholds        */
+     double                              threshold[CR_MAX_THRESHOLDS];
+                                                                 /* Thresholds array           */
+     int                                 nb_thresholds;          /* Number of thresholds       */
+     int                                 base;                   /* decimal or hexadecimal     */
+};
+
 /* Regexp descriptor
    ~~~~~~~~~~~~~~~~~ */
 struct cr_re_desc {
@@ -498,7 +528,8 @@ struct cr_re_desc {
      int                                 max_sub;
      struct cr_color                   **alt_cols;               /* Array for alternate colors */
      int                                 alt_idx;                /* Current alternate index    */
-     struct cr_RE_dow_desc               dow;
+     struct cr_RE_dow_desc               dow;                    /* DOW descriptor             */
+     struct cr_RE_threshold_desc         threshold;              /* Thresholds descriptor      */
      int                                 idx_regex_select;       /* Index of selector regex    */
      char                               *matching_str;           /* String matching the        */
                                                                  /* selector regex             */
@@ -561,10 +592,18 @@ struct cr_args {
      int                                 special_opt;
 };
 
+/* Descriptor for  string copy, one character at a time
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_str {
+     char                               *s;
+     char                               *e;
+};
+
 /* Environment variable descriptor
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 struct cr_env_var_desc {
      struct cr_color                   **color_desc;
+     bool                                skip_line;
      char                               *name;
      char                                deflt_intens,
                                          deflt_color;
@@ -584,11 +623,12 @@ struct cr_global {
                                         *op_string,
                                         *base_string;
      char                               *cfg_filename;
-     struct cr_color                     color_RE[CR_NB_COLORS];
-     struct cr_color                    *curr_col;
-     struct cr_color                    *deflt_alt_col_1,
-                                        *deflt_alt_col_2;
-     struct cr_color                    *deflt_dow[7];
+     struct cr_color                     color_RE[CR_NB_COLORS],
+                                        *curr_col,
+                                        *deflt_alt_col_1,
+                                        *deflt_alt_col_2,
+                                        *deflt_dow[7],
+                                        *deflt_t[CR_SUM(10)];
      int                                 cflags;
      int                                 list[CR_NB_COLORS];
      int                                 idx_list;
