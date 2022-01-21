@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.115 du 22/01/20 - 
+ *   @(#)  [MB] cr_main.c Version 1.117 du 22/01/21 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -62,6 +62,167 @@
 #define   inline /* empty : for compilers that do not know the inline directive */
 /* macros }}} */
 
+/* cr_error_malloc() {{{ */
+/******************************************************************************
+
+                         CR_ERROR_MALLOC
+
+******************************************************************************/
+void cr_error_malloc()
+{
+     fprintf(stderr, cr_err_malloc, G.prgname);
+}
+
+/* cr_error_malloc() }}} */
+/* cr_error_syntax() {{{ */
+
+/******************************************************************************
+
+                         CR_ERROR_SYNTAX
+
+******************************************************************************/
+void cr_error_syntax(char *option, char c)
+{
+     fprintf(stderr, "%s: syntax error on '%c' after \"%s\"\n",
+            G.prgname, c, option);
+     exit(CR_EXIT_ERR_SYNTAX);
+}
+
+/* cr_error_syntax() }}} */
+/* cr_error_invalid_color() {{{ */
+
+/******************************************************************************
+
+                         CR_ERROR_INVALID_COLOR
+
+******************************************************************************/
+void cr_error_invalid_color(char c)
+{
+     fprintf(stderr, "%s: invalid color specifier (%c) !\n", G.prgname, c);
+}
+
+/* cr_error_invalid_color() }}} */
+/* cr_state_to_str() {{{ */
+
+/******************************************************************************
+
+                         CR_STATE_TO_STR
+
+******************************************************************************/
+char *cr_state_to_str(int state)
+{
+     char                     *_str;
+
+     switch (state) {
+
+     case CR_STATE_INITIAL :
+          _str                     = "INITIAL";
+          break;
+
+     case CR_STATE_W_PARAM :
+          _str                     = "W_PARAM";
+          break;
+
+     case CR_STATE_W_BASE :
+          _str                     = "W_BASE";
+          break;
+
+     case CR_STATE_W_SEPARATOR_2 :
+          _str                     = "W_SEPARATOR_2";
+          break;
+
+     case CR_STATE_W_SELECTOR_ID :
+          _str                     = "W_SELECTOR_ID";
+          break;
+
+     case CR_STATE_W_SEPARATOR :
+          _str                     = "W_SEPARATOR";
+          break;
+
+     case CR_STATE_W_INTENSITY :
+          _str                     = "W_INTENSITY";
+          break;
+
+     case CR_STATE_W_INTENSITY2 :
+          _str                     = "W_INTENSITY2";
+          break;
+
+     case CR_STATE_W_COLOR :
+          _str                     = "W_COLOR";
+          break;
+
+     case CR_STATE_W_NUM :
+          _str                     = "W_NUM";
+          break;
+
+     case CR_STATE_W_DMY :
+          _str                     = "W_DMY";
+          break;
+
+     case CR_STATE_W_DMY2 :
+          _str                     = "W_DMY2";
+          break;
+
+     case CR_STATE_W_EQUAL :
+          _str                     = "W_EQUAL";
+          break;
+
+     case CR_STATE_W_COMMA :
+          _str                     = "W_COMMA";
+          break;
+
+     case CR_STATE_W_SIGN :
+          _str                     = "W_SIGN";
+          break;
+
+     case CR_STATE_W_DIGIT :
+          _str                     = "W_DIGIT";
+          break;
+
+     case CR_STATE_W_COLUMN :
+          _str                     = "W_COLUMN";
+          break;
+
+     case CR_STATE_W_COMMA2 :
+          _str                     = "W_COMMA2";
+          break;
+
+     case CR_STATE_W_END :
+          _str                     = "W_END";
+          break;
+
+     default:
+          _str                     = "<UNKNOWN>";
+          break;
+     }
+
+	return _str;
+}
+
+/* cr_state_to_str() }}} */
+/* cr_transition() {{{ */
+
+/******************************************************************************
+
+                         CR_TRANSITION
+
+******************************************************************************/
+void cr_transition(char c, int *ref_state, int new_state)
+{
+#if 0
+     fprintf(stderr, "State %3d '%c' => state %3d\n", 
+            *ref_state, c, new_state);
+#else
+     if (G.debug) {
+          fprintf(stderr, "State %-14s '%c' => state %-14s\n", 
+                 cr_state_to_str(*ref_state), c, cr_state_to_str(new_state));
+     }
+#endif    /* 0 */
+
+     *ref_state               = new_state;
+}
+
+/* cr_transition() }}} */
 /* cr_list2argv() {{{ */
 
 /******************************************************************************
@@ -79,8 +240,8 @@ void cr_list2argv(struct cr_config *config)
 
      config->argv   = (char **) malloc(_size);
      if (config->argv == 0) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
      bzero(config->argv, _size);
 
@@ -130,8 +291,8 @@ char *cr_glob_to_regexp(char *glob_expr)
      _size                    = (_len * 2) + 3;
 
      if ((_regexp = malloc(_size)) == NULL) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
 
      _r                       = _regexp;
@@ -207,7 +368,7 @@ void cr_read_config_file(char *cfg_file)
                fprintf(stderr, "%s: cannot open \"%s\" !\n",
                        G.prgname, cfg_file);
                perror("fopen");
-               exit(1);
+               exit(CR_EXIT_ERR_OPEN);
           }
 
           G.cfg_filename           = strdup(cfg_file);
@@ -239,8 +400,8 @@ void cr_search_config(char *dir)
 
      _size                    = strlen(dir) + strlen(_val_conf_glob);
      if ((_pattern = malloc(_size)) == 0) {
-          fprintf(stderr, "%s: malloc error !\n", G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
 
      for (_val = strdup(_val_conf_glob); (_s = strtok_r(_val, ":", &_saveptr)) != 0; _val = 0) {
@@ -250,12 +411,12 @@ void cr_search_config(char *dir)
        
           case GLOB_NOSPACE:  
                fprintf(stderr, "Not enough memory !\n");  
-               exit(1);  
+               exit(CR_EXIT_ERR_GLOB);  
                break;  
        
           case GLOB_ABORTED:  
                fprintf(stderr, "Read error !\n");  
-               exit(1);  
+               exit(CR_EXIT_ERR_GLOB);  
                break;  
        
           case GLOB_NOMATCH:  
@@ -294,13 +455,13 @@ void cr_read_config_files(void)
      if ((_val_conf = getenv(_var_conf)) == 0) {
           if ((_home = getenv("HOME")) == 0) {
                fprintf(stderr, "%s: HOME variable undefined !\n", G.prgname);
-               exit(1);
+               exit(CR_EXIT_ERR_UNDEFINED_VAR);
           }
 
           _size     = strlen(_home) + 1 + sizeof(CR_CONFIG_FILENAME);
           if ((_cfg_file = malloc(_size)) == NULL) {
-               fprintf(stderr, cr_err_malloc, G.prgname);
-               exit(1);
+               cr_error_malloc();
+               exit(CR_EXIT_ERR_MALLOC);
           }
 
           sprintf(_cfg_file, "%s/%s", _home, CR_CONFIG_FILENAME);
@@ -745,6 +906,11 @@ int cr_base(char base)
      case 'a':
           _base     = CR_BASE_ASCII;
           break;
+
+     default:
+          fprintf(stderr, "%s: internal error (base = 0x%08X)\n",
+                  G.prgname, base);
+          exit(CR_EXIT_ERR_INTERNAL);
      }
 
      return _base;
@@ -904,7 +1070,7 @@ struct cr_color *cr_decode_color(char c, int intensity)
           /* Syntax error
              ~~~~~~~~~~~~ */
           fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
           break;
      }
 
@@ -1009,7 +1175,7 @@ long cr_convert(struct cr_re_desc *re, char *str)
      default:
           fprintf(stderr, "%s: internal error (base = 0x%08X)\n",
                   G.prgname, re->base);
-          exit(1);
+          exit(CR_EXIT_ERR_INTERNAL);
      }
 
      return _value;
@@ -1032,9 +1198,8 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
      struct cr_color         **_alt_colors;
      struct cr_re_desc        *_re;
      int                       _error, _i;
-     char                      _errbuf[256], *_p;
+     char                      _errbuf[256], *_p, *_option;
 
-//X
      _re                      = cr_new_re_desc();
      _re->alternate           = TRUE;
      _re->cflags              = G.cflags;
@@ -1054,6 +1219,9 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
 
      _regexp                  = NULL;
 
+     _ptrs                    = args->curr_ptrs;
+     _option                  = _ptrs->curr_arg;
+
      if ((_ptrs = args->curr_ptrs) == NULL) {
           _lg                           = 3;
      }
@@ -1068,8 +1236,8 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      _size                    = (_lg + 1) * sizeof(struct cr_color **);
      if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
      _re->alt_cols            = _alt_colors;
 
@@ -1087,8 +1255,9 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                break;
           }
 
+          _p        = &_ptrs->curr_arg[_ptrs->curr_idx];
           _c        = _ptrs->curr_arg[_ptrs->curr_idx];
-          CR_DEBUG("==> OPTION : '%c'\n", _c);
+//          CR_DEBUG("==> OPTION : '%c'\n", _c);
           _ptrs->curr_idx++;
           _next_char     = _ptrs->curr_arg[_ptrs->curr_idx];
           args->optarg      = 0;
@@ -1115,8 +1284,6 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
                          _regexp             = _ptrs->curr_arg;
                          _ptrs->curr_argv++;
                          _ptrs->curr_arg     = *_ptrs->curr_argv;
-//                         args->curr_ptrs     = _ptrs;  // XXX !?!?!?!?
-//cr_dump_args(args);
                     }
                     else {
                          /* No regexp : use default one
@@ -1131,77 +1298,67 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
           case CR_STATE_INITIAL:
                if (cr_is_selector(_c)) {
                     _selector      = _c - '0';
-                    _state         = CR_STATE_W_SEPARATOR;
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
                }
                else if (_c == ',') {
                     _selector      = 0;
-                    _state         = CR_STATE_W_INTENSITY;
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_SEPARATOR:
                if (_c == ',') {
-                    _state         = CR_STATE_W_INTENSITY;
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_INTENSITY:
                if (cr_is_intensity(_c)) {
                     G.intensity    = _c - '0';
-                    _state         = CR_STATE_W_COLOR;
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
                }
                else if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-//cr_dump_color(_alt_colors[_curr_col_idx - 1]);
-                    _state         = CR_STATE_W_END;
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_COLOR:
                if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-//cr_dump_color(_alt_colors[_curr_col_idx - 1]);
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
-               _state         = CR_STATE_W_END;
+               else {
+                    cr_error_invalid_color(_c);
+                    cr_error_syntax(_option, _c);
+               }
                break;
 
           case CR_STATE_W_END:
                if (cr_is_intensity(_c)) {
                     G.intensity    = _c - '0';
-                    _state         = CR_STATE_W_COLOR;
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
                }
                else if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-//cr_dump_color(_alt_colors[_curr_col_idx - 1]);
-                    _state         = CR_STATE_W_END;
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           default:
-               fprintf(stderr, cr_err_syntax, G.prgname, __func__, __FILE__, __LINE__);
-               exit(1);
+               cr_error_syntax(_option, _c);
                break;
           }
 
@@ -1212,7 +1369,17 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
           }
      }
 
-//cr_dump_args(args);
+     switch (_state) {
+
+     case CR_STATE_W_INTENSITY:
+     case CR_STATE_W_END:
+          break;
+
+     default:
+          printf("Incomplete option \"%s\" !\n", _option);
+          exit(CR_EXIT_ERR_SYNTAX);
+     }
+
      _alt_colors[_curr_col_idx++]  = NULL;
 
      if (_alt_colors[0] == NULL) {
@@ -1260,7 +1427,7 @@ struct cr_re_desc *cr_decode_alternate(struct cr_args *args)
           (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
           fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
                   G.prgname, _regexp, _errbuf);
-          exit(1);
+          exit(CR_EXIT_ERR_REGCOMP);
      }
 
      return _re;
@@ -1278,7 +1445,7 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
 {
      // for Sequential option
      int                       _state, _curr_col_idx, _selector, _lg, _size;
-     char                      _c, _next_char, *_regexp;
+     char                      _c, _next_char, *_regexp, *_option;
      struct cr_ptrs           *_ptrs;
      struct cr_color         **_alt_colors;
      struct cr_re_desc        *_re;
@@ -1309,6 +1476,9 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
 
      _regexp                  = NULL;
 
+     _ptrs                    = args->curr_ptrs;
+     _option                  = _ptrs->curr_arg;
+
      if ((_ptrs = args->curr_ptrs) == NULL) {
           _lg                           = 3;
      }
@@ -1323,8 +1493,8 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      _size                    = (_lg + 1) * sizeof(struct cr_color **);
      if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
      _re->alt_cols            = _alt_colors;
 
@@ -1344,6 +1514,7 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
                break;
           }
 
+          _p        = &_ptrs->curr_arg[_ptrs->curr_idx];
           _c        = _ptrs->curr_arg[_ptrs->curr_idx];
           CR_DEBUG("==> OPTION : '%c'\n", _c);
           _ptrs->curr_idx++;
@@ -1386,32 +1557,27 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
           case CR_STATE_INITIAL:
                if (cr_is_op(_c)) {
                     _re->op        = cr_op(_c);
-                    _state         = CR_STATE_W_PARAM;
+                    cr_transition(_c, &_state, CR_STATE_W_PARAM);
                }
                else if (cr_is_int(_c)) {
                     _param[_idx++] = _c;
                     _param[_idx]   = 0;
-                    _state         = CR_STATE_W_BASE;
+                    cr_transition(_c, &_state, CR_STATE_W_BASE);
                }
                else if (cr_is_base(_c)) {
                     _re->base      = cr_base(_c);
-                    _state         = CR_STATE_W_SEPARATOR_2;
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR_2);
                }
                else if (_c == ',') {
                     _selector      = 0;
-                    _state         = CR_STATE_W_INTENSITY;
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
                }
                else if (_c == ':') {
                     _selector      = 0;
-                    _state         = CR_STATE_W_SELECTOR_ID;
+                    cr_transition(_c, &_state, CR_STATE_W_SELECTOR_ID);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_DEBUG("Syntax error: STATE_INITIAL c='%c'\n", _c);
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -1419,14 +1585,10 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
                if (cr_is_int(_c)) {
                     _param[_idx++] = _c;
                     _param[_idx]   = 0;
-                    _state         = CR_STATE_W_BASE;
+                    cr_transition(_c, &_state, CR_STATE_W_BASE);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -1434,116 +1596,95 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
                if (cr_is_int(_c)) {
                     _param[_idx++] = _c;
                     _param[_idx]   = 0;
-                    _state         = CR_STATE_W_BASE;
+                    cr_transition(_c, &_state, CR_STATE_W_BASE);
                }
                else if (cr_is_base(_c)) {
                     _re->base      = cr_base(_c);
-                    _state         = CR_STATE_W_SEPARATOR_2;
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR_2);
                }
                else if (_c == ':') {
-                    _state         = CR_STATE_W_SELECTOR_ID;
+                    cr_transition(_c, &_state, CR_STATE_W_SELECTOR_ID);
                }
                else if (_c == '\0') {
-                    _state         = CR_STATE_W_END;
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_SEPARATOR_2:
                if (_c == ':') {
-                    _state         = CR_STATE_W_SELECTOR_ID;
+                    cr_transition(_c, &_state, CR_STATE_W_SELECTOR_ID);
                }
                else if (_c == '\0') {
-                    _state         = CR_STATE_W_END;
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_SELECTOR_ID:
                if (cr_is_int(_c)) {
                     _selector      = _c - '0';
-                    _state         = CR_STATE_W_SEPARATOR;
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_SEPARATOR:
                if (_c == ',') {
-                    _state         = CR_STATE_W_INTENSITY;
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
-                    break;
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_INTENSITY:
                if (cr_is_intensity(_c)) {
                     G.intensity    = _c - '0';
-                    _state         = CR_STATE_W_COLOR;
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
                }
                else if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-                    _state         = CR_STATE_W_END;
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_COLOR:
                if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
-               _state         = CR_STATE_W_END;
+               else {
+                    cr_error_invalid_color(_c);
+                    cr_error_syntax(_option, _c);
+               }
                break;
 
           case CR_STATE_W_END:
                if (cr_is_intensity(_c)) {
                     G.intensity    = _c - '0';
-                    _state         = CR_STATE_W_COLOR;
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
                }
                else if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-                    _state         = CR_STATE_W_END;
+                    cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    /* Syntax error
-                       ~~~~~~~~~~~~ */
-                    CR_SYNTAX_OPT(_c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           default:
-               /* Syntax error
-                  ~~~~~~~~~~~~ */
-               CR_SYNTAX_OPT(_c);
-               exit(1);
+               cr_error_syntax(_option, _c);
                break;
           }
 
@@ -1635,148 +1776,13 @@ struct cr_re_desc *cr_decode_sequential(struct cr_args *args)
           (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
           fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
                   G.prgname, _regexp, _errbuf);
-          exit(1);
+          exit(CR_EXIT_ERR_REGCOMP);
      }
 
      return _re;
 }
 
 /* cr_decode_sequential() }}} */
-/* cr_state_to_str() {{{ */
-
-/******************************************************************************
-
-					CR_STATE_TO_STR
-
-******************************************************************************/
-char *cr_state_to_str(int state)
-{
-	char					*_str;
-
-	switch (state) {
-
-	case	CR_STATE_INITIAL :
-		_str					= "INITIAL";
-		break;
-
-	case	CR_STATE_W_PARAM :
-		_str					= "W_PARAM";
-		break;
-
-	case	CR_STATE_W_BASE :
-		_str					= "W_BASE";
-		break;
-
-	case	CR_STATE_W_SEPARATOR_2 :
-		_str					= "W_SEPARATOR_2";
-		break;
-
-	case	CR_STATE_W_SELECTOR_ID :
-		_str					= "W_SELECTOR_ID";
-		break;
-
-	case	CR_STATE_W_SEPARATOR :
-		_str					= "W_SEPARATOR";
-		break;
-
-	case	CR_STATE_W_INTENSITY :
-		_str					= "W_INTENSITY";
-		break;
-
-	case	CR_STATE_W_INTENSITY2 :
-		_str					= "W_INTENSITY2";
-		break;
-
-	case	CR_STATE_W_COLOR :
-		_str					= "W_COLOR";
-		break;
-
-	case	CR_STATE_W_NUM :
-		_str					= "W_NUM";
-		break;
-
-	case	CR_STATE_W_DMY :
-		_str					= "W_DMY";
-		break;
-
-	case	CR_STATE_W_DMY2 :
-		_str					= "W_DMY2";
-		break;
-
-	case	CR_STATE_W_EQUAL :
-		_str					= "W_EQUAL";
-		break;
-
-	case	CR_STATE_W_COMMA :
-		_str					= "W_COMMA";
-		break;
-
-	case	CR_STATE_W_SIGN :
-		_str					= "W_SIGN";
-		break;
-
-	case	CR_STATE_W_DIGIT :
-		_str					= "W_DIGIT";
-		break;
-
-	case	CR_STATE_W_COLUMN :
-		_str					= "W_COLUMN";
-		break;
-
-	case	CR_STATE_W_COMMA2 :
-		_str					= "W_COMMA2";
-		break;
-
-	case	CR_STATE_W_END :
-		_str					= "W_END";
-		break;
-
-	default:
-		_str					= "<UNKNOWN>";
-		break;
-	}
-}
-
-/* cr_state_to_str() }}} */
-
-/* cr_transition() {{{ */
-
-/******************************************************************************
-
-                         CR_TRANSITION
-
-******************************************************************************/
-void cr_transition(char c, int *ref_state, int new_state)
-{
-#if 0
-	fprintf(stderr, "State %3d '%c' => state %3d\n", 
-	       *ref_state, c, new_state);
-#else
-	if (G.debug) {
-		fprintf(stderr, "State %-14s '%c' => state %-14s\n", 
-			  cr_state_to_str(*ref_state), c, cr_state_to_str(new_state));
-	}
-#endif	/* 0 */
-
-     *ref_state               = new_state;
-}
-
-/* cr_transition() }}} */
-/* cr_syntax_error() {{{ */
-
-/******************************************************************************
-
-                         CR_SYNTAX_ERROR
-
-******************************************************************************/
-void cr_syntax_error(char *option, char *current, char c)
-{
-     *current                 = 0;
-     printf("Syntax error on '%c' after \"%s\"\n",
-            c, option);
-}
-
-/* cr_syntax_error() }}} */
 /* cr_set_ptr() {{{ */
 
 /******************************************************************************
@@ -1789,7 +1795,7 @@ void cr_set_ptr(int **ref_date_elt, int *date_elt_addr, char *date_type)
      if (*date_elt_addr != CR_UNINITIALIZED) {
           printf("%s already specified ! (previous value = %d)\n",
                  date_type, *date_elt_addr);
-          exit(1);
+          exit(CR_EXIT_ERR_DUP_VALUE);
      }
 
      *ref_date_elt            = date_elt_addr;
@@ -1880,8 +1886,8 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      _size                    = (_lg + 1) * sizeof(struct cr_color **);
      if ((_dow_colors = (struct cr_color **) malloc(_size)) == NULL) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
      _re->dow.cols            = _dow_colors;
 
@@ -1958,20 +1964,18 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                     break;
                }
                break;
 
           case CR_STATE_W_NUM:
-               if (isdigit(_c)) {
+               if (cr_is_selector(_c)) {
                     *_ref_date_elt           = _c - '0';
                     cr_transition(_c, &_state, CR_STATE_W_DMY);
                }
                else {
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -2002,8 +2006,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                     break;
                }
                break;
@@ -2027,8 +2030,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                     break;
                }
                break;
@@ -2044,8 +2046,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
                }
                else {
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -2053,22 +2054,19 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
                if (cr_is_a_color(_c)) {
                     if (_color_count++ >= CR_MAX_DAYS) {
                          printf("Too many colors specified !\n");
-                         exit(1);
+                         cr_error_syntax(_option, _c);
                     }
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
                }
                else {
-                    *_p                 = 0;
-                    printf("Invalid color specifier (%c) after \"%s\" !\n",
-                           _c, _option);
-                    exit(1);
+                    cr_error_invalid_color(_c);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           default:
-               cr_syntax_error(_option, _p, _c);
-               exit(1);
+               cr_error_syntax(_option, _c);
                break;
           }
 
@@ -2087,32 +2085,32 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
 
      default:
           printf("Incomplete option \"%s\" !\n", _option);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
 
      if (_year_RE_num == CR_UNINITIALIZED) {
           cr_pos_unspecified(_Y_str);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
      if (_month_RE_num == CR_UNINITIALIZED) {
           cr_pos_unspecified(_m_str);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
      if (_day_RE_num == CR_UNINITIALIZED) {
           cr_pos_unspecified(_d_str);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
      if (_year_RE_num == _month_RE_num) {
           cr_pos_inconsistency(_Y_str, _m_str);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
      if (_year_RE_num == _day_RE_num) {
           cr_pos_inconsistency(_Y_str, _d_str);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
      if (_month_RE_num == _day_RE_num) {
           cr_pos_inconsistency(_m_str, _d_str);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
 
      /* Copy RE numbers into the DOW descriptor
@@ -2126,7 +2124,7 @@ struct cr_re_desc *cr_decode_dow(struct cr_args *args)
      if (_regexp == NULL) {
 fprintf(stderr, "%s: option %s : missing regular expression !\n",
         G.prgname, _option);
-exit(1);
+exit(CR_EXIT_ERR_SYNTAX);
      }
 
      /* Count number of possible sub strings
@@ -2144,7 +2142,7 @@ exit(1);
      ||  (_day_RE_num   > _nb_sub)) {
           fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
                   G.prgname, _nb_sub);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
 
      if (!G.consistency) {
@@ -2183,7 +2181,7 @@ exit(1);
           (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
           fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
                   G.prgname, _regexp, _errbuf);
-          exit(1);
+          exit(CR_EXIT_ERR_REGCOMP);
      }
 
      return _re;
@@ -2199,8 +2197,8 @@ exit(1);
 ******************************************************************************/
 void cr_init_str(struct cr_str *S, char *s)
 {
-	S->s				= s;
-	S->e				= s;
+     S->s                = s;
+     S->e                = s;
 }
 
 /* cr_init_str() }}} */
@@ -2213,8 +2211,8 @@ void cr_init_str(struct cr_str *S, char *s)
 ******************************************************************************/
 void cr_strcpy(struct cr_str *S, char c)
 {
-	*(S->e++)			= c;
-	*(S->e)			= '\0';
+     *(S->e++)           = c;
+     *(S->e)             = '\0';
 // fprintf(stderr, "S->s = [%s]\n", S->s);
 }
 
@@ -2228,8 +2226,8 @@ void cr_strcpy(struct cr_str *S, char c)
 ******************************************************************************/
 char *cr_get_str(struct cr_str *S)
 {
-	*(S->e)			= 0;
-	return S->s;
+     *(S->e)             = 0;
+     return S->s;
 }
 
 /* cr_get_str() }}} */
@@ -2253,8 +2251,8 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
      char                     *_option;
      int                       _nb_sub, *_ref_date_elt, _thresholds_count,
                                _base;
-	struct cr_str  		 _S;
-	char 				*_buf;
+     struct cr_str             _S;
+     char                     *_buf;
 
 
      _re                      = cr_new_re_desc();
@@ -2283,10 +2281,10 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
      _ptrs                    = args->curr_ptrs;
      _option                  = _ptrs->curr_arg;
 
-	if ((_buf = malloc(strlen(&_ptrs->curr_arg[_ptrs->curr_idx]) + 4)) == 0) {
-		fprintf(stderr, "Malloc error\n");
-		exit(1);
-	}
+     if ((_buf = malloc(strlen(&_ptrs->curr_arg[_ptrs->curr_idx]) + 4)) == 0) {
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
+     }
 
 // X
 // fprintf(stderr, "_option = [%s]\n", _option);
@@ -2295,8 +2293,8 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      _size                    = (_lg + 1) * sizeof(struct cr_color **);
      if ((_range_colors = (struct cr_color **) malloc(_size)) == NULL) {
-          fprintf(stderr, cr_err_malloc, G.prgname);
-          exit(1);
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
      }
      _re->threshold.cols      = _range_colors;
 
@@ -2370,8 +2368,7 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                          cr_transition(_c, &_state, CR_STATE_W_BASE);
                     }
                     else {
-                         cr_syntax_error(_option, _p, _c);
-                         exit(1);
+                         cr_error_syntax(_option, _c);
                     }
                     break;
                }
@@ -2385,8 +2382,7 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                     break;
                }
                break;
@@ -2397,8 +2393,7 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                     _selector           = _c - '0';
                }
                else {
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -2415,8 +2410,8 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
+                    break;
                }
                break;
 
@@ -2428,8 +2423,8 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
+                    break;
                }
                break;
 
@@ -2438,25 +2433,24 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
 
                case '+' :
                     cr_transition(_c, &_state, CR_STATE_W_DIGIT);
-				cr_init_str(&_S, _buf);
-				cr_strcpy(&_S, *_p);
+                    cr_init_str(&_S, _buf);
+                    cr_strcpy(&_S, *_p);
                     break;
 
                case '-' :
                     cr_transition(_c, &_state, CR_STATE_W_DIGIT);
-				cr_init_str(&_S, _buf);
-				cr_strcpy(&_S, *_p);
+                    cr_init_str(&_S, _buf);
+                    cr_strcpy(&_S, *_p);
                     break;
 
                default:
                     if (isdigit(_c) || ((_base == CR_BASE_HEX) && isxdigit(_c))) {
                          cr_transition(_c, &_state, CR_STATE_W_COLUMN);
-					cr_init_str(&_S, _buf);
-					cr_strcpy(&_S, *_p);
+                         cr_init_str(&_S, _buf);
+                         cr_strcpy(&_S, *_p);
                     }
                     else {
-                         cr_syntax_error(_option, _p, _c);
-                         exit(1);
+                         cr_error_syntax(_option, _c);
                     }
                     break;
                }
@@ -2465,11 +2459,10 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
           case CR_STATE_W_DIGIT:
                if (isdigit(_c) || ((_base == CR_BASE_HEX) && isxdigit(_c))) {
                     cr_transition(_c, &_state, CR_STATE_W_COLUMN);
-				cr_strcpy(&_S, *_p);
+                    cr_strcpy(&_S, *_p);
                }
                else {
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -2479,33 +2472,31 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                case ':' :
                     if (_thresholds_count++ >= CR_MAX_THRESHOLDS) {
                          printf("Too many thresholds specified !\n");
-                         exit(1);
+                         exit(CR_EXIT_ERR_SYNTAX);
                     }
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
-				_val				= cr_get_str(&_S);
+                    _val                = cr_get_str(&_S);
                     _re->threshold.threshold[_idx++]   = atol(_val);
                     break;
 
                case ',' :
                     if (_thresholds_count++ >= CR_MAX_THRESHOLDS) {
                          printf("Too many thresholds specified !\n");
-                         exit(1);
+                         exit(CR_EXIT_ERR_SYNTAX);
                     }
                     cr_transition(_c, &_state, CR_STATE_W_SIGN);
-				_val				= cr_get_str(&_S);
+                    _val                = cr_get_str(&_S);
                     _re->threshold.threshold[_idx++]   = atol(_val);
-//fprintf(stderr, "Incrementation de _curr_col_idx (%d => %d)\n", _curr_col_idx, _curr_col_idx + 1);
-				_curr_col_idx++;
+                    _curr_col_idx++;
                     break;
 
                default:
                     if (isdigit(_c) || ((_base == CR_BASE_HEX) && isxdigit(_c))) {
                          cr_transition(_c, &_state, CR_STATE_W_COLUMN);
-					cr_strcpy(&_S, *_p);
+                         cr_strcpy(&_S, *_p);
                     }
                     else {
-                         cr_syntax_error(_option, _p, _c);
-                         exit(1);
+                         cr_error_syntax(_option, _c);
                     }
                     break;
                }
@@ -2518,28 +2509,21 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
                }
                else if (cr_is_a_color(_c)) {
                     cr_transition(_c, &_state, CR_STATE_W_COMMA2);
-//fprintf(stderr, "color(%2d) = %d%c\n", _curr_col_idx, G.intensity, _c);
                     _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
-//fprintf(stderr, "range_colors[%d] = %p\n", _curr_col_idx, _range_colors[_curr_col_idx]);
                }
                else {
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
           case CR_STATE_W_COLOR:
                if (cr_is_a_color(_c)) {
                     cr_transition(_c, &_state, CR_STATE_W_COMMA2);
-//fprintf(stderr, "color(%2d) = %d%c\n", _curr_col_idx, G.intensity, _c);
                     _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
-//fprintf(stderr, "range_colors[%d] = %p\n", _curr_col_idx, _range_colors[_curr_col_idx]);
                }
                else {
-                    *_p                 = 0;
-                    printf("Invalid color specifier (%c) after \"%s\" !\n",
-                           _c, _option);
-                    exit(1);
+                    cr_error_invalid_color(_c);
+                    cr_error_syntax(_option, _c);
                }
                break;
 
@@ -2548,20 +2532,17 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
 
                case ',' :
                     cr_transition(_c, &_state, CR_STATE_W_SIGN);
-//fprintf(stderr, "Incrementation de _curr_col_idx (%d => %d)\n", _curr_col_idx, _curr_col_idx + 1);
-				_curr_col_idx++;
+                    _curr_col_idx++;
                     break;
 
                default:
-                    cr_syntax_error(_option, _p, _c);
-                    exit(1);
+                    cr_error_syntax(_option, _c);
                     break;
                }
                break;
 
           default:
-               cr_syntax_error(_option, _p, _c);
-               exit(1);
+               cr_error_syntax(_option, _c);
                break;
                
           }
@@ -2578,10 +2559,10 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
      case CR_STATE_W_COLUMN:
           if (_thresholds_count++ >= CR_MAX_THRESHOLDS) {
                printf("Too many thresholds specified !\n");
-               exit(1);
+               exit(CR_EXIT_ERR_SYNTAX);
           }
-		_val				= cr_get_str(&_S);
-		_re->threshold.threshold[_idx++]   = atol(_val);
+          _val                = cr_get_str(&_S);
+          _re->threshold.threshold[_idx++]   = atol(_val);
           break;
 
      case CR_STATE_W_COMMA:
@@ -2590,13 +2571,13 @@ struct cr_re_desc *cr_decode_thresholds(struct cr_args *args)
 
      default:
           printf("Incomplete option \"%s\" !\n", _option);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
 
      if (_regexp == NULL) {
 //fprintf(stderr, "%s: option %s : missing regular expression !\n",
 //        G.prgname, _option);
-exit(1);
+exit(CR_EXIT_ERR_SYNTAX);
      }
 
      /* Count number of possible sub strings
@@ -2612,7 +2593,7 @@ exit(1);
      if (_selector  > _nb_sub) {
           fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
                   G.prgname, _nb_sub);
-          exit(1);
+          exit(CR_EXIT_ERR_SYNTAX);
      }
 
      if (!G.consistency) {
@@ -2633,17 +2614,17 @@ exit(1);
           if (_range_colors[_i] == NULL) {
 //fprintf(stderr, "CR_SUM(%2d) = %3d\n", _thresholds_count, CR_SUM(_thresholds_count));
 //fprintf(stderr, "CR_IDX(%2d, %2d) = %3d\n", _thresholds_count, _i, CR_IDX(_thresholds_count, _i + 1));
-               _range_colors[_i]	= G.deflt_t[CR_IDX(_thresholds_count, _i + 1)];
-			if (G.debug) {
-				printf("Color[%d] : using default\n", _i);
-			}
+               _range_colors[_i]   = G.deflt_t[CR_IDX(_thresholds_count, _i + 1)];
+               if (G.debug) {
+                    printf("Color[%d] : using default\n", _i);
+               }
           }
-		else {
+          else {
 // X
 // fprintf(stderr, "_range_colors[%d] = %p\n", _i, _range_colors[_i]);
-		}
+          }
      }
-	_range_colors[_i]	= NULL;
+     _range_colors[_i]   = NULL;
 
      if (G.debug || G.verbose) {
           struct cr_color     *_color;
@@ -2652,12 +2633,12 @@ exit(1);
           printf("regex[0]  = [%s]\n", _re->regex[0]);
           printf("regex[1]  = %p\n",   _re->regex[1]);
 
-		/* DEBUG : display colors
-		   ~~~~~~~~~~~~~~~~~~~~~~ */
-		for (_i = 0; _i < _thresholds_count; _i++) {
-			fprintf(stderr, "THRESHOLDS USED COLORS : %2d : %d %2d\n",
-				   _i, _range_colors[_i]->intensity, _range_colors[_i]->col_num);
-		}
+          /* DEBUG : display colors
+             ~~~~~~~~~~~~~~~~~~~~~~ */
+          for (_i = 0; _i < _thresholds_count; _i++) {
+               fprintf(stderr, "THRESHOLDS USED COLORS : %2d : %d %2d\n",
+                       _i, _range_colors[_i]->intensity, _range_colors[_i]->col_num);
+          }
 
           printf("\n");
      }
@@ -2666,10 +2647,10 @@ exit(1);
           (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
           fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
                   G.prgname, _regexp, _errbuf);
-          exit(1);
+          exit(CR_EXIT_ERR_REGCOMP);
      }
 
-	free(_buf);
+     free(_buf);
 
      return _re;
 }
@@ -2717,7 +2698,7 @@ int cr_getopt(struct cr_args *args)
                     fprintf(stderr, "%s: argument with no associated option (\"%s\") ! \n",
                             G.prgname, _ptrs->curr_arg);
                     cr_dump_args(args);
-                    exit(1);
+                    exit(CR_EXIT_ERR_SYNTAX);
                }
                else {
                     /* Continuation of the treatment of an argument
@@ -2743,7 +2724,7 @@ int cr_getopt(struct cr_args *args)
                          if (_config == 0) {
                                   fprintf(stderr, "%s: undefined configuration (%s) !\n",
                                       G.prgname, _config_name);
-                              exit(1);
+                              exit(CR_EXIT_ERR_UNKNOWN_CONF);
                          }
 
                          /* Detection of recursive loop
@@ -2751,7 +2732,7 @@ int cr_getopt(struct cr_args *args)
                          if (_config->visited) {
                               fprintf(stderr, "%s: configuration loop for \"%s\" !\n",
                                       G.prgname, _config->name);
-                              exit(1);
+                              exit(CR_EXIT_ERR_CONF_LOOP);
                          }
                          _config->visited    = TRUE;
 
@@ -2786,7 +2767,7 @@ int cr_getopt(struct cr_args *args)
                fprintf(stderr, "%s: missing argument for \"-%c\" !\n",
                        G.prgname, _c);
                cr_dump_args(args);
-               exit(1);
+               exit(CR_EXIT_ERR_SYNTAX);
           }
 
           args->optarg      = _arg;
@@ -2928,7 +2909,7 @@ void cr_add_regexp(int color, char *regexp)
                (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
                fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
                        G.prgname, regexp, _errbuf);
-               exit(1);
+               exit(CR_EXIT_ERR_REGCOMP);
           }
 
           cr_add_to_list(_re);
@@ -2945,7 +2926,7 @@ void cr_add_regexp(int color, char *regexp)
                }
                if (regcomp(&_re->reg[1], regexp, _re->cflags) != 0) {
                     fprintf(stderr, "%s: regcomp error for \"%s\" !\n", G.prgname, regexp);
-                    exit(1);
+                    exit(CR_EXIT_ERR_REGCOMP);
                }
           }
 
@@ -3033,7 +3014,7 @@ struct cr_color *cr_get_deflt_alt_col(char *env_var_name, int deflt_intensity,
 }
 
 /* cr_get_deflt_alt_col() }}} */
-/* cr_disp_env_vars() {{{
+/* cr_disp_env_vars() {{{ */
 
 /******************************************************************************
 
@@ -3065,7 +3046,7 @@ void cr_disp_env_vars(struct cr_env_var_desc *vars)
      }
 }
 
-/* cr_disp_env_vars() }}}
+/* cr_disp_env_vars() }}} */
 /* cr_init_deflt_colors() {{{ */
 
 /******************************************************************************
@@ -3120,7 +3101,7 @@ void print_trace(int signum)
 
      free(_strings);
 
-     exit(1);
+     exit(CR_EXIT_ERR_SEGV);
 }
 #endif    /* HL_BACKTRACE */
 
@@ -3155,7 +3136,7 @@ void cr_display_config(int search_mode, char *re)
                (void) regerror(_error, &_reg, _errbuf, sizeof(_errbuf));
                fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
                        G.prgname, _regexp, _errbuf);
-               exit(1);
+               exit(CR_EXIT_ERR_REGCOMP);
           }
           break;
      }
@@ -3289,7 +3270,7 @@ int main(int argc, char *argv[])
      
      if ((_previous_handler = signal(SIGSEGV, print_trace)) == SIG_ERR) {
           fprintf(stderr, "%s: signal() returned an error !\n", argv[0]);
-          exit(1);
+          exit(CR_EXIT_ERR_SIGNAL);
      }
 
 #endif    /* HL_BACKTRACE */
@@ -3319,15 +3300,15 @@ int main(int argc, char *argv[])
 #if 0
                     fprintf(stderr, "%s: minimal syntax but \"%s\" is undefined !\n",
                             G.prgname, _env_var_name);
-                    exit(1);
+                    exit(CR_EXIT_ERR_UNDEF_VAR);
 #else
                     _env_deflt     = CR_DEFLT_COLOR;
 #endif
                }
                _lg       = strlen(_env_deflt);
                if ((_deflt_color_opt = malloc(_lg + 2)) == 0) {
-                    fprintf(stderr, cr_err_malloc, G.prgname);
-                    exit(1);
+                    cr_error_malloc();
+                    exit(CR_EXIT_ERR_MALLOC);
                }
                sprintf(_deflt_color_opt, "-%s", _env_deflt);
 
@@ -3467,8 +3448,8 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.115");
-               exit(1);
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.117");
+               exit(CR_EXIT_ERR_VERSION);
                break;
 
           case '1':
@@ -3484,7 +3465,7 @@ int main(int argc, char *argv[])
                if (G.begin_specified) {
                     fprintf(stderr, "%s: begin marker without end marker !\n",
                             G.prgname);
-                    exit(1);
+                    exit(CR_EXIT_ERR_MARKER);
                }
                G.begin_specified    = TRUE;
                break;
@@ -3495,7 +3476,7 @@ int main(int argc, char *argv[])
                if (!G.begin_specified) {
                     fprintf(stderr, "%s: end marker without begin marker !\n",
                             G.prgname);
-                    exit(1);
+                    exit(CR_EXIT_ERR_MARKER);
                }
                G.end_specified      = TRUE;
                cr_add_regexp(G.last_color, _args->optarg);
@@ -3565,13 +3546,13 @@ int main(int argc, char *argv[])
                cr_read_config_files();
                cr_display_config(CR_CONF_SEARCH_BY_REGEXP,
                                  cr_glob_to_regexp(_args->optarg));
-               exit(1);
+               exit(CR_EXIT_OK);
                break;
 
           case 'P':
                cr_read_config_files();
                cr_display_config(CR_CONF_SEARCH_BY_REGEXP, _args->optarg);
-               exit(1);
+               exit(CR_EXIT_OK);
                break;
 
           case 'x':
@@ -3627,13 +3608,13 @@ int main(int argc, char *argv[])
           G.verbose      = 1;
           cr_read_config_files();
           cr_display_config(CR_CONF_LIST_ALL, NULL);
-          exit(1);
+          exit(CR_EXIT_OK);
      }
 
      cr_read_input();
 
      cr_free_RE();
-     return 0;
+     return CR_EXIT_OK;
 }
 
 /* main() }}} */
@@ -3653,7 +3634,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.115");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.117");
      fprintf(G.usage_out, "Usage: %s [-o][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -3795,7 +3776,7 @@ void cr_usage(bool disp_config)
      if (G.verbose) {
           cr_disp_env_vars(cr_env_vars);
      }
-     exit(1);
+     exit(CR_EXIT_ERR_USAGE);
 }
 
 /* cr_usage() }}} */
@@ -3988,7 +3969,7 @@ void cr_marker2color( struct cr_re_desc *re)
 
           default:
                fprintf(stderr, "%s: internal error\n", G.prgname);
-               exit(1);
+               exit(CR_EXIT_ERR_INTERNAL);
                break;
           }
           if (!_desc->used) {
@@ -4049,7 +4030,7 @@ void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
           default:
                fprintf(stderr, "%s: erreur interne, marker = %d\n",
                        G.prgname, marker);
-               exit(1);
+               exit(CR_EXIT_ERR_INTERNAL);
           }
 
           _desc->marker  = marker;
@@ -4133,7 +4114,7 @@ long cr_next_val(struct cr_re_desc *re)
      default:
           fprintf(stderr, "%s: internal error (operator = 0x%08X)\n",
                   G.prgname, re->op);
-          exit(1);
+          exit(CR_EXIT_ERR_INTERNAL);
      }
 
      return _result;
@@ -4643,7 +4624,7 @@ void cr_read_input(void)
                     }
                     else if (_re->threshold.used) {
                          double                    _value;
-					int					 _t, _range_idx;
+                         int                       _t, _range_idx;
 
                          if (G.debug) {
                               printf("THRESHOLDS COLORS ...\n");
@@ -4663,7 +4644,7 @@ void cr_read_input(void)
 //                                   fprintf(stderr, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
                               }
 
-						_range_idx		= 0;
+                              _range_idx          = 0;
 
                               /* Search for the range :loop on substrings
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -4691,20 +4672,20 @@ void cr_read_input(void)
                                    strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
                                    _tmp_str[_e -_s + 1]   = 0;
 
-                                   _value         	= atol(_tmp_str);
+                                   _value              = atol(_tmp_str);
 // X
 // fprintf(stderr," VALUE = %g\n", _value);
 
                                    /* Search for the right color
                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-							_range_idx		= 0;
+                                   _range_idx          = 0;
                                    for (_t = _re->threshold.nb_thresholds - 1; _t >= 0; _t--) {
 // X
                                         if (_value >= _re->threshold.threshold[_t]) {
 // X
 //                                             fprintf(stderr, "Threshold : value = %g threshold[%d] = %g color found ! num = %d\n",
 //                                                     _value, _t, _re->threshold.threshold[_t], _t);
-									_range_idx		= _t;
+                                             _range_idx          = _t;
                                              break;
                                         }
                                    }
@@ -4914,7 +4895,7 @@ void cr_start_color(struct cr_color *col)
                default:
                     fprintf(stderr, "%s: invalid color brightness ! (col = %p : (%d, %d))\n",
                             G.prgname, col, col->col_num, col->intensity);
-                    exit(1);
+                    exit(CR_EXIT_ERR_SYNTAX);
                }
           }
           else {
@@ -4946,7 +4927,7 @@ void cr_start_color(struct cr_color *col)
           default:
                fprintf(stderr, "%s: invalid color brightness ! (col = %p : (%d, %d))\n",
                        G.prgname, col, col->col_num, col->intensity);
-               exit(1);
+               exit(CR_EXIT_ERR_SYNTAX);
           }
      }
 }

@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.59 du 22/01/20 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.60 du 22/01/21 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -486,6 +486,26 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_OP_SUB                     (0x2002)
 #define   CR_OP_MUL                     (0x2003)
 #define   CR_OP_DIV                     (0x2004)
+
+/* Exit codes
+   ~~~~~~~~~~ */
+#define   CR_EXIT_OK                    (  0)
+#define   CR_EXIT_ERR_SYNTAX            (  1)
+#define   CR_EXIT_ERR_MALLOC            (  2)
+#define   CR_EXIT_ERR_OPEN              (  3)
+#define   CR_EXIT_ERR_GLOB              (  4)
+#define   CR_EXIT_ERR_UNDEFINED_VAR     (  5)
+#define   CR_EXIT_ERR_REGCOMP           (  6)
+#define   CR_EXIT_ERR_DUP_VALUE         (  7)
+#define   CR_EXIT_ERR_UNKNOWN_CONF      (  8)
+#define   CR_EXIT_ERR_CONF_LOOP         (  9)
+#define   CR_EXIT_ERR_SIGNAL            ( 10)
+#define   CR_EXIT_ERR_VERSION           ( 11)
+#define   CR_EXIT_ERR_MARKER            ( 12)
+#define   CR_EXIT_ERR_USAGE             ( 13)
+
+#define   CR_EXIT_ERR_SEGV              (125)
+#define   CR_EXIT_ERR_INTERNAL          (126)
 
 /* Structures
    ~~~~~~~~~~ */
