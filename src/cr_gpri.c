@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *	@(#)	[MB] cr_gpri.c	Version 1.21 du 22/01/20 - 
+ *   @(#)  [MB] cr_gpri.c Version 1.22 du 22/01/23 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -61,10 +61,30 @@ char                *cr_best_fg[8][3] = {
      {      0,      0,        0    }
 };
 
-/* Environment variables list
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-struct cr_env_var_desc                            cr_env_vars[] = {
-     { &G.deflt_alt_col_1,          FALSE,
+char                *cr_env_conf,
+                    *cr_env_conf_glob,
+                    *cr_env_default,
+                    *cr_env_dow_spec,
+                    *cr_env_dow_RE;
+
+/* Environment variables (for configuration)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_env_var_conf                             cr_env_vars_cfg[] = {
+     { &cr_env_conf,               CR_ENV_CONF,                       CR_DEFLT_CONF,                0    },
+     { &cr_env_conf_glob,          CR_ENV_CONF_GLOB,                  CR_DEFLT_CONF_GLOB,           0    },
+//     { &cr_env_default,            CR_ENV_DEFLT,                      CR_DEFLT_COLOR,               0    },
+     { &cr_env_dow_spec,           CR_ENV_DOW_SPEC,                   CR_DEFLT_DOW_SPEC,            0    },
+     { &cr_env_dow_RE,             CR_ENV_DOW_RE,                     CR_DEFLT_DOW_RE,              0    },
+     { 0,                          0,                                 0,                            0    }
+};
+
+/* Environment variables list (for colors)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_env_var_desc                             cr_env_vars[] = {
+     { &G.deflt_color,              TRUE,
+       CR_ENV_DEFLT,                CR_DEFLT_COL_INTENSITY,            CR_DEFLT_COL_COLOR,             0,   0    },
+
+     { &G.deflt_alt_col_1,          TRUE,
        CR_ENV_ALTERNATE_1,          CR_DEFLT_ALT_INTENSITY_1,          CR_DEFLT_ALT_COLOR_1,           0,   0    },
      { &G.deflt_alt_col_2,          FALSE,
        CR_ENV_ALTERNATE_2,          CR_DEFLT_ALT_INTENSITY_2,          CR_DEFLT_ALT_COLOR_2,           0,   0    },

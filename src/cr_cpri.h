@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.60 du 22/01/21 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.62 du 22/01/25 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -49,6 +49,7 @@
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_CONFIG_FILENAME            ".hl.cfg"
 #define   CR_DEFLT_CONFIG_FILE          "/etc/default/hl"
+#define   CR_DEFLT_CONF                 "~/" CR_CONFIG_FILENAME ";" CR_DEFLT_CONFIG_FILE
 
 /* Environment variable for default color
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -146,17 +147,22 @@
 #define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
 #define   CR_DEFLT_CONF_GLOB            "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
 
-#define   CR_DEFLT_COLOR                "3Y"
 
 #define   CR_DEFLT_DOW_SPEC             "Y2m3d4"
 #define   CR_DEFLT_DOW_RE               "(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
+
+/* Default color
+   ~~~~~~~~~~~~~ */
+//#define   CR_DEFLT_COLOR                "3Y"
+#define   CR_DEFLT_COL_INTENSITY        (3)
+#define   CR_DEFLT_COL_COLOR            'Y'
 
 /* Default values for 'alternate' variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_DEFLT_ALT_INTENSITY_1      (2)
 #define   CR_DEFLT_ALT_COLOR_1          'B'
-#define   CR_DEFLT_ALT_INTENSITY_2      (1)
-#define   CR_DEFLT_ALT_COLOR_2          'n'
+#define   CR_DEFLT_ALT_INTENSITY_2      (3)
+#define   CR_DEFLT_ALT_COLOR_2          'c'
 
 /* Default values for DOW variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -399,6 +405,8 @@
 #define   CR_WHITE_REV                  (15)
 #define   CR_NO_COLOR                   (16)
 
+#define   CR_STR_COLORS                 ".rgybmcw.RGYBMCWn"
+
 /* Strings describing elements for
  * alternate options
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -413,10 +421,10 @@
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_SIZE                       (65536)
 
-#define   CR_DISP_LEX(...)              if (G.disp_lex) fprintf(stderr, __VA_ARGS__)
-#define   CR_DEBUG(...)                 if (G.debug) {                                              \
-                                             fprintf(stderr, "%-15s (%4d) ", __func__, __LINE__);   \
-                                             fprintf(stderr, __VA_ARGS__);                          \
+#define   CR_DISP_LEX(...)              if (G.disp_lex) fprintf(G.debug_out, __VA_ARGS__)
+#define   CR_DEBUG(...)                 if (G.debug) {                                                   \
+                                             fprintf(G.debug_out, "%-15s (%4d) ", __func__, __LINE__);   \
+                                             fprintf(G.debug_out, __VA_ARGS__);                          \
                                         }
 
 /* Macros to define and declare a "new" function
@@ -619,8 +627,17 @@ struct cr_str {
      char                               *e;
 };
 
-/* Environment variable descriptor
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Environment variable descriptor for configuration
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_env_var_conf {
+     char                              **var,
+                                        *name,
+                                        *deflt_value,
+                                        *var_value;
+};
+
+/* Environment variable descriptor for colors
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 struct cr_env_var_desc {
      struct cr_color                   **color_desc;
      bool                                skip_line;
@@ -645,6 +662,7 @@ struct cr_global {
      char                               *cfg_filename;
      struct cr_color                     color_RE[CR_NB_COLORS],
                                         *curr_col,
+                                        *deflt_color,
                                         *deflt_alt_col_1,
                                         *deflt_alt_col_2,
                                         *deflt_dow[7],
@@ -665,6 +683,7 @@ struct cr_global {
                                                                  /* sub regex between -A/-I    */
                                                                  /* and -s                     */
      FILE                               *out,
+                                        *debug_out,
                                         *usage_out;
      bool                                newline;
      bool                                begin_specified,
