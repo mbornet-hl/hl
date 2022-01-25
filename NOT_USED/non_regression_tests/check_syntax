@@ -1,0 +1,38 @@
+#!/bin/bash
+#
+#	Check the syntax for all known configurations
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_check_syntax	Version 1.1 du 22/01/25 - 
+#
+
+check_cfg()
+{
+	cfg="$1"
+#	echo "$cfg ..."
+
+	cat /dev/null | ./hl -O --"$cfg" 2>&1
+	if [ $? != 0 ]; then
+		echo "$PROGNAME: Syntax error for configuration \"$cfg\" !"
+		echo
+	fi
+#	read toto < /dev/tty
+}
+
+PROGNAME=`basename "$0"`
+
+(
+	if [ "$1" = '' ]; then
+		hl -op '*' | sed -n 's/.* : \([^:][^:]*\)$/\1/p' | sort -u | while read config
+		do
+			check_cfg "$config"
+		done
+	else
+		check_cfg "$1"
+	fi
+) 2>&1 | hl -ei	\
+	-3c 'syntax error for configuration "(.*)"'			\
+	-3y 'syntax error on '"'"'(.)'"'"' after "(.*)"'		\
+	-3y 'Incomplete option .*"(.+)"'					\
+	-2r 'Incomplete option .*'						\
+	-2r 'syntax error .*'
