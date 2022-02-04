@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+#	Visualisation de l'ordre d'evaluation des options
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] 	Version 1.1 du 22/02/04 - 
+#
+
+data()
+{
+	cat <<- EOF
+		AAA  RED       AAA
+		BBB  BLUE      BBB
+		CCC  CYAN      CCC
+		DDD  GREEN     DDD
+
+		AAA  red       AAA
+		BBB  blue      BBB
+		CCC  cyan      CCC
+		DDD  green     DDD
+
+		red       blue      cyan      green     
+		green     cyan      blue      red       
+
+		RED       BLUE      CYAN      GREEN     
+		GREEN     CYAN      BLUE      RED       
+	EOF
+}
+
+clear
+hl -voP '^[tT][0BCRG]$' | hl_conf
+echo
+
+data | hl --t0
+data | hl --compact_t0
+data | hl --T0
+data | hl --compact_T0
