@@ -53,9 +53,10 @@ Usage
 -----
 
 ```
-hl: version 1.114
-Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ...][--config_name ...] ]
+hl: version 1.133
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
+  -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
   -H  : help + configuration names
   -V  : version
@@ -106,12 +107,19 @@ Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ..
            a : ascii (first character of the matching string)
         Alternate colors implies extended regular expressions (-e)
   -J  : Colorize date according to the day of the week
-        Syntax for day of week option : -JYs1ms2ds3[,c1c2...c7]
+        Syntax for day of week option : -J[Ys1ms2ds3[,c1c2...c7]]
          where :
            s1 : number of the sub-regex for the year
            s2 : number of the sub-regex for the month
            s3 : number of the sub-regex for the day of the month
         and c1c2...c7 are the optional color specifiers for Sunday to Saturday
+  -T  : Colorize string according to specified thresholds values
+        Syntax for thresholds option : -Ts[x],s1[:c1],c2[:c2]...s10[:c10]
+         where :
+           s is a number from 0 to 9 indicating the selection regexp number,
+           x indicates that thresholds are in hexadecimal
+           si : value of the i-th threshold for 1 <= i <= 10
+           c1 : color of the i-th range     for 1 <= i <= 10
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
@@ -120,9 +128,10 @@ Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ..
 
 You can get a more verbose version of the usage with the '-v' option :
 ```
-hl: version 1.114
-Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ...][--config_name ...] ]
+hl: version 1.133
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
+  -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
   -H  : help + configuration names
   -V  : version
@@ -179,7 +188,7 @@ Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ..
         Example : -s-5:2,1G1B  '^(Countdown[    ]*:[      ]*([0-9]{2}))'\(([      ]*-?[0-9]+)\))'
         Example : -s*2x:2,3g3m  '^(#[      ]*define[      ]+[^      ]+[  ]+0x([0-9a-fA-F]+))'\(([     ]*-?[0-9]+)\))'
   -J  : Colorize date according to the day of the week
-        Syntax for day of week option : -JYs1ms2ds3[,c1c2...c7]
+        Syntax for day of week option : -J[Ys1ms2ds3[,c1c2...c7]]
          where :
            s1 : number of the sub-regex for the year
            s2 : number of the sub-regex for the month
@@ -188,16 +197,30 @@ Usage: hl [-o][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJ] regexp ..
         Example : -JY2m3d4,3R1b1g2b2g3b3r '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'
         Example : -Jm2:d3:Y4,3R1g1g1g1g1g3R '^(.* ([0-9]{2})/([0-9]{2})/([0-9]{4}))'
         Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'
+  -T  : Colorize string according to specified thresholds values
+        Syntax for thresholds option : -Ts[x],s1[:c1],c2[:c2]...s10[:c10]
+         where :
+           s is a number from 0 to 9 indicating the selection regexp number,
+           x indicates that thresholds are in hexadecimal
+           si : value of the i-th threshold for 1 <= i <= 10
+           c1 : color of the i-th range     for 1 <= i <= 10
+        Example : -T1,0,10,50,70,95,100  '(([0-9]+)% .61)'
+        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)% .1771345744)'
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
   -x  : display options count for each config (with -vH options)
 Buffer size = 64 Ko
-Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf"
-Environment variable HL_CONF_GLOB   is undefined. Default value = "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg".
+Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/home/machine/mb/hl_conf:/DATA3/projets/hl/config_files"
+Environment variable HL_CONF_GLOB   = "eh_hl_*.cfg:hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
+Environment variable HL_DOW_SPEC    is undefined. Default value = "Y2m3d4".
+Environment variable HL_DOW_REGEX   is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}))".
+
 Environment variable HL_DEFAULT     is undefined. Default value = "3Y".
+
 Environment variable HL_A1          is undefined. Default value = "2B".
-Environment variable HL_A2          is undefined. Default value = "1n".
+Environment variable HL_A2          is undefined. Default value = "3c".
+
 Environment variable HL_SUNDAY      is undefined. Default value = "3R".
 Environment variable HL_MONDAY      is undefined. Default value = "2b".
 Environment variable HL_TUESDAY     is undefined. Default value = "2c".
@@ -205,6 +228,80 @@ Environment variable HL_WEDNESDAY   is undefined. Default value = "2g".
 Environment variable HL_THURSDAY    is undefined. Default value = "3g".
 Environment variable HL_FRIDAY      is undefined. Default value = "3y".
 Environment variable HL_SATURDAY    is undefined. Default value = "3r".
+
+Environment variable HL_T_2_1       is undefined. Default value = "3g".
+Environment variable HL_T_2_2       is undefined. Default value = "3r".
+
+Environment variable HL_T_3_1       is undefined. Default value = "3g".
+Environment variable HL_T_3_2       is undefined. Default value = "3y".
+Environment variable HL_T_3_3       is undefined. Default value = "3r".
+
+Environment variable HL_T_4_1       is undefined. Default value = "3b".
+Environment variable HL_T_4_2       is undefined. Default value = "3g".
+Environment variable HL_T_4_3       is undefined. Default value = "3y".
+Environment variable HL_T_4_4       is undefined. Default value = "3r".
+
+Environment variable HL_T_5_1       is undefined. Default value = "3b".
+Environment variable HL_T_5_2       is undefined. Default value = "3g".
+Environment variable HL_T_5_3       is undefined. Default value = "3y".
+Environment variable HL_T_5_4       is undefined. Default value = "2r".
+Environment variable HL_T_5_5       is undefined. Default value = "3r".
+
+Environment variable HL_T_6_1       is undefined. Default value = "3b".
+Environment variable HL_T_6_2       is undefined. Default value = "3c".
+Environment variable HL_T_6_3       is undefined. Default value = "3g".
+Environment variable HL_T_6_4       is undefined. Default value = "3y".
+Environment variable HL_T_6_5       is undefined. Default value = "3r".
+Environment variable HL_T_6_6       is undefined. Default value = "3w".
+
+Environment variable HL_T_7_1       is undefined. Default value = "3b".
+Environment variable HL_T_7_2       is undefined. Default value = "3c".
+Environment variable HL_T_7_3       is undefined. Default value = "3g".
+Environment variable HL_T_7_4       is undefined. Default value = "3y".
+Environment variable HL_T_7_5       is undefined. Default value = "3r".
+Environment variable HL_T_7_6       is undefined. Default value = "3m".
+Environment variable HL_T_7_7       is undefined. Default value = "3w".
+
+Environment variable HL_T_8_1       is undefined. Default value = "2b".
+Environment variable HL_T_8_2       is undefined. Default value = "3b".
+Environment variable HL_T_8_3       is undefined. Default value = "3c".
+Environment variable HL_T_8_4       is undefined. Default value = "3g".
+Environment variable HL_T_8_5       is undefined. Default value = "3y".
+Environment variable HL_T_8_6       is undefined. Default value = "3r".
+Environment variable HL_T_8_7       is undefined. Default value = "3m".
+Environment variable HL_T_8_8       is undefined. Default value = "3w".
+
+Environment variable HL_T_9_1       is undefined. Default value = "2b".
+Environment variable HL_T_9_2       is undefined. Default value = "3b".
+Environment variable HL_T_9_3       is undefined. Default value = "3c".
+Environment variable HL_T_9_4       is undefined. Default value = "2g".
+Environment variable HL_T_9_5       is undefined. Default value = "3g".
+Environment variable HL_T_9_6       is undefined. Default value = "3y".
+Environment variable HL_T_9_7       is undefined. Default value = "3r".
+Environment variable HL_T_9_8       is undefined. Default value = "3m".
+Environment variable HL_T_9_9       is undefined. Default value = "3w".
+
+Environment variable HL_T_10_1      is undefined. Default value = "2b".
+Environment variable HL_T_10_2      is undefined. Default value = "3b".
+Environment variable HL_T_10_3      is undefined. Default value = "3c".
+Environment variable HL_T_10_4      is undefined. Default value = "2g".
+Environment variable HL_T_10_5      is undefined. Default value = "3g".
+Environment variable HL_T_10_6      is undefined. Default value = "3y".
+Environment variable HL_T_10_7      is undefined. Default value = "2y".
+Environment variable HL_T_10_8      is undefined. Default value = "3r".
+Environment variable HL_T_10_9      is undefined. Default value = "3m".
+Environment variable HL_T_10_10     is undefined. Default value = "3w".
+
+Environment variable HL_T_V_1       is undefined. Default value =               0
+Environment variable HL_T_V_2       is undefined. Default value =              10
+Environment variable HL_T_V_3       is undefined. Default value =              20
+Environment variable HL_T_V_4       is undefined. Default value =              30
+Environment variable HL_T_V_5       is undefined. Default value =              40
+Environment variable HL_T_V_6       is undefined. Default value =              50
+Environment variable HL_T_V_7       is undefined. Default value =              60
+Environment variable HL_T_V_8       is undefined. Default value =              70
+Environment variable HL_T_V_9       is undefined. Default value =              80
+Environment variable HL_T_V_10      is undefined. Default value =             100
 ```
 To use a colorized version of the "man" command, you should define a pager :
 MANPAGER=/usr/local/bin/hl_man_pager
