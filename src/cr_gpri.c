@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  [MB] cr_gpri.c Version 1.22 du 22/01/23 - 
+ *   @(#)  [MB] cr_gpri.c Version 1.23 du 22/04/03 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -200,7 +200,7 @@ struct cr_env_var_desc                             cr_env_vars[] = {
      { &G.deflt_t[CR_IDX(9, 9)],    FALSE,
        CR_ENV_T_9_9,                CR_DEFLT_T_9_9_INTENS,             CR_DEFLT_T_9_9_COLOR,           0,   0    }, 
 
-     { &G.deflt_t[CR_IDX(10, 1)],    TRUE,
+     { &G.deflt_t[CR_IDX(10, 1)],   TRUE,
        CR_ENV_T_10_1,               CR_DEFLT_T_10_1_INTENS,            CR_DEFLT_T_10_1_COLOR,          0,   0    }, 
      { &G.deflt_t[CR_IDX(10, 2)],   FALSE,
        CR_ENV_T_10_2,               CR_DEFLT_T_10_2_INTENS,            CR_DEFLT_T_10_2_COLOR,          0,   0    }, 
@@ -221,4 +221,31 @@ struct cr_env_var_desc                             cr_env_vars[] = {
      { &G.deflt_t[CR_IDX(10, 10)],  FALSE,
        CR_ENV_T_10_10,              CR_DEFLT_T_10_10_INTENS,           CR_DEFLT_T_10_10_COLOR,         0,   0    }, 
      { NULL,                        0,                                 0,                              0,   0    }
+};
+
+/* Environment variables (for thresholds)
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_env_var_thres                            cr_env_thres[] = {
+     { CR_ENV_T_V_1,                TRUE,
+       &G.deflt_t_v[1],             CR_DEFLT_THRES_V1                         },
+     { CR_ENV_T_V_2,                FALSE,
+       &G.deflt_t_v[2],             CR_DEFLT_THRES_V2                         },
+     { CR_ENV_T_V_3,                FALSE,
+       &G.deflt_t_v[3],             CR_DEFLT_THRES_V3                         },
+     { CR_ENV_T_V_4,                FALSE,
+       &G.deflt_t_v[4],             CR_DEFLT_THRES_V4                         },
+     { CR_ENV_T_V_5,                FALSE,
+       &G.deflt_t_v[5],             CR_DEFLT_THRES_V5                         },
+     { CR_ENV_T_V_6,                FALSE,
+       &G.deflt_t_v[6],             CR_DEFLT_THRES_V6                         },
+     { CR_ENV_T_V_7,                FALSE,
+       &G.deflt_t_v[7],             CR_DEFLT_THRES_V7                         },
+     { CR_ENV_T_V_8,                FALSE,
+       &G.deflt_t_v[8],             CR_DEFLT_THRES_V8                         },
+     { CR_ENV_T_V_9,                FALSE,
+       &G.deflt_t_v[9],             CR_DEFLT_THRES_V9                         },
+     { CR_ENV_T_V_10,               FALSE,
+       &G.deflt_t_v[10],            CR_DEFLT_THRES_V10                        },
+     { NULL,                        0,
+       NULL,                        0                                         },
 };

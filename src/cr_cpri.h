@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.62 du 22/01/25 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.67 du 22/04/03 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -77,8 +77,8 @@
 #define   CR_ENV_DOW_FRIDAY             "HL_FRIDAY"
 #define   CR_ENV_DOW_SATURDAY           "HL_SATURDAY"
 
-/* Environment variables for thresholds
-   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* Environment variables for thresholds colors
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_T_2_1                  "HL_T_2_1"
 #define   CR_ENV_T_2_2                  "HL_T_2_2"
 
@@ -142,6 +142,19 @@
 #define   CR_ENV_T_10_9                 "HL_T_10_9"
 #define   CR_ENV_T_10_10                "HL_T_10_10"
 
+/* Environment variables for thresholds values
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_T_V_1                  "HL_T_V_1"
+#define   CR_ENV_T_V_2                  "HL_T_V_2"
+#define   CR_ENV_T_V_3                  "HL_T_V_3"
+#define   CR_ENV_T_V_4                  "HL_T_V_4"
+#define   CR_ENV_T_V_5                  "HL_T_V_5"
+#define   CR_ENV_T_V_6                  "HL_T_V_6"
+#define   CR_ENV_T_V_7                  "HL_T_V_7"
+#define   CR_ENV_T_V_8                  "HL_T_V_8"
+#define   CR_ENV_T_V_9                  "HL_T_V_9"
+#define   CR_ENV_T_V_10                 "HL_T_V_10"
+
 /* Default values for environment variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
@@ -150,6 +163,23 @@
 
 #define   CR_DEFLT_DOW_SPEC             "Y2m3d4"
 #define   CR_DEFLT_DOW_RE               "(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
+#define   CR_DEFLT_DOW_POS_Y            (2)
+#define   CR_DEFLT_DOW_POS_m            (3)
+#define   CR_DEFLT_DOW_POS_d            (4)
+
+#define   CR_DEFLT_THRES_RE             "([0-9]+)"
+
+#define   CR_DEFLT_THRES_V1             (  0)
+#define   CR_DEFLT_THRES_V2             ( 10)
+#define   CR_DEFLT_THRES_V3             ( 20)
+#define   CR_DEFLT_THRES_V4             ( 30)
+#define   CR_DEFLT_THRES_V5             ( 40)
+#define   CR_DEFLT_THRES_V6             ( 50)
+#define   CR_DEFLT_THRES_V7             ( 60)
+#define   CR_DEFLT_THRES_V8             ( 70)
+#define   CR_DEFLT_THRES_V9             ( 80)
+#define   CR_DEFLT_THRES_V10            (100)
+
 
 /* Default color
    ~~~~~~~~~~~~~ */
@@ -423,9 +453,16 @@
 
 #define   CR_DISP_LEX(...)              if (G.disp_lex) fprintf(G.debug_out, __VA_ARGS__)
 #define   CR_DEBUG(...)                 if (G.debug) {                                                   \
-                                             fprintf(G.debug_out, "%-15s (%4d) ", __func__, __LINE__);   \
+                                             fprintf(G.debug_out, "%-20s (%4d) ", __func__, __LINE__);   \
                                              fprintf(G.debug_out, __VA_ARGS__);                          \
                                         }
+#define   CR_DEBUG2(...)                if (G.debug >= 2) {                                              \
+                                             fprintf(G.debug_out, "%-20s (%4d) ", __func__, __LINE__);   \
+                                             fprintf(G.debug_out, __VA_ARGS__);                          \
+                                        }
+
+#define   CR_ENTERING                   CR_DEBUG("Entering %s()\n",  __func__)
+#define   CR_LEAVING                    CR_DEBUG("Leaving %s()\n\n", __func__)
 
 /* Macros to define and declare a "new" function
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -471,7 +508,16 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_W_DIGIT              (16)
 #define   CR_STATE_W_COLUMN             (17)
 #define   CR_STATE_W_COMMA2             (18)
-#define   CR_STATE_W_END                (19)
+#define   CR_STATE_W_NO_COLOR           (19)
+#define   CR_STATE_W_END                (20)
+#define   CR_STATE_W_OPTION             (21)
+#define   CR_STATE_W_CONFIG             (22)
+#define   CR_STATE_W_NEXT_CHAR          (23)
+#define   CR_STATE_W_NEXT_ARG           (24)
+#define   CR_STATE_W_RAW_CHAR           (25)
+#define   CR_STATE_FINAL                (26)
+#define   CR_STATE_ERR_FOLLOWING        (27)
+#define   CR_STATE_ERR_MISSING_ARG      (28)
 
 #define   CR_UNINITIALIZED              (-1)
 #define   CR_MAX_DAYS                   ( 7)
@@ -562,7 +608,8 @@ struct cr_re_desc {
      char                               *matching_str;           /* String matching the        */
                                                                  /* selector regex             */
      bool                                alternate,              /* Alternate                  */
-                                         sequential;             /* Sequential                 */
+                                         sequential,             /* Sequential                 */
+                                         ind_color;              /* Indirect color             */
      bool                                change_on_diff;         /* Change on difference       */
      bool                                change_on_bad_next;     /* Change on bad next value   */
      long                                val;                    /* Last value for seq control */
@@ -601,24 +648,30 @@ struct cr_configs {
                                         *insert;
 };
 
-struct cr_ptrs {
+struct cr_args {
      int                                 argc;
      char                              **argv;
-     char                              **curr_argv;
-     char                               *curr_arg;
-     int                                 curr_idx;
+     char                              **argp;         // Pointer to the address
+                                                       // of the current argument
+     int                                 idx;          // Index of the current 
+                                                       // character
      char                               *next_arg;
-     struct cr_ptrs                     *prev;
+     struct cr_args                     *prev;
      struct cr_config                   *config;
+     int                                 level;
+//     char                              **p,
+     char                              **regexp;
 };
+typedef struct cr_args                   cr_args;
 
-struct cr_args {
+struct cr_root_args {
      char                               *opts;
      char                               *optarg;
-     struct cr_ptrs                     *curr_ptrs;
+     cr_args                            *args;
      struct cr_configs                  *configs;
-     int                                 special_opt;
+     int                                 state;
 };
+typedef struct cr_root_args              cr_root_args;
 
 /* Descriptor for  string copy, one character at a time
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -648,6 +701,16 @@ struct cr_env_var_desc {
      char                                color;
 };
 
+/* Environment variable descriptor for thresholds
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_env_var_thres {
+     char                               *name;
+     bool                                skip_line;
+     double                             *value;
+     double                              deflt_value;
+     bool                                used;
+};
+
 /* Global structure descriptor
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 struct cr_global {
@@ -667,6 +730,7 @@ struct cr_global {
                                         *deflt_alt_col_2,
                                         *deflt_dow[7],
                                         *deflt_t[CR_SUM(10)];
+     double                              deflt_t_v[CR_MAX_THRESHOLDS];
      int                                 cflags;
      int                                 list[CR_NB_COLORS];
      int                                 idx_list;

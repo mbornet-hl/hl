@@ -22,7 +22,7 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.28 du 22/01/23 - 
+ *   @(#)  [MB] cr_epri.h Version 1.29 du 22/04/03 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -47,8 +47,9 @@ extern char                                            *cr_err_malloc,
 
 extern int                                              cr_col_codes[8][3];
 extern char                                            *cr_best_fg[8][3];
-extern struct cr_env_var_conf						 cr_env_vars_cfg[];
+extern struct cr_env_var_conf                           cr_env_vars_cfg[];
 extern struct cr_env_var_desc                           cr_env_vars[];
+extern struct cr_env_var_thres                          cr_env_thres[];
 
 /* Functions
  * ~~~~~~~~~ */
