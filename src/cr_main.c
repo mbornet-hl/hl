@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.133 du 22/04/30 - 
+ *   @(#)  [MB] cr_main.c Version 1.134 du 22/05/06 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -1750,22 +1750,6 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
           }
      }
 
-
-
-#if 0
-     switch (_state) {
-
-     case CR_STATE_W_INTENSITY:
-     case CR_STATE_W_SEPARATOR:
-     case CR_STATE_W_END:
-          break;
-
-     default:
-          fprintf(stderr, "Incomplete option \"%s\" !\n", _option);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-#endif    /* 0 */
-
      _alt_colors[_curr_col_idx++]  = NULL;
 
      if (_alt_colors[0] == NULL) {
@@ -2054,7 +2038,6 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
           }
      }
 
-//cr_dump_args(args);
      _alt_colors[_curr_col_idx++]  = NULL;
 
      if (_alt_colors[0] == NULL) {
@@ -2421,28 +2404,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                cr_error_syntax(_option, _c);
                break;
           }
-
-#if 0
-          if (_regexp != NULL) {
-               /* Regex initialized : get out of the loop
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-               break;
-          }
-#endif /* 0 */
      }
-
-#if 0
-     switch (_state) {
-
-     case CR_STATE_W_DMY:
-     case CR_STATE_W_INTENSITY2:
-          break;
-
-     default:
-          fprintf(stderr, "Incomplete option \"%s\" !\n", _option);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-#endif
 
      if (_year_RE_num == CR_UNINITIALIZED) {
           cr_pos_unspecified(_Y_str);
@@ -2474,8 +2436,6 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
      _re->dow.year_RE_num     = _year_RE_num;
      _re->dow.month_RE_num    = _month_RE_num;
      _re->dow.day_RE_num      = _day_RE_num;
-
-//cr_dump_args(args);
 
      if (_regexp == NULL) {
           _regexp                  = CR_DEFLT_DOW_RE;
@@ -2511,7 +2471,6 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
      for (_i = 0; _i < CR_MAX_DAYS; _i++) {
           if (_re->dow.cols[_i] == NULL) {
                _re->dow.cols[_i]        = G.deflt_dow[_i];
-//             printf("Color[%d] : using default\n", _i);
           }
      }
 
@@ -2642,7 +2601,6 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
      CR_DEBUG("_args->argp    = %p\n", _args->argp);
      CR_DEBUG("_args->idx     = %d\n", _args->idx);
      CR_DEBUG("_args->argp    = [%s]\n", _args->argp);
-//     if ((_buf = malloc(strlen(_args->argv[_args->idx]) + 4)) == 0) {
      if ((_buf = malloc(strlen(*_args->argp))) == 0) {
           cr_error_malloc();
           exit(CR_EXIT_ERR_MALLOC);
@@ -2658,7 +2616,6 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
      _re->threshold.cols      = _range_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
-// fprintf(G.debug_out, "_range_colors[%2d] = NULL\n", _i);
           _range_colors[_i]          = NULL;
      }
 
@@ -3679,7 +3636,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.133");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.134");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -3866,7 +3823,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.133");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.134");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -3951,8 +3908,8 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "           si : value of the i-th threshold for 1 <= i <= 10\n");
      fprintf(G.usage_out, "           c1 : color of the i-th range     for 1 <= i <= 10\n");
      if (G.verbose) {
-          fprintf(G.usage_out, "        Example : -T1,0,10,50,70,95,100  '(([0-9]+)% .*)'\n");
-          fprintf(G.usage_out, "        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)% .*)'\n");
+          fprintf(G.usage_out, "        Example : -T1,0,10,50,70,95,100  '(([0-9]+)%% .*)'\n");
+          fprintf(G.usage_out, "        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)%% .*)'\n");
      }
      fprintf(G.usage_out, "  -N  : consistent numbering of sub-expressions in -A/-I and -s\n");
      fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
