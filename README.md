@@ -53,7 +53,7 @@ Usage
 -----
 
 ```
-hl: version 1.133
+hl: version 1.134
 Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
@@ -128,7 +128,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
 
 You can get a more verbose version of the usage with the '-v' option :
 ```
-hl: version 1.133
+hl: version 1.134
 Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
@@ -204,8 +204,8 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
            x indicates that thresholds are in hexadecimal
            si : value of the i-th threshold for 1 <= i <= 10
            c1 : color of the i-th range     for 1 <= i <= 10
-        Example : -T1,0,10,50,70,95,100  '(([0-9]+)% .61)'
-        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)% .1771345744)'
+        Example : -T1,0,10,50,70,95,100  '(([0-9]+)% .*)'
+        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)% .*)'
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
