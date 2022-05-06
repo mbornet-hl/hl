@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.134 du 22/05/06 - 
+ *   @(#)  [MB] cr_main.c Version 1.135 du 22/05/06 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -3636,7 +3636,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.134");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.135");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -3823,7 +3823,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.134");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.135");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -3901,7 +3901,7 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, "        Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'\n");
      }
      fprintf(G.usage_out, "  -T  : Colorize string according to specified thresholds values\n");
-     fprintf(G.usage_out, "        Syntax for thresholds option : -Ts[x],s1[:c1],c2[:c2]...s10[:c10]\n");
+     fprintf(G.usage_out, "        Syntax for thresholds option : -Ts[x],s1[:c1],s2[:c2]...s10[:c10]\n");
      fprintf(G.usage_out, "         where :\n");
      fprintf(G.usage_out, "           s is a number from 0 to 9 indicating the selection regexp number,\n");
      fprintf(G.usage_out, "           x indicates that thresholds are in hexadecimal\n");
