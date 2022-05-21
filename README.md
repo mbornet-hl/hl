@@ -378,7 +378,7 @@ $ ./dates_gen | hl --dow_WE
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/dates_gen_week-end.png)
 
-Colorize files modification dates based on the working day or the week-end :
+Colorize files modification dates based on the day of the week :
 ```
 $ /bin/ls -ltr --full-time /bin | hl --dow_A
 ```
