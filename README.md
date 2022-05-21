@@ -402,3 +402,27 @@ $ ./num_gen | hl -T1,0,30,60,90,100,120,140 '([0-9]+)'
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num.png)
 
+Colorize numbers with 2 thresholds, using default colors and regex :
+```
+$ ./num_gen_100 | hl -T1,0,50
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num_2.png)
+
+Colorize numbers with 3 thresholds, using default colors and regex :
+```
+$ ./num_gen_100 | hl -T1,0,50,80
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num_3.png)
+
+Colorize numbers with 5 thresholds, using default colors and regex :
+```
+$ ./num_gen_100 | hl -T1,0,25,50,75,100
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num_5.png)
+
+Colorize numbers with 10 thresholds, using default colors and regex :
+```
+$ ./num_gen_100 | hl -T1,0,11,22,33,44,56,67,78,89,100
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num_10.png)
+
