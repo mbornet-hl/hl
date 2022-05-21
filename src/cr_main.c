@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.135 du 22/05/06 - 
+ *	@(#)	[MB] cr_main.c	Version 1.137 du 22/05/21 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -735,7 +735,7 @@ void cr_dump_argv(char **argv)
      CR_ENTERING;
 
      for (_p = argv; *_p != 0 || (_p == argv); _p++) {
-          fprintf(G.debug_out, "ARGV[%3d] = \"%s\"\n", _p - argv, *_p);
+          fprintf(G.debug_out, "ARGV[%3d] = \"%s\"\n", (int) (_p - argv), *_p);
      }
 
      CR_LEAVING;
@@ -1320,7 +1320,7 @@ int cr_getopt(struct cr_root_args *root_args)
           CR_DEBUG("===========================\n");
           CR_DEBUG("CONFIG       = \"%s\"\n", _args->config ? _args->config->name : "");
           CR_DEBUG("ARGP         = \"%s\"\n", *_args->argp);
-          CR_DEBUG("ARGV[%2d][%2d] = \"%s\"\n", _args->argp - _args->argv,
+          CR_DEBUG("ARGV[%2d][%2d] = \"%s\"\n", (int) (_args->argp - _args->argv),
                    _args->idx, &_args->argp[0][_args->idx]);
           CR_DEBUG("State        = \"%s\"\n", cr_state_to_str(root_args->state));
 
@@ -2600,7 +2600,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
      CR_DEBUG("_args          = %p\n", _args);
      CR_DEBUG("_args->argp    = %p\n", _args->argp);
      CR_DEBUG("_args->idx     = %d\n", _args->idx);
-     CR_DEBUG("_args->argp    = [%s]\n", _args->argp);
+     CR_DEBUG("*_args->argp   = [%s]\n", *_args->argp);
      if ((_buf = malloc(strlen(*_args->argp))) == 0) {
           cr_error_malloc();
           exit(CR_EXIT_ERR_MALLOC);
@@ -3464,6 +3464,7 @@ int main(int argc, char *argv[])
      char                     *_env_var_name, *_env_deflt, _deflt_color_opt[4],
                               **_argv, *_argv_deflt[4];
 
+#if ! defined(__APPLE__)
 #if defined(HL_BACKTRACE)
      sighandler_t              _previous_handler;
      
@@ -3473,6 +3474,8 @@ int main(int argc, char *argv[])
      }
 
 #endif    /* HL_BACKTRACE */
+#endif	/* ! __APPLE__ */
+
      G.prgname           = argv[0];
      G.selector_string   = CR_SELECTOR_STRING;
      G.int_string        = CR_INT_STRING;
@@ -3636,7 +3639,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.135");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.137");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -3823,7 +3826,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.135");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.137");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
