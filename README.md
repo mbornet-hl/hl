@@ -47,7 +47,10 @@ If you want to colorize the output of a command, here is what you have to do :
 
 Articles (in french)
 ---------------------
-Here is the [first review](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl) (Colorisez vos textes avec la commande hl) about `hl` in a french magazine (Linux Pratique), and here is the [second one](https://connect.ed-diamond.com/Linux-Pratique/LPHS-046/Tirez-parti-de-la-colorisation-pour-faciliter-la-lecture-de-vos-donnees) (Tirez parti de la colorisation pour faciliter la lecture de vos données).
+Here are some links to articles about `hl` in french magazines :
+  1. [Colorisez vos textes avec la commande hl](https://connect.ed-diamond.com/Linux-Pratique/LP-093/Colorisez-vos-textes-avec-la-commande-hl)
+  2. [Tirez parti de la colorisation pour faciliter la lecture de vos données](https://connect.ed-diamond.com/Linux-Pratique/LPHS-046/Tirez-parti-de-la-colorisation-pour-faciliter-la-lecture-de-vos-donnees)
+  3. [Découvrez la puissance des nouvelles fonctions du surligneur automatique hl](https://connect.ed-diamond.com/linux-pratique/lphs-053/decouvrez-la-puissance-des-nouvelles-fonctions-du-surligneur-automatique-hl)
 
 Usage
 -----
