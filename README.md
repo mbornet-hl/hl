@@ -53,7 +53,7 @@ Usage
 -----
 
 ```
-hl: version 1.134
+hl: version 1.135
 Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
@@ -114,7 +114,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
            s3 : number of the sub-regex for the day of the month
         and c1c2...c7 are the optional color specifiers for Sunday to Saturday
   -T  : Colorize string according to specified thresholds values
-        Syntax for thresholds option : -Ts[x],s1[:c1],c2[:c2]...s10[:c10]
+        Syntax for thresholds option : -Ts[x],s1[:c1],s2[:c2]...s10[:c10]
          where :
            s is a number from 0 to 9 indicating the selection regexp number,
            x indicates that thresholds are in hexadecimal
@@ -128,7 +128,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
 
 You can get a more verbose version of the usage with the '-v' option :
 ```
-hl: version 1.134
+hl: version 1.135
 Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
@@ -198,7 +198,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
         Example : -Jm2:d3:Y4,3R1g1g1g1g1g3R '^(.* ([0-9]{2})/([0-9]{2})/([0-9]{4}))'
         Example : -JY2:m3:d4 '^(.* ([0-9]{4})-([0-9]{2})-([0-9]{2}))'
   -T  : Colorize string according to specified thresholds values
-        Syntax for thresholds option : -Ts[x],s1[:c1],c2[:c2]...s10[:c10]
+        Syntax for thresholds option : -Ts[x],s1[:c1],s2[:c2]...s10[:c10]
          where :
            s is a number from 0 to 9 indicating the selection regexp number,
            x indicates that thresholds are in hexadecimal
@@ -212,7 +212,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
   -x  : display options count for each config (with -vH options)
 Buffer size = 64 Ko
 Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/home/machine/mb/hl_conf:/DATA3/projets/hl/config_files"
-Environment variable HL_CONF_GLOB   = "eh_hl_*.cfg:hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
+Environment variable HL_CONF_GLOB   = "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg:eh_hl_*.cfg"
 Environment variable HL_DOW_SPEC    is undefined. Default value = "Y2m3d4".
 Environment variable HL_DOW_REGEX   is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}))".
 
