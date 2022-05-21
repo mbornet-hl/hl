@@ -396,3 +396,9 @@ $ cat dpkg.log | hl -J
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-J_log_DOW.png)
 
+Colorize numbers according to thresholds :
+```
+$ ./num_gen | hl -T1,0,30,60,90,100,120,140 '([0-9]+)'
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num.png)
+
