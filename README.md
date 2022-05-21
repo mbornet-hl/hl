@@ -389,3 +389,10 @@ Colorize hl configurations :
 $ hl -vop '*' | hl_conf
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_conf_example.png)
+
+Colorize dates according to the day of the week :
+```
+$ cat dpkg.log | hl -J
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-J_log_DOW.png)
+
