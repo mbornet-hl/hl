@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *	@(#)	[MB] cr_main.c	Version 1.137 du 22/05/21 - 
+ *   @(#)	[MB] cr_main.c	Version 1.138 du 22/06/06 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -105,10 +105,20 @@ void cr_error_malloc()
                          CR_ERROR_SYNTAX
 
 ******************************************************************************/
-void cr_error_syntax(char *option, char c)
+void cr_error_syntax(struct cr_root_args *root_args)
 {
+     char                 _c, *_p, *_option;
+     cr_args             *_args;
+
+     _args               = root_args->args;
+     _args->idx--;
+     _option             = &(*_args->argp)[0];
+     _c                  = (*_args->argp)[_args->idx];
+     _p                  = &(*_args->argp)[_args->idx];
+     *_p                 = 0;
+
      fprintf(stderr, "%s: syntax error on '%s' after \"%s\"\n",
-            G.prgname, cr_char_to_str(c), option);
+            G.prgname, cr_char_to_str(_c), _option);
      exit(CR_EXIT_ERR_SYNTAX);
 }
 
@@ -1343,11 +1353,11 @@ int cr_getopt(struct cr_root_args *root_args)
                     break;
 
                case '\0':
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -1362,7 +1372,8 @@ int cr_getopt(struct cr_root_args *root_args)
                     break;
 
                case '\0':
-                    cr_error_syntax(_option, _c);
+				_args->idx++;
+                    cr_error_syntax(root_args);
                     break;
 
                default:
@@ -1576,7 +1587,7 @@ int cr_getopt(struct cr_root_args *root_args)
                break;
 
           default:
-               cr_error_syntax(_option, _c);
+			cr_error_syntax(root_args);
                break;
           }
      }
@@ -1680,7 +1691,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                          cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
                     }
                     else {
-                         cr_error_syntax(_option, _c);
+					cr_error_syntax(root_args);
                     }
                     break;
                }
@@ -1694,7 +1705,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1708,7 +1719,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1719,7 +1730,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                }
                else {
                     cr_error_invalid_color(_c);
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1733,12 +1744,12 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
           default:
-               cr_error_syntax(_option, _c);
+			cr_error_syntax(root_args);
                break;
           }
 
@@ -1912,7 +1923,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_SELECTOR_ID);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1923,7 +1934,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_BASE);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1944,7 +1955,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1956,7 +1967,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1966,7 +1977,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -1982,7 +1993,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -1997,7 +2008,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2008,7 +2019,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                }
                else {
                     cr_error_invalid_color(_c);
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2022,12 +2033,12 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
           default:
-               cr_error_syntax(_option, _c);
+			cr_error_syntax(root_args);
                break;
           }
 
@@ -2289,7 +2300,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                     break;
                     
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -2300,7 +2311,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_DMY);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2335,7 +2346,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -2359,7 +2370,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -2378,7 +2389,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2389,19 +2400,19 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                else if (cr_is_a_color(_c)) {
                     if (_color_count++ >= CR_MAX_DAYS) {
                          printf("Too many colors specified !\n");
-                         cr_error_syntax(_option, _c);
+                         cr_error_syntax(root_args);
                     }
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
                }
                else {
                     cr_error_invalid_color(_c);
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
           default:
-               cr_error_syntax(_option, _c);
+               cr_error_syntax(root_args);
                break;
           }
      }
@@ -2648,7 +2659,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                          cr_transition(_c, &_state, CR_STATE_W_BASE);
                     }
                     else {
-                         cr_error_syntax(_option, _c);
+					cr_error_syntax(root_args);
                     }
                     break;
                }
@@ -2662,7 +2673,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -2673,7 +2684,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                     _selector           = _c - '0';
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2690,7 +2701,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -2703,7 +2714,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
@@ -2731,7 +2742,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                          cr_strcpy(&_S, _c);
                     }
                     else {
-                         cr_error_syntax(_option, _c);
+					cr_error_syntax(root_args);
                     }
 
                     break;
@@ -2744,7 +2755,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                     cr_strcpy(&_S, _c);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2796,7 +2807,7 @@ CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->thresh
                          cr_strcpy(&_S, _c);
                     }
                     else {
-                         cr_error_syntax(_option, _c);
+					cr_error_syntax(root_args);
                     }
                     break;
                }
@@ -2813,7 +2824,7 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
                     _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
                }
                else {
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2824,7 +2835,7 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
                }
                else {
                     cr_error_invalid_color(_c);
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2841,13 +2852,13 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
                     break;
 
                default:
-                    cr_error_syntax(_option, _c);
+                    cr_error_syntax(root_args);
                     break;
                }
                break;
 
           default:
-               cr_error_syntax(_option, _c);
+			cr_error_syntax(root_args);
                break;
           }
      }
@@ -3474,7 +3485,7 @@ int main(int argc, char *argv[])
      }
 
 #endif    /* HL_BACKTRACE */
-#endif	/* ! __APPLE__ */
+#endif    /* ! __APPLE__ */
 
      G.prgname           = argv[0];
      G.selector_string   = CR_SELECTOR_STRING;
@@ -3639,7 +3650,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.137");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.138");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -3826,7 +3837,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.137");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.138");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
