@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)	[MB] cr_main.c	Version 1.138 du 22/06/06 - 
+ *   @(#)	[MB] cr_main.c	Version 1.139 du 22/06/10 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -2771,9 +2771,9 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                     }
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
                     _val                = cr_get_str(&_S);
-CR_DEBUG("================================= val = %s idx = %d\n", _val, _idx);
+CR_DEBUG("================================= val = \"%s\" idx = %d\n", _val, _idx);
                     _re->threshold.threshold[_idx++]   = strtod(_val, NULL);
-CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->threshold.threshold[_idx - 1], _idx);
+CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->threshold.threshold[_idx - 1], _idx - 1);
                     break;
 
                case ',' :
@@ -2783,9 +2783,9 @@ CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->thresh
                     }
                     cr_transition(_c, &_state, CR_STATE_W_SIGN);
                     _val                = cr_get_str(&_S);
-CR_DEBUG("================================= val = %s idx = %d\n", _val, _idx);
+CR_DEBUG("================================= val = \"%s\" idx = %d\n", _val, _idx);
                     _re->threshold.threshold[_idx++]   = strtod(_val, NULL);
-CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->threshold.threshold[_idx - 1], _idx);
+CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->threshold.threshold[_idx - 1], _idx - 1);
                     _curr_col_idx++;
                     break;
 
@@ -2796,9 +2796,9 @@ CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->thresh
                     }
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                     _val                = cr_get_str(&_S);
-CR_DEBUG("================================= val = %s idx = %d\n", _val, _idx);
+CR_DEBUG("================================= val = \"%s\" idx = %d\n", _val, _idx);
                     _re->threshold.threshold[_idx++]   = strtod(_val, NULL);
-CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->threshold.threshold[_idx - 1], _idx);
+CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->threshold.threshold[_idx - 1], _idx - 1);
                     break;
 
                default:
@@ -3650,7 +3650,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.138");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.139");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -3837,7 +3837,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.138");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.139");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -4494,7 +4494,7 @@ void cr_read_input(void)
                                    _e   = 0;
                               }
                          }
-                         break;
+                         break;    // Only 1 regex for alternate
                     }
                     else if (_re->sequential) {
                          CR_DEBUG("CHECK SEQUENTIALITY ...\n");
@@ -4612,7 +4612,7 @@ void cr_read_input(void)
                                    _e   = 0;
                               }
                          }
-                         break;
+                         break;    // Only 1 regex for sequential
                     }
                     else if (_re->dow.used) {
                          CR_DEBUG("DOW COLORS ...\n");
@@ -4647,34 +4647,29 @@ void cr_read_input(void)
                                    _s   = _pmatch[_j].rm_so;
                                    _e   = _pmatch[_j].rm_eo - 1;
 
-                                   if (G.debug) {
-                                        strncpy(_tmp_str,
-                                                G.line + _off + _s, _e - _s + 1);
-                                        _tmp_str[_e -_s + 1]   = 0;
-                                        fprintf(G.debug_out,
-                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
-                                   }
-
                                    strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
                                    _tmp_str[_e -_s + 1]   = 0;
 
+                                   CR_DEBUG("    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+
+
                                    if (_j == _re->dow.year_RE_num) {
                                         _year          = atoi(_tmp_str);
-//                                        fprintf(G.debug_out, "Year  found (RE_num = %d) : %4d\n", _re->dow.year_RE_num, _year);
+                                        CR_DEBUG("Year  found (RE_num = %d) : %4d\n", _re->dow.year_RE_num, _year);
                                    }
                                    else if (_j == _re->dow.month_RE_num) {
                                         _month         = atoi(_tmp_str);
-//                                        fprintf(G.debug_out, "Month found (RE_num = %d) : %4d\n", _re->dow.month_RE_num, _month);
+                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n", _re->dow.month_RE_num, _month);
                                    }
                                    if (_j == _re->dow.day_RE_num) {
                                         _day      = atoi(_tmp_str);
-//                                        fprintf(G.debug_out, "Day   found (RE_num = %d) : %4d\n", _re->dow.day_RE_num, _day);
+                                        CR_DEBUG("Day   found (RE_num = %d) : %4d\n", _re->dow.day_RE_num, _day);
                                    }
 
                                    if (_year != 0 && _month != 0 && _day != 0) {
                                         _dow           = cr_day_of_the_week(_year, _month, _day);
-//                                        fprintf(G.debug_out, "Day of week = %d (%4d-%02d-%02d)\n", _dow, _year, _month, _day);
+                                        CR_DEBUG("Day of week = %d (%4d-%02d-%02d)\n", _dow, _year, _month, _day);
                                    }
                               }
 
@@ -4691,26 +4686,20 @@ void cr_read_input(void)
                                         _s   = _pmatch[_j].rm_so;
                                         _e   = _pmatch[_j].rm_eo - 1;
 
-                                        if (G.debug) {
-                                             strncpy(_tmp_str,
-                                                     G.line + _off + _s, _e - _s + 1);
-                                             _tmp_str[_e -_s + 1]   = 0;
-                                             fprintf(G.debug_out,
-                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                     _off, _s, _e, _re->regex[_i], _tmp_str, _j);
-                                        }
-
                                         strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
                                         _tmp_str[_e -_s + 1]   = 0;
+
+                                        CR_DEBUG("    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                     _off, _s, _e, _re->regex[_i], _tmp_str, _j);
 
                                         if (_s >= 0) {
                                              cr_set_desc_dow(_re, _off, _s, _e, _re->dow.cols[_dow]);
 
                                              if (G.debug) {
                                                   cr_dump_color(_re->dow.cols[_re->dow.idx]);
-                                                  fprintf(G.debug_out, "    offset = %d, [%d => %d], col = %d\n",
+                                                  CR_DEBUG("    offset = %d, [%d => %d], col = %d\n",
                                                           _off, _s, _e, _re->dow.cols[_re->dow.idx]->col_num);
-//                                                fprintf(G.debug_out, "\n");
+                                                  CR_DEBUG("\n");
                                              }
                                         }
                                    }
@@ -4722,7 +4711,7 @@ void cr_read_input(void)
                                    _e   = 0;
                               }
                          }
-                         break;
+                         break;    // Only 1 regex for DOW
                     }
                     else if (_re->threshold.used) {
                          double                    _value;
@@ -4738,11 +4727,9 @@ void cr_read_input(void)
                               regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
                               _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
 
-                              if (G.debug) {
-                                   fprintf(G.debug_out, "  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
+                              CR_DEBUG("  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
                                            _search_no, G.line + _off, _re->regex[_i], _i);
-//                                   fprintf(G.debug_out, "  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
-                              }
+                              CR_DEBUG("  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
 
                               _range_idx          = 0;
 
@@ -4755,36 +4742,31 @@ void cr_read_input(void)
                                         continue;
                                    }
 
-                                   _s   = _pmatch[_j].rm_so;
-                                   _e   = _pmatch[_j].rm_eo - 1;
-
-                                   if (G.debug) {
-                                        strncpy(_tmp_str,
-                                                G.line + _off + _s, _e - _s + 1);
-                                        _tmp_str[_e -_s + 1]   = 0;
-                                        fprintf(G.debug_out,
-                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
-                                   }
+                                   _s                       = _pmatch[_j].rm_so;
+                                   _e                       = _pmatch[_j].rm_eo - 1;
 
                                    strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
-                                   _tmp_str[_e -_s + 1]   = 0;
+                                   _tmp_str[_e -_s + 1]     = 0;
+                                   _value                   = atol(_tmp_str);
 
-                                   _value              = atol(_tmp_str);
+                                   CR_DEBUG("    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                   CR_DEBUG("    THRESHOLDS : value = %g\n", _value);
 
                                    /* Search for the right color
                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                                   _range_idx          = 0;
+                                   _range_idx               = 0;
                                    for (_t = _re->threshold.nb_thresholds - 1; _t >= 0; _t--) {
                                         if (_value >= _re->threshold.threshold[_t]) {
-//                                             fprintf(G.debug_out, "Threshold : value = %g threshold[%d] = %g color found ! num = %d\n",
-//                                                     _value, _t, _re->threshold.threshold[_t], _t);
-                                             _range_idx          = _t;
+                                             CR_DEBUG("    Threshold : value = %g threshold[%d] = %g color found ! num = %d\n",
+                                                      _value, _t, _re->threshold.threshold[_t], _t);
+                                             _range_idx               = _t;
                                              break;
                                         }
                                    }
                               }
-// fprintf(G.debug_out, "_range_idx = %d\n", _range_idx);
+
+                              CR_DEBUG("     THRESHOLDS : _range_idx = %d\n", _range_idx);
 
                               /* Colorize : loop on substrings
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -4830,7 +4812,9 @@ void cr_read_input(void)
                                    _e   = 0;
                               }
                          }
-                         break;
+
+                         CR_DEBUG("END OF THRESHOLDS COLORS\n");
+                         break;    // Only 1 regex for thresholds
                     }
                     else {
                          if (_re->regex[_i]) {
