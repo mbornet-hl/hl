@@ -502,3 +502,15 @@ $ ./num_gen_100 | hl -T1,0,11,22,33,44,56,67,78,89,100
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-T_num_10.png)
 
+Colorize dates according to age, in minutes :
+```
+$ ./dates_gen -M | hl -tM
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-tM.png)
+
+Colorize dates according to age, in weeks, with a time reference :
+```
+$ ./dates_gen -w '2000-06-23 12:34:56.123456789' | hl -twR '2000-06-23 12:34:56.123456789'
+```
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-twR.png)
+
