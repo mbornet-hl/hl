@@ -1,0 +1,237 @@
+#!/bin/bash
+#
+#	Dates generator for tests
+#	~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_dates_gen	Version 1.4 du 22/08/21 - 
+#
+
+usage()
+{
+	cat <<- EOF
+		Usage: $PROGNAME [-YmdHMSun] [reference_date]
+		    -Y : generate dates for years         test
+		    -m : generate dates for months        test
+		    -w : generate dates for weeks         test
+		    -d : generate dates for days          test
+		    -H : generate dates for hours         test
+		    -M : generate dates for minutes       test
+		    -S : generate dates for seconds       test
+		    -u : generate dates for micro-seconds test
+		    -n : generate dates for nano-seconds  test
+	EOF
+}
+
+# Get current date in seconds since the Epoch
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+date_s0()
+{
+	if [ "$1" = '' ]; then
+		date '+%s'
+	else
+		date '+%s' -d "$1"
+	fi
+}
+
+# Display specified date with specified format
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+s_to_date()
+{
+	_format="$1"
+	_s="$2"
+
+	date "+$_format" -d "@$_s"
+}
+
+# Display 15 previous dates
+# ~~~~~~~~~~~~~~~~~~~~~~~~~
+display_dates()
+{
+	n=15
+	Period="$1"
+	Format="$2"
+	Ref_date="$3"
+
+	s0=`date_s0 "$Ref_date"`
+
+	while [ "$n" -ge 0 ]
+	do
+		s=`echo "$s0 $n $period * - p" | dc`
+		date=`s_to_date "$Format" "$s"`
+		printf "%s\n" "$date"
+		n=$(("$n" - 1))
+	done
+}
+
+# Display previous years
+# ~~~~~~~~~~~~~~~~~~~~~~
+gen_years()
+{
+	period='31557600'
+	format='%Y'
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous months
+# ~~~~~~~~~~~~~~~~~~~~~~~
+gen_months()
+{
+	period='2643840'
+	format="%Y-%m"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous weeks
+# ~~~~~~~~~~~~~~~~~~~~~~
+gen_weeks()
+{
+	period='604800'
+	format="%Y-%m-%d"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous days
+# ~~~~~~~~~~~~~~~~~~~~~
+gen_days()
+{
+	period='86400'
+	format="%Y-%m-%d"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous hours
+# ~~~~~~~~~~~~~~~~~~~~~~
+gen_hours()
+{
+	period='3600'
+	format="%Y-%m-%d %H"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous minutes
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+gen_minutes()
+{
+	period='60'
+	format="%Y-%m-%d %H:%M"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous seconds
+# ~~~~~~~~~~~~~~~~~~~~~~~~
+gen_seconds()
+{
+	period='1'
+	format="%Y-%m-%d %H:%M:%S"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+# Display previous micro-seconds
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gen_micro_seconds()
+{
+	period='0.000001'
+	format="%Y-%m-%d %H:%M:%S.%N"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date" | sed 's/[0-9][0-9][0-9]$//'
+}
+
+# Display previous nano-seconds
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+gen_nano_seconds()
+{
+	period='0.000000001'
+	format="%Y-%m-%d %H:%M:%S.%N"
+	ref_date="$1"
+
+	display_dates "$period" "$format" "$ref_date"
+}
+
+date_plus()
+{
+	n="$1"
+	s_target=$(($s_date + ($n * 86400) ))
+	date -d "@$s_target" '+%Y-%m-%d'
+}
+
+PROGNAME=$(basename "$0")
+
+s_date=$(date '+%s')
+fct=''
+
+while getopts "hYmwdHMSun" opt
+do
+	if [ "$fct" != '' ]; then
+		usage
+		exit 1
+	fi
+
+	case "$opt" in
+		Y)	fct=gen_years
+			;;
+
+		m)	fct=gen_months
+			;;
+
+		w)	fct=gen_weeks
+			;;
+
+		d)	fct=gen_days
+			;;
+
+		H)	fct=gen_hours
+			;;
+
+		M)	fct=gen_minutes
+			;;
+
+		S)	fct=gen_seconds
+			;;
+
+		u)	fct=gen_micro_seconds
+			;;
+
+		n)	fct=gen_nano_seconds
+			;;
+
+		h|*)	usage
+			exit 1
+	esac
+done
+shift $(($OPTIND - 1))
+
+# Specific test for [YmwdHMSun]
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if [ "$fct" != '' ]; then
+	"$fct" "$@"
+	exit 0
+fi
+
+# For DOW test
+# ~~~~~~~~~~~~
+i=-7
+while [ "$i" -le 7 ]
+do
+	before=$(date_plus $(( $i - 1)) )
+	current=$(date_plus $i)
+	after=$(date_plus $(( $i + 1)) )
+
+	echo "Yesterday = $before Today = $current Tomorrow = $after"
+
+	i=$(( $i + 1))
+done

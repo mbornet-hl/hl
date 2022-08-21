@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)	[MB] cr_main.c	Version 1.139 du 22/06/10 - 
+ *   @(#)  [MB] cr_main.c Version 1.153 du 22/08/21 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -46,6 +46,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <glob.h>
+#include <sys/time.h>
+#include <time.h>
+#include <locale.h>
 #if defined(HL_BACKTRACE)
 #include <signal.h>
 #include <execinfo.h>
@@ -63,7 +66,343 @@
 
 #define   inline /* empty : for compilers that do not know the inline directive */
 /* macros }}} */
+#define   NB_MATCH  12
 
+/* cr_str_color() {{{ */
+
+/******************************************************************************
+
+                              CR_STR_COLOR
+
+******************************************************************************/
+char *cr_str_color(int intensity, int color_num)
+{
+     char                 _str[4];
+
+     _str[0]             = (intensity % 10) + '0';
+     _str[1]             = CR_STR_COLORS[color_num];
+     _str[2]             = '\0';
+
+     return strdup(_str);
+}
+
+/* cr_str_color() }}} */
+/* cr_tm_copy() {{{ */
+
+/******************************************************************************
+
+                         CR_TM_COPY
+
+******************************************************************************/
+int cr_tm_copy(struct tm *tm_dst, struct tm *tm_src)
+{
+     tm_dst->tm_year          = tm_src->tm_year;
+     tm_dst->tm_mon           = tm_src->tm_mon;
+     tm_dst->tm_yday          = tm_src->tm_yday;
+     tm_dst->tm_mday          = tm_src->tm_mday;
+     tm_dst->tm_wday          = tm_src->tm_wday;
+     tm_dst->tm_hour          = tm_src->tm_hour;
+     tm_dst->tm_min           = tm_src->tm_min;
+     tm_dst->tm_sec           = tm_src->tm_sec;
+     tm_dst->tm_isdst         = tm_src->tm_isdst;
+}
+
+/* cr_tm_copy() }}} */
+/* cr_month_cmp() {{{ */
+
+/******************************************************************************
+
+                         CR_MONTH_CMP
+
+******************************************************************************/
+int cr_month_cmp(struct cr_month *m1, struct cr_month *m2)
+{
+     return strcmp(m1->name, m2->name);
+}
+
+/* cr_month_cmp() }}} */
+/* cr_get_month_num() {{{ */
+
+/******************************************************************************
+
+                         CR_GET_MONTH_NUM
+
+******************************************************************************/
+int cr_get_month_num(char *name)
+{
+     static struct cr_month        *_last    = NULL;
+     struct cr_month                _searched;
+     int                            _num;
+
+     if (_last != NULL && !strcmp(name, _last->name)) {
+          _num                = _last->num;
+     }
+     else {
+          _searched.name = name;
+          _last          = bsearch(&_searched, cr_months, CR_NB_MONTHS, sizeof(_searched),
+                                   (int (*)(const void *, const void *)) cr_month_cmp);
+          if (_last != NULL) {
+               _num                = _last->num;
+          }
+          else {
+               _num                = 0;
+          }
+     }
+
+     return _num;
+}
+
+/* cr_get_month_num() }}} */
+/* cr_init_months() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_MONTHS
+
+******************************************************************************/
+void cr_init_months()
+{
+     struct tm                      _dates;
+     char                          *_locale, *_mon[CR_NB_MONTHS], _tmp[32];
+     int                            _i;
+
+     if ((_locale = getenv("LC_ALL")) != NULL) {
+          CR_DEBUG("locale = \"%s\"\n", G.prgname, _locale);
+
+          if (setlocale(LC_ALL, _locale) == NULL) {
+               fprintf(stderr, "%s: setlocale() error !\n", G.prgname);
+          }
+     }
+
+     bzero(&_dates, sizeof(_dates));
+     _dates.tm_year      = 2022 - 1900;
+     _dates.tm_mday      = 1;
+
+     for (_i = 0; _i < CR_NB_MONTHS; _i++) {
+          _dates.tm_mon                 = _i;
+          strftime(_tmp, 10, "%b", &_dates);
+          cr_months[_i].num             = _i + 1;
+          cr_months[_i].name            = strdup(_tmp);
+     }
+
+     qsort(cr_months, sizeof(cr_months) / sizeof(cr_months[0]), sizeof(cr_months[0]),
+           (int (*)(const void *, const void *)) cr_month_cmp);
+}
+
+/* cr_init_months() }}} */
+/* cr_init_start_time() {{{ */
+
+/******************************************************************************
+
+                              CR_INIT_START_TIME
+
+******************************************************************************/
+void cr_init_start_time()
+{
+     time_t               _time;
+     struct tm           *_tm;
+
+     if (G.ref_time.tv_sec == 0) {
+          if (gettimeofday(&G.ref_time, 0) != 0) {
+               perror("gettimeofday");
+               exit(CR_EXIT_ERR_GETTIMEOFDAY);
+          }
+     }
+
+     _time               = time(0);
+     G.tm                = localtime(&_time);
+}
+
+/* cr_init_start_time() }}} */
+/* cr_get_period_idx() {{{ */
+
+/******************************************************************************
+
+                              CR_GET_PERIOD_IDX
+
+******************************************************************************/
+int cr_get_period_idx(struct cr_RE_time_desc *time_desc, time_t time)
+{
+     long                 _delay;
+     int                  _idx;
+
+// printf("Data time : %s", ctime(&time));
+// printf("Ref  time : %s", ctime(&time_desc->ref_time.tv_sec));
+
+     _delay              = abs(time_desc->ref_time.tv_sec - time);
+     _idx                = _delay / time_desc->period_length;
+// printf("period IDX = %d\n", _idx);
+     if (_idx >= CR_LAST_PERIOD_IDX) {
+          _idx                = CR_LAST_PERIOD_IDX;
+     }
+
+// printf("period IDX = %d\n", _idx);
+     return _idx;
+}
+
+/* cr_get_period_idx() }}} */
+/* cr_init_ref_time() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_REF_TIME
+
+******************************************************************************/
+bool cr_init_ref_time(char *ref_time, struct cr_re_desc *re_desc)
+{
+     char                      *_regex, _errbuf[256], _tmp_str[10240];
+     size_t                    _nmatch  = NB_MATCH;
+     regmatch_t                _pmatch[NB_MATCH];
+     regex_t                   _reg;
+     int                       _error, _eflags = 0, _i, _j, _s = 0, _e = 0, _max_sub = 8,
+                               _year, _month, _week, _day, _hour, _min, _sec, _usec, _nsec,
+                               _retcode;
+     long                      _value;
+     struct tm                *_tm;
+     time_t                    _time;
+     struct cr_RE_time_desc   *_time_desc;
+
+X
+     _time_desc               = &re_desc->time;
+X
+     _regex                   = re_desc->regex[0];
+X
+     _tm                      = &re_desc->time.ref_time_tm;
+X
+
+     /* Compile regex
+        ~~~~~~~~~~~~~ */
+     if ((_error = regcomp(&_reg, _regex, re_desc->cflags| REG_EXTENDED)) != 0) {
+          (void) regerror(_error, &_reg, _errbuf, sizeof(_errbuf));
+          fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                  G.prgname, _regex, _errbuf);
+          exit(1);
+     }
+X
+fprintf(stderr, "ref_time = [%s]\n", ref_time);
+
+     /* Execute regex
+        ~~~~~~~~~~~~~ */
+     if ((_retcode = regexec(&_reg, ref_time, _nmatch, _pmatch, _eflags)) == 0) {
+//          printf("  MATCH FOR [%s] // [%s]\n", ref_time, _regex);
+
+X
+          /* Search for the date elements : loop on substrings
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          for (_j = 0; _j < _max_sub; _j++) {
+X
+               if (_j == 0 && _pmatch[1].rm_so != -1) {
+X
+                    continue;
+               }
+
+X
+               _s                       = _pmatch[_j].rm_so;
+               _e                       = _pmatch[_j].rm_eo - 1;
+
+X
+               strncpy(_tmp_str, ref_time + _s, _e - _s + 1);
+               _tmp_str[_e -_s + 1]     = 0;
+               _value                   = atol(_tmp_str);
+X
+
+//               printf("    [sub-exp %2d] OFFSET = %3d : %3d -> %3d match = [%s]\n",
+//                            _j, _e - _s + 1, _s, _e, _tmp_str);
+//               printf("    [sub-exp %2d] DATE ELT : value = %ld\n", _j, _value);
+
+X
+               if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_Y]) {
+X
+                    _year          = atoi(_tmp_str);
+                    _tm->tm_year   = _year - 1900;
+                    CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_Y], _year);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_m]) {
+X
+                    _month         = atoi(_tmp_str);
+                    _tm->tm_mon    = _month - 1;
+                    CR_DEBUG("Month found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_m], _month);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_mn]) {
+X
+                    _month         = cr_get_month_num(_tmp_str);
+                    _tm->tm_mon    = _month - 1;
+                    CR_DEBUG("Month name found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_mn], _month);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_d]) {
+X
+                    _day           = atoi(_tmp_str);
+                    _tm->tm_mday   = _day;
+                    CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_d], _day);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_H]) {
+X
+                    _hour          = atoi(_tmp_str);
+                    _tm->tm_hour   = _hour;
+                    CR_DEBUG("Hour  found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_H], _hour);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_M]) {
+X
+                    _min           = atoi(_tmp_str);
+                    _tm->tm_min    = _min;
+                    CR_DEBUG("Min   found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_M], _min);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_S]) {
+X
+                    _sec           = atoi(_tmp_str);
+                    _tm->tm_sec    = _sec;
+                    CR_DEBUG("Sec   found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_S], _sec);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_u]) {
+X
+                    _usec          = atoi(_tmp_str);
+                    CR_DEBUG("µsec  found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_u], _usec);
+               }
+               else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_n]) {
+X
+                    _nsec          = atoi(_tmp_str);
+                    CR_DEBUG("nsec  found (RE_num = %d) : %4d\n",
+				         _time_desc->sub_RE_num.num[CR_TIME_IDX_n], _nsec);
+               }
+          }
+
+          _time_desc->ref_time_tm.tm_isdst     = G.tm->tm_isdst;
+          if (_year == 0) {
+X
+               _time_desc->ref_time_tm.tm_year         = _year - 1900;
+               _year                                   = _time_desc->ref_time_tm.tm_year + 1900;
+               CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
+			          _time_desc->sub_RE_num.num[CR_TIME_IDX_Y], _year);
+          }
+
+X
+          /* Convert ASCII date to calendar  time
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          if ((_time_desc->ref_time.tv_sec = mktime(&_time_desc->ref_time_tm)) == -1) {
+               perror("mktime");
+               exit(CR_EXIT_ERR_MKTIME);
+          }
+
+//          printf("Ref time = %s", ctime(&_time_desc->ref_time.tv_sec));
+     }
+     else {
+X
+          fprintf(stderr, "_retcode = %d\n", _retcode);
+     }
+X
+
+     return (_retcode == 0);
+}
+
+/* cr_init_ref_time() }}} */
 /* cr_char_to_str() {{{ */
 
 /******************************************************************************
@@ -234,12 +573,6 @@ char *cr_state_to_str(int state)
           _str                     = "W_CONFIG";
           break;
 
-#if 0
-     case CR_STATE_W_NEW_OPT :
-          _str                     = "W_NEW_OPT";
-          break;
-#endif
-
      case CR_STATE_W_NEXT_CHAR :
           _str                     = "W_NEXT_CHAR";
           break;
@@ -250,6 +583,39 @@ char *cr_state_to_str(int state)
 
      case CR_STATE_W_RAW_CHAR :
           _str                     = "W_RAW_CHAR";
+          break;
+
+     case CR_STATE_W_REFERENCE :
+          _str                     = "W_REFERENCE";
+          break;
+
+     case CR_STATE_W_SEPARATOR_3 :
+          _str                     = "W_SEPARATOR_3";
+          break;
+
+// XXX Replace with W_NUM
+     case CR_STATE_W_INCREMENT :
+          _str                     = "W_INCREMENT";
+          break;
+
+     case CR_STATE_W_FMT_SPEC :
+          _str                     = "W_FMT_SPEC";
+          break;
+
+     case CR_STATE_M_FMT_SPEC :
+          _str                     = "M_FMT_SPEC";
+          break;
+
+     case CR_STATE_W_FMT_POS :
+          _str                     = "W_FMT_POS";
+          break;
+
+     case CR_STATE_W_ZERO :
+          _str                     = "W_ZERO";
+          break;
+
+     case CR_STATE_ERR_SYNTAX_ERROR :
+          _str                     = "SYNTAX_ERROR";
           break;
 
      case CR_STATE_FINAL:
@@ -1063,7 +1429,7 @@ char *cr_base_to_str(int base)
 }
 
 /* cr_base_to_str() }}} */
-/* cr_glob_to_regexp() {{{ */
+/* cr_op_to_str() {{{ */
 
 /******************************************************************************
 
@@ -1100,7 +1466,7 @@ char *cr_op_to_str(int op)
      return _op;
 }
 
-/* cr_glob_to_regexp() }}} */
+/* cr_op_to_str() }}} */
 /* cr_decode_color() {{{ */
 
 /******************************************************************************
@@ -1304,6 +1670,20 @@ void cr_set_opt_pointers(cr_root_args *root_args, char **p, char **regexp)
 }
 
 /* cr_set_opt_pointers() }}} */
+/* cr_set_opt_param() {{{ */
+
+/******************************************************************************
+
+                         CR_SET_OPT_PARAM
+
+******************************************************************************/
+void cr_set_opt_param(cr_root_args *root_args, char **ref_param)
+{
+     root_args->args->param_before_RE   = TRUE;
+     root_args->args->param             = ref_param;
+}
+
+/* cr_set_opt_param() }}} */
 /* cr_getopt() {{{ */
 
 /******************************************************************************
@@ -1344,24 +1724,6 @@ int cr_getopt(struct cr_root_args *root_args)
           case CR_STATE_INITIAL:
                cr_transition(_c, &root_args->state, CR_STATE_W_NEXT_ARG);
                break;
-#if 0
-               switch (_c) {
-
-               case '-':
-                    cr_transition(_c, &root_args->state, CR_STATE_W_OPTION);
-                    _args->idx++;
-                    break;
-
-               case '\0':
-                    cr_error_syntax(root_args);
-                    break;
-
-               default:
-                    cr_error_syntax(root_args);
-                    break;
-               }
-               break;
-#endif
 
           case CR_STATE_W_OPTION:
                switch (_c) {
@@ -1372,7 +1734,7 @@ int cr_getopt(struct cr_root_args *root_args)
                     break;
 
                case '\0':
-				_args->idx++;
+                    _args->idx++;
                     cr_error_syntax(root_args);
                     break;
 
@@ -1454,6 +1816,24 @@ int cr_getopt(struct cr_root_args *root_args)
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                          _arg                     = *(_args->argp + 1);
 
+/****************************** A VALIDER *****************************************/
+                         if (root_args->args->param_before_RE) {
+CR_DEBUG("==========> PARAM before RE !\n");
+                              if (_arg == NULL || _arg[0] == '-') {
+                                   /* Following argument is not a parameter
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   *root_args->args->param  = NULL;
+                              }
+                              else {
+                                   /* Initialize param pointer
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   CR_DEBUG("PARAM        = [%s]\n", _arg);
+                                   *root_args->args->param  = _arg;
+                                   root_args->args->argp++;
+                                   _arg                     = *(_args->argp + 1);
+                              }
+                         }
+
                          if (_arg == NULL || _arg[0] == '-') {
                               /* Following argument is not a regexp
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1463,10 +1843,12 @@ int cr_getopt(struct cr_root_args *root_args)
                          else {
                               /* Initialize regexp pointer
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~ */
+CR_DEBUG("REGEXP       = [%s]\n", _arg);
                               CR_DEBUG("REGEXP       = [%s]\n", _arg);
                               *root_args->args->regexp = _arg;
                               root_args->args->argp   += 2;
                          }
+/**********************************************************************************/
 
                          root_args->args->idx     = 0;
                          cr_transition(_c, &root_args->state, CR_STATE_W_NEXT_ARG);
@@ -1587,7 +1969,7 @@ int cr_getopt(struct cr_root_args *root_args)
                break;
 
           default:
-			cr_error_syntax(root_args);
+               cr_error_syntax(root_args);
                break;
           }
      }
@@ -1691,7 +2073,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                          cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
                     }
                     else {
-					cr_error_syntax(root_args);
+                         cr_error_syntax(root_args);
                     }
                     break;
                }
@@ -1749,7 +2131,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                break;
 
           default:
-			cr_error_syntax(root_args);
+               cr_error_syntax(root_args);
                break;
           }
 
@@ -2038,7 +2420,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                break;
 
           default:
-			cr_error_syntax(root_args);
+               cr_error_syntax(root_args);
                break;
           }
 
@@ -2144,6 +2526,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
                          CR_SET_PTR
 
 ******************************************************************************/
+#if 0
 void cr_set_ptr(int **ref_date_elt, int *date_elt_addr, char *date_type)
 {
      if (*date_elt_addr != CR_UNINITIALIZED) {
@@ -2154,6 +2537,18 @@ void cr_set_ptr(int **ref_date_elt, int *date_elt_addr, char *date_type)
 
      *ref_date_elt            = date_elt_addr;
 }
+#else
+void cr_set_ptr(int **ref_date_elt, struct cr_RE_num *sub_RE_num, int idx)
+{
+     if (sub_RE_num->num[idx] != CR_UNINITIALIZED) {
+          printf("%s already specified ! (previous value = %d)\n",
+                 cr_time_period_labels[idx], sub_RE_num->num[idx]);
+          exit(CR_EXIT_ERR_DUP_VALUE);
+     }
+
+     *ref_date_elt            = &sub_RE_num->num[idx];
+}
+#endif    /* 0 */
 
 /* cr_set_ptr() }}} */
 /* cr_pos_unspecified() {{{ */
@@ -2178,11 +2573,404 @@ void cr_pos_unspecified(char *date_elt_name)
 ******************************************************************************/
 void cr_pos_inconsistency(char *date_elt_1, char *date_elt_2)
 {
-     printf("Regex numbers for %s and %s are identical !\n",
-            date_elt_1, date_elt_2);
+	if (G.verbose) {
+		CR_DEBUG("\n");
+	}
+     fprintf(stderr, "%s: regex numbers for %s and %s are identical !\n",
+             G.prgname, date_elt_1, date_elt_2);
 }
 
 /* cr_pos_inconsistency() }}} */
+/* cr_disp_RE_nums() {{{ */
+
+/******************************************************************************
+
+                              CR_DISP_RE_NUMS
+
+******************************************************************************/
+void cr_disp_RE_nums(struct cr_RE_num *sub_RE_num)
+{
+     bool                 _set = FALSE;
+     int                  _i;
+
+     for (_i = CR_TIME_IDX_FIRST; _i <= CR_TIME_IDX_LAST; _i++) {
+          CR_DEBUG("%-15s : RE num = %2d\n", cr_time_period_labels[_i],
+                   sub_RE_num->num[_i]);
+     }
+}
+
+/* cr_disp_RE_nums() }}} */
+/* cr_check_time_sub_RE() {{{ */
+
+/******************************************************************************
+
+                         CR_CHECK_TIME_SUB_RE
+
+******************************************************************************/
+void cr_check_time_sub_RE(struct cr_RE_num *sub_RE)
+{
+     int                            _i, _j;
+
+     for (_i = CR_TIME_IDX_FIRST; _i < CR_TIME_IDX_LAST; _i++) {
+          if (sub_RE->num[_i] == CR_UNINITIALIZED) {
+               continue;
+          }
+          for (_j = _i + 1; _j <= CR_TIME_IDX_LAST; _j++) {
+               if (sub_RE->num[_j] == CR_UNINITIALIZED) {
+                    continue;
+               }
+               if (sub_RE->num[_j] == sub_RE->num[_i]) {
+                    cr_pos_inconsistency(cr_time_period_labels[_j],
+                                         cr_time_period_labels[_i]);
+                    exit(CR_EXIT_ERR_SYNTAX);
+               }
+          }
+     }
+}
+
+/* cr_check_time_sub_RE() }}} */
+/* cr_set_sub_RE_nums() {{{ */
+
+/******************************************************************************
+
+                         CR_SET_SUB_RE_NUMS
+
+******************************************************************************/
+void cr_set_sub_RE_nums(struct cr_RE_num *sub_RE, char *fmt_spec)
+{
+     char                     *_p, _c;
+     int                       _state = CR_STATE_INITIAL, *_ref_date_elt;
+     bool                      _get_next_char = TRUE;
+
+	CR_DEBUG("fmt_spec = \"%s\"\n", fmt_spec);
+
+     for (_p = fmt_spec; *_p != '\0'; ) {
+		_c					= *_p;
+          _get_next_char           = TRUE;
+
+          switch (_state) {
+
+          case CR_STATE_INITIAL:
+               if (strchr(CR_PERIOD_SPEC_CHARS, _c)) {
+                    /* Switch to a new state with the same character
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    _get_next_char           = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_M_FMT_SPEC);
+               }
+               else {
+                    cr_transition(_c, &_state, CR_STATE_ERR_SYNTAX_ERROR);
+               };
+               break;
+
+          case CR_STATE_W_FMT_SPEC:
+               if (strchr(CR_PERIOD_SPEC_CHARS, _c)) {
+                    /* Switch to a new state with the same character
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    _get_next_char           = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_M_FMT_SPEC);
+               }
+               break;
+
+          case CR_STATE_M_FMT_SPEC:
+
+               switch (_c) {
+
+               case 'Y':
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_Y];
+                    break;
+
+               case 'm' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_m];
+                    break;
+
+               case 'b' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_mn];
+                    break;
+
+               case 'd' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_d];
+                    break;
+
+               case 'H' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_H];
+                    break;
+
+               case 'M' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_M];
+                    break;
+
+               case 'S' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_S];
+                    break;
+
+               case 'u' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_u];
+                    break;
+
+               case 'n' :
+                    _ref_date_elt            = &sub_RE->num[CR_TIME_IDX_n];
+                    break;
+
+               case '\0':
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+                    break;
+
+               default:
+                    if (isdigit(_c)) {
+                         /* Switch to a new state with the same character
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _get_next_char           = FALSE;
+                    }
+                    else {
+                         cr_transition(_c, &_state, CR_STATE_ERR_SYNTAX_ERROR);
+                    }
+                    break;
+               }
+               cr_transition(_c, &_state, CR_STATE_W_FMT_POS);
+               break;
+
+          case CR_STATE_W_FMT_POS:
+               if (isdigit(_c)) {
+                    *_ref_date_elt           = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_FMT_SPEC);
+               }
+               else {
+                    cr_transition(_c, &_state, CR_STATE_ERR_SYNTAX_ERROR);
+               }
+               break;
+
+          case CR_STATE_ERR_SYNTAX_ERROR:
+               fprintf(stderr, "%s: syntax error in time elements specifier \"%s\"\n",
+                       G.prgname, fmt_spec);
+               exit(CR_EXIT_ERR_SYNTAX);
+               break;
+
+          case CR_STATE_FINAL:
+               break;
+
+          default:
+               cr_transition(_c, &_state, CR_STATE_ERR_SYNTAX_ERROR);
+               break;
+          }
+
+          if (_get_next_char) {
+               _p++;
+          }
+     }
+}
+
+/* cr_set_sub_RE_nums() }}} */
+/* cr_init_RE_num() {{{ */
+
+/******************************************************************************
+
+                              CR_INIT_RE_NUM
+
+******************************************************************************/
+void cr_init_RE_num(struct cr_RE_num *sub_RE_num)
+{
+     int                  _i;
+
+     for (_i = CR_TIME_IDX_FIRST; _i <= CR_TIME_IDX_LAST; _i++) {
+          sub_RE_num->num[_i]      = CR_UNINITIALIZED;
+     }
+}
+
+/* cr_init_RE_num() }}} */
+/* cr_is_RE_num_set() {{{ */
+
+/******************************************************************************
+
+                              CR_IS_RE_NUM_SET
+
+******************************************************************************/
+bool cr_is_RE_num_set(struct cr_RE_num *sub_RE_num)
+{
+     bool                 _set = FALSE;
+     int                  _i;
+
+     for (_i = CR_TIME_IDX_FIRST; _i <= CR_TIME_IDX_LAST; _i++) {
+          CR_DEBUG("%-15s : RE num = %2d\n", cr_time_period_labels[_i],
+                   sub_RE_num->num[_i]);
+          _set                = _set || (sub_RE_num->num[_i] != CR_UNINITIALIZED);
+     }
+
+     return _set;
+}
+
+/* cr_is_RE_num_set() }}} */
+/* cr_get_deflt_col() {{{ */
+
+/******************************************************************************
+
+                         CR_GET_DEFLT_COL
+
+******************************************************************************/
+struct cr_color *cr_get_deflt_col(char *env_var_name, int deflt_intensity,
+                                      int deflt_color)
+{
+     struct cr_color          *_color = NULL;
+     char                     *_env_val, _c;
+     int                       _intensity, _lg;
+
+     if ((_env_val = getenv(env_var_name)) == 0) {
+          /* Environment variable undefined :
+           * use default values
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          _color         = cr_decode_color(deflt_color, deflt_intensity);
+     }
+     else {
+          /* Decode the color string
+             ~~~~~~~~~~~~~~~~~~~~~~~ */
+          _lg            = strlen(_env_val);
+          if (_lg == 0 || _lg > 2) {
+               /* Invalid color specifier : use default values
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+               fprintf(stderr,
+                       "Invalid color specifier %s=\"%s\", using default\n",
+                       env_var_name, _env_val);
+               _color         = cr_decode_color(deflt_color, deflt_intensity);
+          }
+          else {
+               _c             = _env_val[0];
+               if (cr_is_intensity(_c)) {
+                    /* Intensity : OK
+                       ~~~~~~~~~~~~~~ */
+                    _intensity     = _c - '0';
+                    _c             = _env_val[1];
+                    if (cr_is_a_color(_c)) {
+                         /* Intensity : OK, color : OK
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _color         = cr_decode_color(_c, _intensity);
+                    }
+                    else {
+                         /* Intensity : OK, color : default
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _color         = cr_decode_color(deflt_color,
+                                                          _intensity);
+                    }
+               }
+               else {
+                    /* Intensity KO : maybe intensity is absent
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    if (cr_is_a_color(_c)) {
+                         /* Intensity : default, color : OK
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _color         = cr_decode_color(_c, deflt_intensity);
+                    }
+                    else {
+                         /* No intensity, invalid color :
+                          * use default values
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         fprintf(stderr,
+                                 "Invalid color specifier %s=\"%s\", using default\n",
+                                 env_var_name, _env_val);
+                         _color         = cr_decode_color(deflt_color,
+                                                          deflt_intensity);
+                    }
+               }
+          }
+     }
+
+     return _color;
+}
+
+/* cr_get_deflt_col() }}} */
+/* cr_init_str() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_STR
+
+******************************************************************************/
+void cr_init_str(struct cr_str *S, char *s)
+{
+     S->s                = s;
+     S->e                = s;
+}
+
+/* cr_init_str() }}} */
+/* cr_init_deflt_colors() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_DEFLT_COLORS
+
+******************************************************************************/
+void cr_init_deflt_colors()
+{
+     struct cr_env_var_desc        *_pvar;
+     char                          *_env_val;
+
+     for (_pvar = cr_env_vars; _pvar->name != NULL; _pvar++) {
+          *_pvar->color_desc       = cr_get_deflt_col(_pvar->name,
+                                                      _pvar->deflt_intens,
+                                                      _pvar->deflt_color);
+     }
+}
+
+/* cr_init_deflt_colors() }}} */
+#if 0
+/* cr_init_deflt_thresholds() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_DEFLT_THRESHOLDS
+
+******************************************************************************/
+void cr_init_deflt_thresholds()
+{
+     struct cr_env_var_thres       *_pvar;
+
+#if 0
+     for (_pvar = cr_env_thres; _pvar->name != NULL; _pvar++) {
+          cr_get_deflt_thres(_pvar);
+     }
+#endif    /* 0 */
+}
+
+/* cr_init_deflt_thresholds() }}} */
+#endif    /* 0 */
+/* cr_init_list() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_LIST
+
+******************************************************************************/
+void cr_init_list(void)
+{
+     int                       _i;
+
+     for (_i = 0; _i < CR_NB_COLORS; _i++) {
+          G.list[_i]     = -1;
+     }
+     G.idx_list     = 0;
+}
+
+/* cr_init_list() }}} */
+/* cr_init_desc() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_DESC
+
+******************************************************************************/
+void cr_init_desc(void)
+{
+     struct cr_col_desc       *_desc;
+
+     G.length       = 0;
+
+     for (_desc = G.desc; _desc < (&G.desc[sizeof(G.desc) / sizeof(G.desc[0])]);
+          _desc++) {
+          _desc->col          = NULL;
+          _desc->used         = FALSE;
+          _desc->marker       = 0;
+     }
+}
+
+/* cr_init_desc() }}} */
 /* cr_decode_dow() {{{ */
 
 /******************************************************************************
@@ -2199,14 +2987,12 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
      struct cr_color         **_dow_colors;
      struct cr_re_desc        *_re;
      int                       _error, _i;
-     char                      _errbuf[256], *_p;
+     char                      _errbuf[256], *_p,
+                              *_possible_RE, *_possible_spec;
 
      char                     *_option;
-     int                      _year_RE_num, _month_RE_num, _day_RE_num,
-                              _nb_sub, *_ref_date_elt, _color_count;
-     char                     *_Y_str = "year",
-                              *_m_str = "month",
-                              *_d_str = "day";
+     int                       _nb_sub, *_ref_date_elt, _color_count;
+	struct cr_RE_num		*_sub_RE_num;
 
      CR_ENTERING;
 
@@ -2221,16 +3007,17 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
      _re->idx_regex_select    = 0;
      _re->matching_str        = NULL;
      _re->change_on_diff      = TRUE;
+	_sub_RE_num			= &_re->dow.sub_RE_num;
      G.out                    = stdout;
 
      _curr_col_idx            = 0;
      _selector                = 0;
 
      _regexp                  = NULL;
+     _possible_RE             = cr_env_dow_RE;
+     _possible_spec           = cr_env_dow_spec;
 
-     _year_RE_num             = CR_UNINITIALIZED;
-     _month_RE_num            = CR_UNINITIALIZED;
-     _day_RE_num              = CR_UNINITIALIZED;
+	cr_init_RE_num(_sub_RE_num);
      _color_count             = 0;
 
      _lg                      = 7;
@@ -2240,10 +3027,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
           _option                  = *_args->argp;
      }
      else {
-          _regexp                  = CR_DEFLT_DOW_RE;
-          _year_RE_num             = CR_DEFLT_DOW_POS_Y;
-          _month_RE_num            = CR_DEFLT_DOW_POS_m;
-          _day_RE_num              = CR_DEFLT_DOW_POS_d;
+          _regexp                  = cr_env_dow_RE;
           cr_transition(_c, &_state, CR_STATE_FINAL);
      }
 
@@ -2255,6 +3039,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
           exit(CR_EXIT_ERR_MALLOC);
      }
      _re->dow.cols            = _dow_colors;
+     _re->alt_cols            = _dow_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
           _dow_colors[_i]          = NULL;
@@ -2275,27 +3060,24 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                switch (_c) {
 
                case 'Y' :
-                    cr_set_ptr(&_ref_date_elt, &_year_RE_num, _Y_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_Y);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case 'm' :
-                    cr_set_ptr(&_ref_date_elt, &_month_RE_num, _m_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_m);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case 'd' :
-                    cr_set_ptr(&_ref_date_elt, &_day_RE_num, _d_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_d);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case '\0':
                     /* No date format specification
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                    _regexp                  = CR_DEFLT_DOW_RE;
-                    _year_RE_num             = CR_DEFLT_DOW_POS_Y;
-                    _month_RE_num            = CR_DEFLT_DOW_POS_m;
-                    _day_RE_num              = CR_DEFLT_DOW_POS_d;
+                    _regexp                  = cr_env_dow_RE;
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                     break;
                     
@@ -2319,17 +3101,17 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                switch (_c) {
 
                case 'Y' :
-                    cr_set_ptr(&_ref_date_elt, &_year_RE_num, _Y_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_Y);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case 'm' :
-                    cr_set_ptr(&_ref_date_elt, &_month_RE_num, _m_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_m);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case 'd' :
-                    cr_set_ptr(&_ref_date_elt, &_day_RE_num, _d_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_d);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
@@ -2355,17 +3137,17 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                switch (_c) {
 
                case 'Y' :
-                    cr_set_ptr(&_ref_date_elt, &_year_RE_num, _Y_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_Y);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case 'm' :
-                    cr_set_ptr(&_ref_date_elt, &_month_RE_num, _m_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_m);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
                case 'd' :
-                    cr_set_ptr(&_ref_date_elt, &_day_RE_num, _d_str);
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_d);
                     cr_transition(_c, &_state, CR_STATE_W_NUM);
                     break;
 
@@ -2399,7 +3181,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                }
                else if (cr_is_a_color(_c)) {
                     if (_color_count++ >= CR_MAX_DAYS) {
-                         printf("Too many colors specified !\n");
+                         fprintf(stderr, "%s: too many colors specified !\n, G.progname");
                          cr_error_syntax(root_args);
                     }
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
@@ -2417,39 +3199,21 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
           }
      }
 
-     if (_year_RE_num == CR_UNINITIALIZED) {
-          cr_pos_unspecified(_Y_str);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-     if (_month_RE_num == CR_UNINITIALIZED) {
-          cr_pos_unspecified(_m_str);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-     if (_day_RE_num == CR_UNINITIALIZED) {
-          cr_pos_unspecified(_d_str);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-     if (_year_RE_num == _month_RE_num) {
-          cr_pos_inconsistency(_Y_str, _m_str);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-     if (_year_RE_num == _day_RE_num) {
-          cr_pos_inconsistency(_Y_str, _d_str);
-          exit(CR_EXIT_ERR_SYNTAX);
-     }
-     if (_month_RE_num == _day_RE_num) {
-          cr_pos_inconsistency(_m_str, _d_str);
-          exit(CR_EXIT_ERR_SYNTAX);
+CR_DEBUG("================> SPECIFIED REGEX = [%s]\n", _regexp);
+CR_DEBUG("================> NEXT ARG        = [%s]\n", *root_args->args->argp);
+CR_DEBUG("================> POSSIBLE REGEX  = [%s]\n", _possible_RE);
+CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
+
+     if (!cr_is_RE_num_set(_sub_RE_num)) {
+          /* No date format specified : used default value
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		cr_set_sub_RE_nums(&_re->dow.sub_RE_num, _possible_spec);
      }
 
-     /* Copy RE numbers into the DOW descriptor
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-     _re->dow.year_RE_num     = _year_RE_num;
-     _re->dow.month_RE_num    = _month_RE_num;
-     _re->dow.day_RE_num      = _day_RE_num;
+     cr_check_time_sub_RE(_sub_RE_num);
 
      if (_regexp == NULL) {
-          _regexp                  = CR_DEFLT_DOW_RE;
+          _regexp                  = cr_env_dow_RE;
      }
 
      /* Count number of possible sub strings
@@ -2462,6 +3226,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
 
      _nb_sub                  = _re->max_sub - 1;
 
+#if 0
      if ((_year_RE_num  > _nb_sub)
      ||  (_month_RE_num > _nb_sub)
      ||  (_day_RE_num   > _nb_sub)) {
@@ -2469,6 +3234,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                   G.prgname, _nb_sub);
           exit(CR_EXIT_ERR_SYNTAX);
      }
+#endif
 
      if (!G.consistency) {
           _selector++;   // '0' => regexp number 1
@@ -2496,7 +3262,9 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                if (_color == NULL) {
                     break;
                }
-               CR_DEBUG("Color[%d]  = (%d, %d)  (%p)\n", _i, _color->intensity, _color->col_num, _color);
+               CR_DEBUG("Color[%d]  = \"%2s\" (%d, %d)  (%p)\n", _i,
+                        cr_str_color(_color->intensity, _color->col_num),
+                        _color->intensity, _color->col_num, _color);
           }
           CR_DEBUG("\n");
      }
@@ -2513,20 +3281,6 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
 }
 
 /* cr_decode_dow() }}} */
-/* cr_init_str() {{{ */
-
-/******************************************************************************
-
-                         CR_INIT_STR
-
-******************************************************************************/
-void cr_init_str(struct cr_str *S, char *s)
-{
-     S->s                = s;
-     S->e                = s;
-}
-
-/* cr_init_str() }}} */
 /* cr_strcpy() {{{ */
 
 /******************************************************************************
@@ -2625,6 +3379,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
           exit(CR_EXIT_ERR_MALLOC);
      }
      _re->threshold.cols      = _range_colors;
+     _re->alt_cols            = _range_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
           _range_colors[_i]          = NULL;
@@ -2659,7 +3414,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                          cr_transition(_c, &_state, CR_STATE_W_BASE);
                     }
                     else {
-					cr_error_syntax(root_args);
+                         cr_error_syntax(root_args);
                     }
                     break;
                }
@@ -2742,7 +3497,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
                          cr_strcpy(&_S, _c);
                     }
                     else {
-					cr_error_syntax(root_args);
+                         cr_error_syntax(root_args);
                     }
 
                     break;
@@ -2807,7 +3562,7 @@ CR_DEBUG("================================= VAL = %10lf idx = %d\n", _re->thresh
                          cr_strcpy(&_S, _c);
                     }
                     else {
-					cr_error_syntax(root_args);
+                         cr_error_syntax(root_args);
                     }
                     break;
                }
@@ -2858,14 +3613,14 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
                break;
 
           default:
-			cr_error_syntax(root_args);
+               cr_error_syntax(root_args);
                break;
           }
      }
 
      if (_regexp == NULL) {
           CR_DEBUG("REGEXP = NULL\n");
-          _regexp        = CR_DEFLT_THRES_RE;
+          _regexp        = cr_env_thres_RE;
           CR_DEBUG("regexp = [%s]\n", _regexp);
      }
 
@@ -2961,6 +3716,624 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
 }
 
 /* cr_decode_thresholds() }}} */
+/* cr_decode_time() {{{ */
+
+/******************************************************************************
+
+                              CR_DECODE_TIME
+
+******************************************************************************/
+struct cr_re_desc *cr_decode_time(cr_root_args *root_args)
+{
+     // for TIME option
+     int                       _state, _curr_col_idx, _selector, _lg, _size;
+     char                      _c, _next_char, *_regexp, *_ref_time;
+     cr_args                  *_args;
+     struct cr_color         **_time_colors;
+     struct cr_re_desc        *_re;
+     int                       _error, _i, _incr, _period_type;
+     long                      _period_length;
+     char                      _errbuf[256], *_p;
+
+     char                     *_option;
+     struct cr_RE_num         *_sub_RE_num;
+     int                       _nb_sub, *_ref_date_elt, _color_count,
+                               _sub_RE_pos[CR_MAX_PERIODS];
+     char                     *_possible_RE, *_possible_spec;
+     bool                      _reference, _sub_RE_specified, _get_next_char = TRUE,
+                               _start_from_0 = FALSE;
+     static bool               _init_done = FALSE;
+     struct tm                *_ref_tm;
+
+     CR_ENTERING;
+
+     /* Initialize months management
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     if (_init_done == FALSE) {
+          cr_init_months();
+          _init_done               = TRUE;
+     }
+
+     /* Get current time
+        ~~~~~~~~~~~~~~~~ */
+     cr_init_start_time();
+
+     _re                      = cr_new_re_desc();
+     _re->time.used           = TRUE;
+     _re->cflags              = G.cflags;
+     _re->col.col_num         = 0;
+     _re->col.intensity       = 0;
+     _re->col.out             = G.out;
+     _re->max_sub             = 1;
+     _re->time.idx            = 0;
+     _re->idx_regex_select    = 0;
+     _re->matching_str        = NULL;
+     _re->change_on_diff      = TRUE;
+     _sub_RE_num              = &_re->time.sub_RE_num;
+     G.out                    = stdout;           // XXX ??????? XXX
+
+     _curr_col_idx            = 0;
+     _selector                = 0;
+
+     _regexp                  = NULL;
+     _ref_time                = NULL;
+     _reference               = FALSE;
+     _possible_RE             = NULL;
+     _possible_spec           = NULL;
+
+     _incr                    = 1;
+     _period_type             = CR_UNINITIALIZED;
+
+     cr_init_RE_num(_sub_RE_num);
+
+     _color_count             = 0;
+
+     _lg                      = CR_MAX_PERIODS;
+     _args                    = root_args->args;
+
+     if (_args != NULL) {
+          _option                  = *_args->argp;
+     }
+
+     /* Allocate memory for the color descriptors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     _size                    = (_lg + 1) * sizeof(struct cr_color **);
+     if ((_time_colors = (struct cr_color **) malloc(_size)) == NULL) {
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
+     }
+     _re->time.cols           = _time_colors;
+     _re->alt_cols            = _time_colors;
+
+     for (_i = 0; _i < (_lg + 1); _i++) {
+          _time_colors[_i]         = NULL;
+     }
+
+     /* Decode options
+        ~~~~~~~~~~~~~~ */
+     for (_state = CR_STATE_INITIAL; _state != CR_STATE_FINAL; ) {
+          cr_set_opt_pointers(root_args, &_p, &_regexp);
+
+          if (_get_next_char) {
+               _c                       = cr_getopt(root_args);
+          }
+          _get_next_char           = TRUE;
+
+          CR_DEBUG("CHAR    = '%s'\n", cr_char_to_str(_c));
+          CR_DEBUG("_regexp = %p\n", _regexp);
+          CR_DEBUG("_regexp = %s\n", _regexp == 0 ? "nil" : _regexp);
+
+          switch (_state) {
+          
+          case CR_STATE_INITIAL:
+               switch (_c) {
+
+               case 'Y' :
+                    _period_type             = CR_PERIOD_YEAR;
+                    _period_length           = CR_PERIOD_Y;
+                    _possible_RE             = cr_env_time_RE_Y;
+                    _possible_spec           = cr_env_time_spec_Y;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'm' :
+                    _period_type             = CR_PERIOD_MONTH;
+                    _period_length           = CR_PERIOD_m;
+                    _possible_RE             = cr_env_time_RE_m;
+                    _possible_spec           = cr_env_time_spec_m;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'w' :
+                    _period_type             = CR_PERIOD_WEEK;
+                    _period_length           = CR_PERIOD_w;
+                    _possible_RE             = cr_env_time_RE_d; // XXX TODO : 7 days !!!
+                    _possible_spec           = cr_env_time_spec_d;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'd' :
+                    _period_type             = CR_PERIOD_DAY;
+                    _period_length           = CR_PERIOD_d;
+                    _possible_RE             = cr_env_time_RE_d;
+                    _possible_spec           = cr_env_time_spec_d;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'H' :
+                    _period_type             = CR_PERIOD_HOUR;
+                    _period_length           = CR_PERIOD_H;
+                    _possible_RE             = cr_env_time_RE_H;
+                    _possible_spec           = cr_env_time_spec_H;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'M' :
+                    _period_type             = CR_PERIOD_MIN;
+                    _period_length           = CR_PERIOD_M;
+                    _possible_RE             = cr_env_time_RE_M;
+                    _possible_spec           = cr_env_time_spec_M;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'S' :
+                    _period_type             = CR_PERIOD_SEC;
+                    _period_length           = CR_PERIOD_S;
+                    _possible_RE             = cr_env_time_RE_S;
+                    _possible_spec           = cr_env_time_spec_S;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'u' :
+                    _period_type             = CR_PERIOD_USEC;
+                    _period_length           = CR_PERIOD_u;
+                    _possible_RE             = cr_env_time_RE_u;
+                    _possible_spec           = cr_env_time_spec_u;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               case 'n' :
+                    _period_type             = CR_PERIOD_NSEC;
+                    _period_length           = CR_PERIOD_n;
+                    _possible_RE             = cr_env_time_RE_n;
+                    _possible_spec           = cr_env_time_spec_n;
+                    cr_transition(_c, &_state, CR_STATE_W_ZERO);
+                    break;
+
+               default:
+                    /* No time period specification
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    cr_error_syntax(root_args);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_ZERO:
+               switch (_c) {
+
+               case '0':
+                    _start_from_0            = TRUE;
+                    cr_transition(_c, &_state, CR_STATE_W_REFERENCE);
+                    break;
+
+               case 'R':
+                    _reference               = TRUE;
+                    cr_set_opt_param(root_args, &_ref_time);
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
+                    break;
+
+               case ':':
+                    _reference               = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_W_INCREMENT);
+                    break;
+
+               case '\0':
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+                    break;
+
+               default:
+                    cr_error_syntax(root_args);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_REFERENCE:
+               switch (_c) {
+
+               case 'R':
+                    _reference               = TRUE;
+                    cr_set_opt_param(root_args, &_ref_time);
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
+                    break;
+
+               case ':':
+                    _reference               = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_W_INCREMENT);
+                    break;
+
+               case '\0':
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+                    break;
+
+               default:
+                    cr_error_syntax(root_args);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_SEPARATOR:
+               switch (_c) {
+
+               case ':':
+                    cr_transition(_c, &_state, CR_STATE_W_INCREMENT);
+                    break;
+
+               case '\0':
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+                    break;
+
+               default:
+                    cr_error_syntax(root_args);
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_INCREMENT:
+               if (isdigit(_c)) {
+                    _incr                    = (_c - '0');
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR_2);
+                    break;
+               }
+               else if (strchr(CR_PERIOD_SPEC_CHARS, _c)) {
+                    /* Switch to a new state with the same character
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    _get_next_char           = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_M_FMT_SPEC);
+               }
+               else if (_c == '\0') {
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_SEPARATOR_2:
+               if (isdigit(_c)) {
+                    _incr                    *= 10;
+                    _incr                    += (_c - '0');
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR_2);
+                    break;
+               }
+               else if (_c == ':') {
+                    cr_transition(_c, &_state, CR_STATE_W_FMT_SPEC);
+               }
+               else if (_c == '\0') {
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_FMT_SPEC:
+               if (strchr(CR_PERIOD_SPEC_CHARS, _c)) {
+                    /* Switch to a new state with the same character
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    _get_next_char           = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_M_FMT_SPEC);
+               }
+               break;
+
+          case CR_STATE_M_FMT_SPEC:
+               switch (_c) {
+
+               case 'Y':
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_Y);
+                    break;
+
+               case 'm' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_m);
+                    break;
+
+               case 'b' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_mn);
+                    break;
+
+               case 'd' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_d);
+                    break;
+
+               case 'H' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_H);
+                    break;
+
+               case 'M' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_M);
+                    break;
+
+               case 'S' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_S);
+                    break;
+
+               case 'u' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_u);
+                    break;
+
+               case 'n' :
+                    cr_set_ptr(&_ref_date_elt, _sub_RE_num, CR_TIME_IDX_n);
+                    break;
+
+               case '\0':
+                    /* No date format specification
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    _regexp                  = _possible_RE;
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+                    break;
+
+               default:
+                    cr_error_syntax(root_args);
+                    break;
+               }
+               cr_transition(_c, &_state, CR_STATE_W_FMT_POS);
+               break;
+
+          case CR_STATE_W_FMT_POS:
+               if (isdigit(_c)) {
+                    *_ref_date_elt           = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR_3);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_SEPARATOR_3:
+               if (isdigit(_c)) {
+                    *_ref_date_elt           *= 10;
+                    *_ref_date_elt           += _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_SEPARATOR_3);
+               }
+               else if (_c == ',') {
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+               }
+               else if (strchr(CR_PERIOD_SPEC_CHARS, _c)) {
+                    /* Switch to a new state with the same character
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                    _get_next_char           = FALSE;
+                    cr_transition(_c, &_state, CR_STATE_M_FMT_SPEC);
+               }
+               else if (_c == '\0') {
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_INTENSITY:
+               if (_c == '\0') {
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+               }
+               else if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR);
+               }
+               else if (cr_is_a_color(_c)) {
+                    _time_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_COLOR:
+               if (_c == '\0') {
+                    cr_error_syntax(root_args);
+               }
+               else if (cr_is_a_color(_c)) {
+                    if (_color_count++ >= CR_MAX_PERIODS) {
+                         fprintf(stderr, "%s: too many colors specified !\n", G.prgname);
+                         cr_error_syntax(root_args);
+                    }
+                    _time_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+               }
+               else {
+                    cr_error_invalid_color(_c);
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          default:
+               cr_error_syntax(root_args);
+               break;
+          }
+     }
+
+CR_DEBUG("================> SPECIFIED REGEX = [%s]\n", _regexp);
+CR_DEBUG("================> NEXT ARG        = [%s]\n", *root_args->args->argp);
+CR_DEBUG("================> POSSIBLE REGEX  = [%s]\n", _possible_RE);
+CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
+
+     if (!cr_is_RE_num_set(_sub_RE_num)) {
+X
+          /* No date format specified : used default value
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+		cr_set_sub_RE_nums(_sub_RE_num, _possible_spec);
+     }
+X
+cr_disp_RE_nums(_sub_RE_num);
+
+     cr_check_time_sub_RE(_sub_RE_num);
+
+#if 0
+     _sub_RE_specified        = FALSE;
+     for (_i = 0; _i < sizeof(_sub_RE_pos)/sizeof(_sub_RE_pos[0]); _i++) {
+          _sub_RE_pos[_i]          = 0;
+     }
+#endif    /* 0 */
+
+     if (_regexp == NULL) {
+          _regexp                  = _possible_RE;
+     }
+     _re->time.start_from_0   = _start_from_0;
+     _re->time.period_length  = _period_length * _incr;
+
+     if (_reference) {
+          /* XXX TODO : create tm struct for reference time !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     }
+     else {
+CR_DEBUG("=====> Init de _ref_tm \n");
+          _ref_tm                  = G.tm;
+     }
+
+     /* Copy time reference into the descriptor
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     cr_tm_copy(&_re->time.ref_time_tm, _ref_tm);
+
+     _re->time.ref_time.tv_sec      = mktime(&_re->time.ref_time_tm);
+
+     if (_regexp == NULL) {
+          _regexp                  = _possible_RE;
+     }
+
+     /* Count number of possible sub strings
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_p = _regexp; (*_p); _p++) {
+          if (*_p == '(') {
+               _re->max_sub++;
+          }
+     }
+
+     _nb_sub                  = _re->max_sub - 1;
+
+#if 0
+     if ((_year_RE_num  > _nb_sub)
+     ||  (_month_RE_num > _nb_sub)
+     ||  (_day_RE_num   > _nb_sub)
+     ||  (_hour_RE_num  > _nb_sub)
+     ||  (_min_RE_num   > _nb_sub)
+     ||  (_sec_RE_num   > _nb_sub)
+     ||  (_usec_RE_num  > _nb_sub)
+     ||  (_nsec_RE_num  > _nb_sub)) {
+          fprintf(stderr, "%s: not enough sub-expressions (%d)!\n",
+                  G.prgname, _nb_sub);
+          exit(CR_EXIT_ERR_SYNTAX);
+     }
+#endif
+
+     if (!G.consistency) {
+          _selector++;   // '0' => regexp number 1
+     }
+     _re->idx_regex_select    = _selector;
+     _re->regex[0]            = _regexp;
+     _re->regex[1]            = NULL;
+
+     /* Initialize missing colors with default colors
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+          if (_time_colors[_i] == NULL) {
+               _time_colors[_i]         = G.deflt_time[_i];
+          }
+          else {
+               CR_DEBUG2("_time_colors[%d] = %p\n", _i, _time_colors[_i]);
+          }
+     }
+     _time_colors[_i]   = NULL;
+
+     if (G.debug || G.verbose) {
+          struct cr_color     *_color;
+
+          CR_DEBUG("Selector  = %d\n",   _re->idx_regex_select);
+          CR_DEBUG("regex[0]  = [%s]\n", _re->regex[0]);
+          CR_DEBUG("regex[1]  = %p\n",   _re->regex[1]);
+          for (_i = 0; ; _i++) {
+               _color              = _re->time.cols[_i];
+               if (_color == NULL) {
+                    break;
+               }
+               CR_DEBUG("Color[%d]  = (%d%c)\n", _i, _color->intensity, CR_STR_COLORS[_color->col_num]);
+          }
+          CR_DEBUG("\n");
+     }
+
+CR_DEBUG("================> USED REGEX      = [%s]\n", _regexp);
+     /* Compile regular expression
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
+          (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
+          fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
+                  G.prgname, _regexp, _errbuf);
+          exit(CR_EXIT_ERR_REGCOMP);
+     }
+
+#if 0
+     if (_start_from_0) {
+          /* Reset date elements smaller than period type
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          if (_period_type <= CR_PERIOD_NSEC) {
+//               _re->time.ref_time_tm.tm_nsec      = 0;
+          }
+          if (_period_type <= CR_PERIOD_USEC) {
+//               _re->time.ref_time_tm.tm_nsec      = 0;
+          }
+          if (_period_type <= CR_PERIOD_SEC) {
+//               _re->time.ref_time_tm.tm_usec      = 0;
+          }
+          if (_period_type <= CR_PERIOD_MIN) {
+               _re->time.ref_time_tm.tm_sec       = 0;
+          }
+          if (_period_type <= CR_PERIOD_HOUR) {
+               _re->time.ref_time_tm.tm_min       = 0;
+          }
+          if (_period_type <= CR_PERIOD_DAY) {
+               _re->time.ref_time_tm.tm_hour      = 0;
+          }
+          if (_period_type <= CR_PERIOD_WEEK) {
+               _re->time.ref_time_tm.tm_wday      = 1;
+          }
+          if (_period_type <= CR_PERIOD_MONTH) {
+               _re->time.ref_time_tm.tm_mday      = 1;
+          }
+          if (_period_type <= CR_PERIOD_YEAR) {
+               _re->time.ref_time_tm.tm_mon       = 0;
+               _re->time.ref_time_tm.tm_yday      = 0;
+          }
+     }
+#endif    /* 0 */
+
+X
+     if (_reference) {
+          if (_ref_time == NULL) {
+               fprintf(stderr, "%s: reference time missing !\n", G.prgname);
+               exit(CR_EXIT_ERR_USAGE);
+          }
+          else {
+               /* Convert ASCII reference time
+                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+/* XXX TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+CR_DEBUG("================> REFERENCE TIME = [%s]\n", _ref_time);
+          }
+     }
+     else {
+          CR_DEBUG("================> NO REFERENCE SPECIFIED\n");
+     }
+
+     if (_reference) {
+          if (cr_init_ref_time(_ref_time, _re) != TRUE) {
+               fprintf(stderr, "%s: error while analyzing reference time !\n", G.prgname);
+               exit(CR_EXIT_ERR_REGEXEC);
+          }
+     }
+
+     CR_LEAVING;
+     return _re;
+}
+
+/* cr_decode_time() }}} */
 /* cr_decode_ind_color() {{{ */
 
 /******************************************************************************
@@ -3017,14 +4390,19 @@ struct cr_root_args *cr_set_args(int argc, char **argv, char *opts,
 ******************************************************************************/
 void cr_add_to_list(struct cr_re_desc *re)
 {
+CR_DEBUG("############## ADD TO LIST ###############\n");
+X
      if (G.extract_RE == 0) {
+X
           G.extract_RE   =
           G.insert_RE    = re;
      }
      else {
+X
           G.insert_RE->next   = re;
           G.insert_RE         = re;
      }
+X
 }
 
 /* cr_add_to_list() }}} */
@@ -3106,91 +4484,14 @@ void cr_add_regexp(int color, char *regexp)
 }
 
 /* cr_add_regexp() }}} */
-/* cr_get_deflt_col() {{{ */
+/* cr_init_env_vars() {{{ */
 
 /******************************************************************************
 
-                         CR_GET_DEFLT_COL
+                         CR_INIT_ENV_VARS
 
 ******************************************************************************/
-struct cr_color *cr_get_deflt_col(char *env_var_name, int deflt_intensity,
-                                      int deflt_color)
-{
-     struct cr_color          *_color = NULL;
-     char                     *_env_val, _c;
-     int                       _intensity, _lg;
-
-     if ((_env_val = getenv(env_var_name)) == 0) {
-          /* Environment variable undefined :
-           * use default values
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-          _color         = cr_decode_color(deflt_color, deflt_intensity);
-     }
-     else {
-          /* Decode the color string
-             ~~~~~~~~~~~~~~~~~~~~~~~ */
-          _lg            = strlen(_env_val);
-          if (_lg == 0 || _lg > 2) {
-               /* Invalid color specifier : use default values
-                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-               fprintf(stderr,
-                       "Invalid color specifier %s=\"%s\", using default\n",
-                       env_var_name, _env_val);
-               _color         = cr_decode_color(deflt_color, deflt_intensity);
-          }
-          else {
-               _c             = _env_val[0];
-               if (cr_is_intensity(_c)) {
-                    /* Intensity : OK
-                       ~~~~~~~~~~~~~~ */
-                    _intensity     = _c - '0';
-                    _c             = _env_val[1];
-                    if (cr_is_a_color(_c)) {
-                         /* Intensity : OK, color : OK
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                         _color         = cr_decode_color(_c, _intensity);
-                    }
-                    else {
-                         /* Intensity : OK, color : default
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                         _color         = cr_decode_color(deflt_color,
-                                                          _intensity);
-                    }
-               }
-               else {
-                    /* Intensity KO : maybe intensity is absent
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                    if (cr_is_a_color(_c)) {
-                         /* Intensity : default, color : OK
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                         _color         = cr_decode_color(_c, deflt_intensity);
-                    }
-                    else {
-                         /* No intensity, invalid color :
-                          * use default values
-                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                         fprintf(stderr,
-                                 "Invalid color specifier %s=\"%s\", using default\n",
-                                 env_var_name, _env_val);
-                         _color         = cr_decode_color(deflt_color,
-                                                          deflt_intensity);
-                    }
-               }
-          }
-     }
-
-     return _color;
-}
-
-/* cr_get_deflt_col() }}} */
-/* cr_disp_env_vars() {{{ */
-
-/******************************************************************************
-
-                         CR_DISP_ENV_VARS
-
-******************************************************************************/
-void cr_disp_env_vars(struct cr_env_var_conf *vconfs, struct cr_env_var_desc *vars,
+void cr_init_env_vars(struct cr_env_var_conf *vconfs, struct cr_env_var_desc *vars,
                       struct cr_env_var_thres *thres)
 {
      struct cr_env_var_conf        *_pconf;
@@ -3199,19 +4500,17 @@ void cr_disp_env_vars(struct cr_env_var_conf *vconfs, struct cr_env_var_desc *va
      char                           _deflt[4], *_undefined, *_msg, *_undef_double,
                                    *_env_val;
 
-     _undefined          = "Environment variable %-14s is undefined. Default value = \"%s\".\n";
-     _undef_double       = "Environment variable %-14s is undefined. Default value = %15.6g\n";
-     _msg                = "Environment variable %-14s = \"%s\"\n";
-
      for (_pconf = vconfs; _pconf->name != NULL; _pconf++) {
-          if ((_env_val = getenv(_pconf->name)) == NULL) {
-               fprintf(G.usage_out, _undefined, _pconf->name, _pconf->deflt_value);
+          if ((*(_pconf->var) = getenv(_pconf->name)) == NULL) {
+               *(_pconf->var)                = _pconf->deflt_value;
+               _pconf->deflt                 = TRUE;
           }
           else {
-               fprintf(G.usage_out, _msg, _pconf->name, _env_val);
+               _pconf->deflt                 = FALSE;
           }
      }
 
+#if 0
      for (_pvar = vars; _pvar->name != NULL; _pvar++) {
           if (_pvar->skip_line) {
                fprintf(G.usage_out, "\n");
@@ -3236,48 +4535,117 @@ void cr_disp_env_vars(struct cr_env_var_conf *vconfs, struct cr_env_var_desc *va
                fprintf(G.usage_out, _msg, _pthres->name, _env_val);
           }
      }
-}
-
-/* cr_disp_env_vars() }}} */
-/* cr_init_deflt_colors() {{{ */
-
-/******************************************************************************
-
-                         CR_INIT_DEFLT_COLORS
-
-******************************************************************************/
-void cr_init_deflt_colors()
-{
-     struct cr_env_var_desc        *_pvar;
-     char                          *_env_val;
-
-     for (_pvar = cr_env_vars; _pvar->name != NULL; _pvar++) {
-          *_pvar->color_desc       = cr_get_deflt_col(_pvar->name,
-                                                      _pvar->deflt_intens,
-                                                      _pvar->deflt_color);
-     }
-}
-
-/* cr_init_deflt_colors() }}} */
-/* cr_init_deflt_thresholds() {{{ */
-
-/******************************************************************************
-
-                         CR_INIT_DEFLT_THRESHOLDS
-
-******************************************************************************/
-void cr_init_deflt_thresholds()
-{
-     struct cr_env_var_thres       *_pvar;
-
-#if 0
-     for (_pvar = cr_env_thres; _pvar->name != NULL; _pvar++) {
-          cr_get_deflt_thres(_pvar);
-     }
 #endif    /* 0 */
 }
 
-/* cr_init_deflt_thresholds() }}} */
+/* cr_init_env_vars() }}} */
+/* cr_disp_env_vars() {{{ */
+
+/******************************************************************************
+
+                         CR_DISP_ENV_VARS
+
+******************************************************************************/
+void cr_disp_env_vars(struct cr_env_var_conf *vconfs, struct cr_env_var_desc *vars,
+                      struct cr_env_var_thres *thres)
+{
+     struct cr_env_var_conf        *_pconf;
+     struct cr_env_var_desc        *_pvar;
+     struct cr_env_var_thres       *_pthres;
+     char                           _deflt[4], *_undefined, *_msg, *_undef_double,
+                                   *_env_val;
+     int                            _sz = 15;
+
+     _undefined          = "Environment variable %-*s is undefined. Default value = \"%s\".\n";
+     _undef_double       = "Environment variable %-*s is undefined. Default value = %15.6g\n";
+     _msg                = "Environment variable %-*s =  \"%s\"\n";
+
+     for (_pconf = vconfs; _pconf->name != NULL; _pconf++) {
+          if ((_env_val = getenv(_pconf->name)) == NULL) {
+               fprintf(G.usage_out, _undefined, _sz, _pconf->name, _pconf->deflt_value);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _sz, _pconf->name, *_pconf->var);
+          }
+     }
+
+     for (_pvar = vars; _pvar->name != NULL; _pvar++) {
+          if (_pvar->skip_line) {
+               fprintf(G.usage_out, "\n");
+          }
+          if ((_env_val = getenv(_pvar->name)) == NULL) {
+               sprintf(_deflt, "%d%c", _pvar->deflt_intens, _pvar->deflt_color);
+               fprintf(G.usage_out, _undefined, _sz, _pvar->name, _deflt);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _sz, _pvar->name, _env_val);
+          }
+     }
+
+     for (_pthres = thres; _pthres->name != NULL; _pthres++) {
+          if (_pthres->skip_line) {
+               fprintf(G.usage_out, "\n");
+          }
+          if ((_env_val = getenv(_pthres->name)) == NULL) {
+               fprintf(G.usage_out, _undef_double, _sz, _pthres->name, _pthres->deflt_value);
+          }
+          else {
+               fprintf(G.usage_out, _msg, _sz, _pthres->name, _env_val);
+          }
+     }
+}
+
+/* cr_disp_env_vars() }}} */
+/* cr_disp_regex() {{{ */
+
+/******************************************************************************
+
+                         CR_DISP_REGEX
+
+******************************************************************************/
+void cr_disp_regex()
+{
+     int                       _i, _j;
+     struct cr_re_desc        *_re;
+
+// fprintf(G.debug_out, "======================================== DISP_REGEX ==============================\n");
+     for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
+          if (_re->alt_cols == NULL) {
+               printf("[%2d  ] ", ++_i);
+               cr_start_color(&_re->col);
+               printf("%s", _re->regex[0]);
+               cr_end_color(&_re->col);
+               printf("\n");
+               if (_re->regex[1]) {
+                    printf("     => ");
+                    cr_start_color(&_re->col);
+                    printf("%s", _re->regex[1]);
+                    cr_end_color(&_re->col);
+                    printf("\n");
+               }
+          }
+          else {
+               struct cr_color     *_color;
+
+               _i++;
+               for (_j = 0; ; _j++) {
+                    _color              = _re->alt_cols[_j];
+                    if (_color == NULL) {
+                         break;
+                    }
+
+                    printf("[%2d.%d] ", _i, _j);
+                    cr_start_color(_re->alt_cols[_j]);
+                    printf("%s", _re->regex[0]);
+                    cr_end_color(_re->alt_cols[_j]);
+                    printf("\n");
+               }
+          }
+     }
+// fprintf(G.debug_out, "==================================================================================\n");
+}
+
+/* cr_disp_regex() }}} */
 /* print_trace() {{{ */
 
 #if defined(HL_BACKTRACE)
@@ -3325,7 +4693,6 @@ void print_trace(int signum)
 ******************************************************************************/
 void cr_display_config(int search_mode, char *re)
 {
-#define   NB_MATCH  12
      struct cr_config         *_config;
      char                      _c, _next_char, *_regexp;
      struct cr_re_desc        *_re;
@@ -3498,7 +4865,9 @@ int main(int argc, char *argv[])
      G.usage_out         = stderr;
      G.debug_out         = stderr;
 
+     cr_init_env_vars(cr_env_vars_cfg, cr_env_vars, cr_env_thres);
      cr_init_deflt_colors();
+     cr_init_list();
 
      switch (argc) {
 
@@ -3534,20 +4903,18 @@ int main(int argc, char *argv[])
           break;
      }
 
-     cr_init_list();
      G.intensity    = CR_DEFLT_INTENSITY;
-
-//     cr_init_deflt_colors();
 
      cr_clear_marker_flags();
 
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _root_args          = cr_set_args(_argc, _argv,
-                                       "oOhHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{J{K{T{P!p!x",
+                                       "oOhHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{J{K{T{t{P!p!x",
                                        &G.configs);
      while ((_opt = cr_getopt(_root_args)) != -1) {
           switch (_opt) {
+
           case 'h':
                cr_usage(FALSE);
                break;
@@ -3650,7 +5017,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.139");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.153");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -3730,6 +5097,18 @@ int main(int argc, char *argv[])
                cr_add_to_list(_re);
                break;
 
+          case 't':
+               G.cflags  |= REG_EXTENDED;
+// CR_DEBUG("regexp before cr_decode_time() call :\n");
+// cr_disp_regex();
+               _re                 = cr_decode_time(_root_args);
+// CR_DEBUG("_re->alt_cols = %p\n", _re->alt_cols);
+               _re->time.used = TRUE;
+               cr_add_to_list(_re);
+// CR_DEBUG("regexp after cr_decode_time() call : [%s]\n", _re->regex[0]);
+// cr_disp_regex();
+               break;
+
           case 'K':
                G.cflags  |= REG_EXTENDED;
                _re                 = cr_decode_ind_color(_root_args);
@@ -3770,39 +5149,7 @@ int main(int argc, char *argv[])
      }
 
      if (G.disp_regex) {
-          for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
-               if (_re->alt_cols == NULL) {
-                    printf("[%2d] ", ++_i);
-                    cr_start_color(&_re->col);
-                    printf("%s", _re->regex[0]);
-                    cr_end_color(&_re->col);
-                    printf("\n");
-                    if (_re->regex[1]) {
-                         printf("     => ");
-                         cr_start_color(&_re->col);
-                         printf("%s", _re->regex[1]);
-                         cr_end_color(&_re->col);
-                         printf("\n");
-                    }
-               }
-               else {
-                    struct cr_color     *_color;
-
-                    _i++;
-                    for (_j = 0; ; _j++) {
-                         _color              = _re->alt_cols[_j];
-                         if (_color == NULL) {
-                              break;
-                         }
-
-                         printf("[%2d.%d] ", _i, _j);
-                         cr_start_color(_re->alt_cols[_j]);
-                         printf("%s", _re->regex[0]);
-                         cr_end_color(_re->alt_cols[_j]);
-                         printf("\n");
-                    }
-               }
-          }
+          cr_disp_regex();
      }
 
      if (G.disp_nb_opts) {
@@ -3837,8 +5184,8 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.139");
-     fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.153");
+     fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
      fprintf(G.usage_out, "  -O  : debug messages will be displayed on stdout (default = stderr)\n");
@@ -3925,6 +5272,43 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, "        Example : -T1,0,10,50,70,95,100  '(([0-9]+)%% .*)'\n");
           fprintf(G.usage_out, "        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)%% .*)'\n");
      }
+     fprintf(G.usage_out, "  -t  : Colorize string according to time periods\n");
+     fprintf(G.usage_out, "        Syntax for time periods option : -tp[R][:num][:spec][,c1c2...c10]\n");
+     fprintf(G.usage_out, "         where :\n");
+     fprintf(G.usage_out, "           p is a time period specifier in [YmwdHMSun]\n");
+     if (G.verbose) {
+          fprintf(G.usage_out, "             with the following meaning :\n");
+          fprintf(G.usage_out, "               Y : year\n");
+          fprintf(G.usage_out, "               m : month\n");
+          fprintf(G.usage_out, "               w : week\n");
+          fprintf(G.usage_out, "               d : day\n");
+          fprintf(G.usage_out, "               H : hour\n");
+          fprintf(G.usage_out, "               M : minute\n");
+          fprintf(G.usage_out, "               S : second\n");
+          fprintf(G.usage_out, "               u : micro-second\n");
+          fprintf(G.usage_out, "               n : nano-second\n");
+     }
+     fprintf(G.usage_out, "           R is an optional flag telling to use an optional time reference\n");
+     fprintf(G.usage_out, "             instead of the current time. The optional time reference must be\n");
+     fprintf(G.usage_out, "             specified before the regex argument\n");
+     fprintf(G.usage_out, "           num is an optional number of time periods (default is 1)\n");
+     fprintf(G.usage_out, "           spec is a string specifying the position of date elements,\n");
+     fprintf(G.usage_out, "             composed of letters in [YmbdHMSus], each one followed by the\n");
+     fprintf(G.usage_out, "             number of the sub-regex it is associated to,\n");
+     if (G.verbose) {
+          fprintf(G.usage_out, "             with the following meaning :\n");
+          fprintf(G.usage_out, "               Y : year\n");
+          fprintf(G.usage_out, "               m : month\n");
+          fprintf(G.usage_out, "               b : abbreviated month name\n");
+          fprintf(G.usage_out, "               w : week\n");
+          fprintf(G.usage_out, "               d : day\n");
+          fprintf(G.usage_out, "               H : hour\n");
+          fprintf(G.usage_out, "               M : minute\n");
+          fprintf(G.usage_out, "               S : second\n");
+          fprintf(G.usage_out, "               u : micro-second\n");
+          fprintf(G.usage_out, "               n : nano-second\n");
+     }
+     fprintf(G.usage_out, "         and c1c2...c7 are the optional color specifiers for the time periods\n");
      fprintf(G.usage_out, "  -N  : consistent numbering of sub-expressions in -A/-I and -s\n");
      fprintf(G.usage_out, "  -p  : display configuration(s) matching glob-like expression (pattern)\n");
      fprintf(G.usage_out, "  -P  : display configuration(s) matching regexp\n");
@@ -4014,24 +5398,6 @@ void cr_display_args(struct cr_config *config)
 }
 
 /* cr_display_args() }}} */
-/* cr_init_list() {{{ */
-
-/******************************************************************************
-
-                         CR_INIT_LIST
-
-******************************************************************************/
-void cr_init_list(void)
-{
-     int                       _i;
-
-     for (_i = 0; _i < CR_NB_COLORS; _i++) {
-          G.list[_i]     = -1;
-     }
-     G.idx_list     = 0;
-}
-
-/* cr_init_list() }}} */
 /* cr_add_config() {{{ */
 
 /******************************************************************************
@@ -4286,11 +5652,11 @@ long cr_next_val(struct cr_re_desc *re)
 }
 
 /* cr_next_val() }}} */
-/* cr_dow() {{{ */
+/* cr_day_of_the_week() {{{ */
 
 /******************************************************************************
 
-                         CR_DOW
+                         CR_DAY_OF_THE_WEEK
 
 ******************************************************************************/
 /*
@@ -4314,7 +5680,7 @@ int cr_day_of_the_week(int year, int month, int day)
      return (year + year/4 - year/100 + year/400 + _t[month - 1] + day) % 7;
 }
 
-/* cr_dow() }}} */
+/* cr_day_of_the_week() }}} */
 /* cr_read_input() {{{ */
 
 /******************************************************************************
@@ -4335,7 +5701,9 @@ void cr_read_input(void)
      char                      _matching_str[CR_SIZE + 1];
      bool                      _change;
      long                      _new_val, _expected;
-     int                       _year, _month, _day, _dow;
+     int                       _year, _month, _day, _dow,
+                               _hour, _min, _sec, _usec, _nsec;
+     time_t                    _time;
 
      _nmatch        = sizeof(_pmatch) / sizeof(_pmatch[0]);
 
@@ -4635,8 +6003,8 @@ void cr_read_input(void)
                               _day                = 0;
                               _dow                = CR_UNINITIALIZED;
 
-                              /* Search for the date :loop on substrings
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              /* Search for the date : loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                               for (_j = 0; _j < _re->max_sub; _j++) {
                                    CR_DEBUG("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
 
@@ -4654,17 +6022,20 @@ void cr_read_input(void)
                                                 _off, _s, _e, _re->regex[_i], _tmp_str, _j);
 
 
-                                   if (_j == _re->dow.year_RE_num) {
+                                   if (_j == _re->dow.sub_RE_num.num[CR_TIME_IDX_Y]) {
                                         _year          = atoi(_tmp_str);
-                                        CR_DEBUG("Year  found (RE_num = %d) : %4d\n", _re->dow.year_RE_num, _year);
+                                        CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
+                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_Y], _year);
                                    }
-                                   else if (_j == _re->dow.month_RE_num) {
+                                   else if (_j == _re->dow.sub_RE_num.num[CR_TIME_IDX_m]) {
                                         _month         = atoi(_tmp_str);
-                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n", _re->dow.month_RE_num, _month);
+                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n",
+                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_m], _month);
                                    }
-                                   if (_j == _re->dow.day_RE_num) {
+                                   if (_j == _re->dow.sub_RE_num.num[CR_TIME_IDX_d]) {
                                         _day      = atoi(_tmp_str);
-                                        CR_DEBUG("Day   found (RE_num = %d) : %4d\n", _re->dow.day_RE_num, _day);
+                                        CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
+                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_d], _day);
                                    }
 
                                    if (_year != 0 && _month != 0 && _day != 0) {
@@ -4733,8 +6104,8 @@ void cr_read_input(void)
 
                               _range_idx          = 0;
 
-                              /* Search for the range :loop on substrings
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              /* Search for the range : loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                               for (_j = 0; _j < _re->max_sub; _j++) {
                                    CR_DEBUG("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
 
@@ -4747,7 +6118,7 @@ void cr_read_input(void)
 
                                    strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
                                    _tmp_str[_e -_s + 1]     = 0;
-                                   _value                   = atol(_tmp_str);
+                                   _value                   = atof(_tmp_str);
 
                                    CR_DEBUG("    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
                                                 _off, _s, _e, _re->regex[_i], _tmp_str, _j);
@@ -4816,11 +6187,208 @@ void cr_read_input(void)
                          CR_DEBUG("END OF THRESHOLDS COLORS\n");
                          break;    // Only 1 regex for thresholds
                     }
+                    else if (_re->time.used) {
+                         double                    _value;
+                         int                       _t, _period_idx;
+                         struct tm                 _tm;
+
+                         CR_DEBUG("TIME PERIOD COLORS ...\n");
+
+CR_DEBUG("=========================> TIME PERIOD COLORS ...\n");
+// cr_disp_regex();
+                         /* Search for multiple matches on the line
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                         _search_no     = 1;
+// fprintf(G.debug_out, "_off = %d  G.length = %d line = [%s]\n", _off, G.length, G.line);
+                         for (_off = 0, _eflags = 0;
+                              _off < G.length &&
+                              regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
+                              _eflags) == 0; _off += _e + 1, _eflags = REG_NOTBOL, _search_no++) {
+
+                              CR_DEBUG("  Search %3d : MATCH FOR [%s] // [%s] _i = %d\n",
+                                           _search_no, G.line + _off, _re->regex[_i], _i);
+                              CR_DEBUG("  Search %3d :  LINE : [%s] :\n", _search_no, G.line + _off);
+
+                              /* Reset date elements
+                                 ~~~~~~~~~~~~~~~~~~~ */
+                              _year               = 0,
+                              _month              = 0;
+                              _day                = 0;
+                              _hour               = 0;
+                              _min                = 0;
+                              _sec                = 0;
+                              _usec               = 0;
+                              _nsec               = 0;
+                              _time               = CR_UNINITIALIZED;
+                              _period_idx         = 0;
+
+                              _tm.tm_year         = 0;
+                              _tm.tm_mon          = 0;
+                              _tm.tm_mday         = 0;
+                              _tm.tm_hour         = 0;
+                              _tm.tm_min          = 0;
+                              _tm.tm_sec          = 0;
+
+                              _tm.tm_wday         = 0;
+                              _tm.tm_yday         = 0;
+                              _tm.tm_isdst        = 0;
+
+
+                              /* Search for the date : loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              for (_j = 0; _j < _re->max_sub; _j++) {
+                                   CR_DEBUG("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+
+                                   if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                        continue;
+                                   }
+
+                                   _s                       = _pmatch[_j].rm_so;
+                                   _e                       = _pmatch[_j].rm_eo - 1;
+
+                                   strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                   _tmp_str[_e -_s + 1]     = 0;
+                                   _value                   = atol(_tmp_str);
+
+                                   CR_DEBUG("    [sub-exp %2d] OFFSET = %3d : %3d -> %3d regex = [%s] match = [%s]\n",
+                                                _j, _off, _s, _e, _re->regex[_i], _tmp_str);
+                                   CR_DEBUG("    [sub-exp %2d] DATE ELT : value = %g\n", _j, _value);
+                                   CR_DEBUG("\n");
+
+                                   if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_Y]) {
+                                        _year          = atoi(_tmp_str);
+                                        _tm.tm_year    = _year - 1900;
+                                        CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_m]) {
+                                        _month         = atoi(_tmp_str);
+                                        _tm.tm_mon     = _month - 1;
+                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n",
+                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_m], _month);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_mn]) {
+                                        _month         = cr_get_month_num(_tmp_str);
+                                        _tm.tm_mon     = _month - 1;
+                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_mn], _month);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_d]) {
+                                        _day           = atoi(_tmp_str);
+                                        _tm.tm_mday    = _day;
+                                        CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_d], _day);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_H]) {
+                                        _hour          = atoi(_tmp_str);
+                                        _tm.tm_hour    = _hour;
+                                        CR_DEBUG("Hour  found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_H], _day);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_M]) {
+                                        _min           = atoi(_tmp_str);
+                                        _tm.tm_min     = _min;
+                                        CR_DEBUG("Min   found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_M], _day);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_S]) {
+                                        _sec           = atoi(_tmp_str);
+                                        _tm.tm_sec     = _sec;
+                                        CR_DEBUG("Sec   found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_S], _day);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_u]) {
+                                        _usec          = atoi(_tmp_str);
+                                        CR_DEBUG("µsec  found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_u], _day);
+                                   }
+                                   else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_n]) {
+                                        _nsec          = atoi(_tmp_str);
+                                        CR_DEBUG("nsec  found (RE_num = %d) : %4d\n",
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_n], _day);
+                                   }
+                              }
+
+                              _tm.tm_isdst        = G.tm->tm_isdst;
+                              if (_year == 0) {
+                                   _tm.tm_year    = G.tm->tm_year;
+                                   _year          = _tm.tm_year + 1900;
+                                   CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
+                                            _re->time.sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                              }
+
+                              /* Convert ASCII date to calendar  time
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if ((_time = mktime(&_tm)) == -1) {
+                                   perror("mktime");
+                                   exit(CR_EXIT_ERR_MKTIME);
+                              }
+
+                              /* Search for the right color
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              _period_idx              = cr_get_period_idx(&_re->time, _time);
+
+                              CR_DEBUG("TIME SINCE THE EPOCH : %s\n", ctime(&_time));
+                              CR_DEBUG("     TIME PERIODS : _idx = ...\n");
+
+                              /* Colorize : loop on substrings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//                              if (_dow != CR_UNINITIALIZED) {
+                                   for (_j = 0; _j < _re->max_sub; _j++) {
+                                        CR_DEBUG("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+
+                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                             continue;
+                                        }
+
+                                        _s   = _pmatch[_j].rm_so;
+                                        _e   = _pmatch[_j].rm_eo - 1;
+
+                                        if (G.debug) {
+                                             strncpy(_tmp_str,
+                                                     G.line + _off + _s, _e - _s + 1);
+                                             _tmp_str[_e -_s + 1]   = 0;
+                                             fprintf(G.debug_out,
+                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                     _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                        }
+
+                                        strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
+
+                                        if (_s >= 0) {
+                                             cr_set_desc_dow(_re, _off, _s, _e, _re->time.cols[_period_idx]);
+
+                                             if (G.debug) {
+                                                  cr_dump_color(_re->time.cols[_period_idx]);
+                                                  fprintf(G.debug_out, "    offset = %d, [%d => %d], col = %d\n",
+                                                          _off, _s, _e, _re->time.cols[_period_idx]->col_num);
+//                                                fprintf(G.debug_out, "\n");
+                                             }
+                                        }
+                                   }
+//                              }
+
+                              /* To handle empty strings
+                                 ~~~~~~~~~~~~~~~~~~~~~~~ */
+                              if (_e < 0) {
+                                   _e   = 0;
+                              }
+                         }
+CR_DEBUG("_i = %d _off = %d\n", _i, _off);
+
+                         CR_DEBUG("END OF TIME PERIODS COLORS\n");
+CR_DEBUG("=========================> END OF TIME PERIODS COLORS\n");
+                         break;
+                    }
                     else {
                          if (_re->regex[_i]) {
                               if (_i == 1 && _re->begin_is_end) {
                                    break;
                               }
+CR_DEBUG("G.line = [%s]\n", G.line);
+CR_DEBUG("regex = [%s]\n", _re->regex[_i]);
+
                               /* Search for multiple matches on the line
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                               for (_off = 0, _eflags = 0;
@@ -5002,28 +6570,6 @@ void cr_end_color(struct cr_color *col)
 }
 
 /* cr_end_color() }}} */
-/* cr_init_desc() {{{ */
-
-/******************************************************************************
-
-                         CR_INIT_DESC
-
-******************************************************************************/
-void cr_init_desc(void)
-{
-     struct cr_col_desc       *_desc;
-
-     G.length       = 0;
-
-     for (_desc = G.desc; _desc < (&G.desc[sizeof(G.desc) / sizeof(G.desc[0])]);
-          _desc++) {
-          _desc->col          = NULL;
-          _desc->used         = FALSE;
-          _desc->marker       = 0;
-     }
-}
-
-/* cr_init_desc() }}} */
 /* cr_same_colors() {{{ */
 
 /******************************************************************************

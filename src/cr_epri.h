@@ -22,7 +22,7 @@
  *
  *   File         :     cr_epri.h
  *
- *   @(#)  [MB] cr_epri.h Version 1.29 du 22/04/03 - 
+ *   @(#)  [MB] cr_epri.h Version 1.34 du 22/08/15 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -39,6 +39,8 @@ extern struct cr_global                                G;
 
 extern FILE                                            *yyin;
 
+extern struct cr_month                                  cr_months[CR_NB_MONTHS];
+
 /* Error messages
    ~~~~~~~~~~~~~~ */
 extern char                                            *cr_err_malloc,
@@ -50,6 +52,31 @@ extern char                                            *cr_best_fg[8][3];
 extern struct cr_env_var_conf                           cr_env_vars_cfg[];
 extern struct cr_env_var_desc                           cr_env_vars[];
 extern struct cr_env_var_thres                          cr_env_thres[];
+
+extern char                                            *cr_env_dow_spec,
+                                                       *cr_env_dow_RE,
+
+                                                       *cr_env_thres_RE,
+
+                                                       *cr_env_time_RE_Y,
+                                                       *cr_env_time_RE_m,
+                                                       *cr_env_time_RE_d,
+                                                       *cr_env_time_RE_H,
+                                                       *cr_env_time_RE_M,
+                                                       *cr_env_time_RE_S,
+                                                       *cr_env_time_RE_u,
+                                                       *cr_env_time_RE_n,
+
+                                                       *cr_env_time_spec_Y,
+                                                       *cr_env_time_spec_m,
+                                                       *cr_env_time_spec_d,
+                                                       *cr_env_time_spec_H,
+                                                       *cr_env_time_spec_M,
+                                                       *cr_env_time_spec_S,
+                                                       *cr_env_time_spec_u,
+                                                       *cr_env_time_spec_n;
+
+extern char                        				*cr_time_period_labels[];
 
 /* Functions
  * ~~~~~~~~~ */

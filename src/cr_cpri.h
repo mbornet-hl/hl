@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.67 du 22/04/03 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.77 du 22/08/15 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -35,6 +35,8 @@
 
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/time.h>
+#include <time.h>
 #include <regex.h>
 
 /* Sum of the N first numbers
@@ -79,6 +81,8 @@
 
 /* Environment variables for thresholds colors
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_THRES_RE               "HL_THRES_REGEX"
+
 #define   CR_ENV_T_2_1                  "HL_T_2_1"
 #define   CR_ENV_T_2_2                  "HL_T_2_2"
 
@@ -155,11 +159,41 @@
 #define   CR_ENV_T_V_9                  "HL_T_V_9"
 #define   CR_ENV_T_V_10                 "HL_T_V_10"
 
+/* Environment variables for time delay colors
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_TIME_SPEC_Y            "HL_TIME_SPEC_Y"    // Year
+#define   CR_ENV_TIME_SPEC_m            "HL_TIME_SPEC_m"    // Month
+#define   CR_ENV_TIME_SPEC_d            "HL_TIME_SPEC_d"    // Day
+#define   CR_ENV_TIME_SPEC_H            "HL_TIME_SPEC_H"    // Hour
+#define   CR_ENV_TIME_SPEC_M            "HL_TIME_SPEC_M"    // Minute
+#define   CR_ENV_TIME_SPEC_S            "HL_TIME_SPEC_S"    // Second
+#define   CR_ENV_TIME_SPEC_u            "HL_TIME_SPEC_u"    // Micro-second
+#define   CR_ENV_TIME_SPEC_n            "HL_TIME_SPEC_n"    // Nano-second
+
+#define   CR_ENV_TIME_RE_Y              "HL_TIME_REGEX_Y"   // Year
+#define   CR_ENV_TIME_RE_m              "HL_TIME_REGEX_m"   // Month
+#define   CR_ENV_TIME_RE_d              "HL_TIME_REGEX_d"   // Day
+#define   CR_ENV_TIME_RE_H              "HL_TIME_REGEX_H"   // Hour
+#define   CR_ENV_TIME_RE_M              "HL_TIME_REGEX_M"   // Minute
+#define   CR_ENV_TIME_RE_S              "HL_TIME_REGEX_S"   // Second
+#define   CR_ENV_TIME_RE_u              "HL_TIME_REGEX_u"   // Micro-second
+#define   CR_ENV_TIME_RE_n              "HL_TIME_REGEX_n"   // Nano-second
+
+#define   CR_ENV_TIME_PERIOD_0          "HL_TIME_0"         // Color specifier for period 0
+#define   CR_ENV_TIME_PERIOD_1          "HL_TIME_1"         // Color specifier for period 1
+#define   CR_ENV_TIME_PERIOD_2          "HL_TIME_2"         // Color specifier for period 2
+#define   CR_ENV_TIME_PERIOD_3          "HL_TIME_3"         // Color specifier for period 3
+#define   CR_ENV_TIME_PERIOD_4          "HL_TIME_4"         // Color specifier for period 4
+#define   CR_ENV_TIME_PERIOD_5          "HL_TIME_5"         // Color specifier for period 5
+#define   CR_ENV_TIME_PERIOD_6          "HL_TIME_6"         // Color specifier for period 6
+#define   CR_ENV_TIME_PERIOD_7          "HL_TIME_7"         // Color specifier for period 7
+#define   CR_ENV_TIME_PERIOD_8          "HL_TIME_8"         // Color specifier for period 8
+#define   CR_ENV_TIME_PERIOD_9          "HL_TIME_9"         // Color specifier for period 9
+
 /* Default values for environment variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_DEFLT_ALT_REGEXP           "^(.*)$"
 #define   CR_DEFLT_CONF_GLOB            "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
-
 
 #define   CR_DEFLT_DOW_SPEC             "Y2m3d4"
 #define   CR_DEFLT_DOW_RE               "(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
@@ -179,6 +213,96 @@
 #define   CR_DEFLT_THRES_V8             ( 70)
 #define   CR_DEFLT_THRES_V9             ( 80)
 #define   CR_DEFLT_THRES_V10            (100)
+
+#define   CR_NB_TIME_PERIOD_TYPES       (8)
+
+#define   CR_DEFLT_TIME_SPEC_Y          "Y2"
+#define   CR_DEFLT_TIME_SPEC_m          "Y2m3"
+#define   CR_DEFLT_TIME_SPEC_d          "Y2m3d4"
+#define   CR_DEFLT_TIME_SPEC_H          "Y2m3d4H5"
+#define   CR_DEFLT_TIME_SPEC_M          "Y2m3d4H5M6"
+#define   CR_DEFLT_TIME_SPEC_S          "Y2m3d4H5M6S7"
+#define   CR_DEFLT_TIME_SPEC_u          "Y2m3d4H5M6S7u8"
+#define   CR_DEFLT_TIME_SPEC_n          "Y2m3d4H5M6S7n8"
+
+#define   CR_DEFLT_TIME_RE_Y            "(([0-9]{4}))"
+#define   CR_DEFLT_TIME_RE_m            "(([0-9]{4})-([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_d            "(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_H            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_M            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_S            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_u            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{6}))"
+#define   CR_DEFLT_TIME_RE_n            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{9}))"
+
+#define   CR_DEFLT_TIME_POS_Y           (2)
+#define   CR_DEFLT_TIME_POS_m           (3)
+#define   CR_DEFLT_TIME_POS_d           (4)
+#define   CR_DEFLT_TIME_POS_H           (5)
+#define   CR_DEFLT_TIME_POS_M           (6)
+#define   CR_DEFLT_TIME_POS_S           (7)
+#define   CR_DEFLT_TIME_POS_u           (8)
+#define   CR_DEFLT_TIME_POS_n           (8)
+
+#define   CR_TIME_IDX_Y                 (0)                      /* Index for Year             */
+#define   CR_TIME_IDX_m                 (1)                      /* Index for Month            */
+#define   CR_TIME_IDX_mn                (2)                      /* Index for Month name       */
+#define   CR_TIME_IDX_d                 (3)                      /* Index for Day of the month */
+#define   CR_TIME_IDX_H                 (4)                      /* Index for Hour             */
+#define   CR_TIME_IDX_M                 (5)                      /* Index for Minutes          */
+#define   CR_TIME_IDX_S                 (6)                      /* Index for Seconds          */
+#define   CR_TIME_IDX_u                 (7)                      /* Index for Micro-seconds    */
+#define   CR_TIME_IDX_n                 (8)                      /* Index for Nano-seconds     */
+
+#define   CR_TIME_IDX_FIRST             (CR_TIME_IDX_Y)
+#define   CR_TIME_IDX_LAST              (CR_TIME_IDX_n)
+
+#define   CR_DEFLT_T_PERIOD_0_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_1_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_2_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_3_INTENS    (2)
+#define   CR_DEFLT_T_PERIOD_4_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_5_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_6_INTENS    (2)
+#define   CR_DEFLT_T_PERIOD_7_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_8_INTENS    (3)
+#define   CR_DEFLT_T_PERIOD_9_INTENS    (2)
+
+#define   CR_DEFLT_T_PERIOD_0_COLOR     'w'
+#define   CR_DEFLT_T_PERIOD_1_COLOR     'm'
+#define   CR_DEFLT_T_PERIOD_2_COLOR     'r'
+#define   CR_DEFLT_T_PERIOD_3_COLOR     'y'
+#define   CR_DEFLT_T_PERIOD_4_COLOR     'y'
+#define   CR_DEFLT_T_PERIOD_5_COLOR     'g'
+#define   CR_DEFLT_T_PERIOD_6_COLOR     'g'
+#define   CR_DEFLT_T_PERIOD_7_COLOR     'c'
+#define   CR_DEFLT_T_PERIOD_8_COLOR     'b'
+#define   CR_DEFLT_T_PERIOD_9_COLOR     'b'
+
+/* Specifiers of the time period
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_LAST_PERIOD_IDX            (9)
+
+#define   CR_PERIOD_YEAR                (1)
+#define   CR_PERIOD_MONTH               (2)
+#define   CR_PERIOD_WEEK                (3)
+#define   CR_PERIOD_DAY                 (4)
+#define   CR_PERIOD_HOUR                (5)
+#define   CR_PERIOD_MIN                 (6)
+#define   CR_PERIOD_SEC                 (7)
+#define   CR_PERIOD_USEC                (8)
+#define   CR_PERIOD_NSEC                (9)
+
+#define   CR_PERIOD_SPEC_CHARS          "YmbdHMSun"
+
+#define   CR_PERIOD_S                   (1)
+#define   CR_PERIOD_M                   (60)
+#define   CR_PERIOD_H                   (CR_PERIOD_M * 60)
+#define   CR_PERIOD_d                   (CR_PERIOD_H * 24)
+#define   CR_PERIOD_w                   (CR_PERIOD_d * 7)
+#define   CR_PERIOD_Y                   ((int)(CR_PERIOD_d * 365.25))
+#define   CR_PERIOD_m                   (CR_PERIOD_Y / 12)
+#define   CR_PERIOD_u                   (1)       /* Unit = micro-seconds  */
+#define   CR_PERIOD_n                   (1)       /* Unit = nano-seconds   */
 
 
 /* Default color
@@ -515,13 +639,22 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_W_NEXT_CHAR          (23)
 #define   CR_STATE_W_NEXT_ARG           (24)
 #define   CR_STATE_W_RAW_CHAR           (25)
-#define   CR_STATE_FINAL                (26)
-#define   CR_STATE_ERR_FOLLOWING        (27)
-#define   CR_STATE_ERR_MISSING_ARG      (28)
+#define   CR_STATE_W_REFERENCE          (26)
+#define   CR_STATE_W_SEPARATOR_3        (27)
+#define   CR_STATE_W_INCREMENT          (28)
+#define   CR_STATE_W_FMT_SPEC           (29)
+#define   CR_STATE_M_FMT_SPEC           (30)
+#define   CR_STATE_W_FMT_POS            (31)
+#define   CR_STATE_W_ZERO               (32)
+#define   CR_STATE_FINAL                (33)
+#define   CR_STATE_ERR_FOLLOWING        (34)
+#define   CR_STATE_ERR_MISSING_ARG      (35)
+#define   CR_STATE_ERR_SYNTAX_ERROR     (36)
 
 #define   CR_UNINITIALIZED              (-1)
 #define   CR_MAX_DAYS                   ( 7)
 #define   CR_MAX_THRESHOLDS             (10)
+#define   CR_MAX_PERIODS                (10)
 
 /* Formatting parameters
    ~~~~~~~~~~~~~~~~~~~~~ */
@@ -557,25 +690,42 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_EXIT_ERR_VERSION           ( 11)
 #define   CR_EXIT_ERR_MARKER            ( 12)
 #define   CR_EXIT_ERR_USAGE             ( 13)
+#define   CR_EXIT_ERR_GETTIMEOFDAY      ( 14)
+#define   CR_EXIT_ERR_MKTIME            ( 15)
+#define   CR_EXIT_ERR_REGEXEC           ( 16)
 
 #define   CR_EXIT_ERR_SEGV              (125)
 #define   CR_EXIT_ERR_INTERNAL          (126)
 
+#define   CR_NB_MONTHS                  (12)
+
 /* Structures
    ~~~~~~~~~~ */
+struct cr_month {
+     int             num;
+     char           *name;
+};
+
 struct cr_color {
      int                                 col_num;
      int                                 intensity;
      FILE                               *out;
 };
 
+struct cr_RE_num {
+     int                                 num[CR_NB_TIME_PERIOD_TYPES + 1];
+};
+
 struct cr_RE_dow_desc {
      struct cr_color                   **cols;                   /* Array for DOW colors       */
      int                                 idx;                    /* Current DOW index          */
      bool                                used;                   /* Colorize day of week       */
+     struct cr_RE_num                    sub_RE_num;             /* Sub-RE numbers             */
+#if 0
      int                                 year_RE_num;            /* Number of sub-RE for year  */
      int                                 month_RE_num;           /* Number of sub-RE for month */
      int                                 day_RE_num;             /* Number of sub-RE for day   */
+#endif    /* 0 */
 };
 
 struct cr_RE_threshold_desc {
@@ -586,6 +736,21 @@ struct cr_RE_threshold_desc {
                                                                  /* Thresholds array           */
      int                                 nb_thresholds;          /* Number of thresholds       */
      int                                 base;                   /* decimal or hexadecimal     */
+};
+
+/* Time periods descriptor
+   ~~~~~~~~~~~~~~~~~~~~~~~ */
+struct cr_RE_time_desc {
+     struct cr_color                   **cols;                   /* Array for periods colors   */
+     int                                 idx;                    /* Current period index       */
+     int                                 period_type;            /* Period type: Y, m, d, ...  */
+     long                                period_length;          /* Period length in seconds   */
+     bool                                used;                   /* Colorize time periods      */
+     bool                                start_from_0;           /* Periods start from 0       */
+     bool                                reference;              /* Delay from time reference  */
+     struct timeval                      ref_time;               /* Time reference             */
+     struct tm                           ref_time_tm;            /* Broken-down time reference */
+     struct cr_RE_num                    sub_RE_num;             /* Sub-RE numbers             */
 };
 
 /* Regexp descriptor
@@ -604,6 +769,7 @@ struct cr_re_desc {
      int                                 alt_idx;                /* Current alternate index    */
      struct cr_RE_dow_desc               dow;                    /* DOW descriptor             */
      struct cr_RE_threshold_desc         threshold;              /* Thresholds descriptor      */
+     struct cr_RE_time_desc              time;                   /* Time periods descriptor    */
      int                                 idx_regex_select;       /* Index of selector regex    */
      char                               *matching_str;           /* String matching the        */
                                                                  /* selector regex             */
@@ -661,6 +827,8 @@ struct cr_args {
      int                                 level;
 //     char                              **p,
      char                              **regexp;
+     bool                                param_before_RE;
+     char                              **param;
 };
 typedef struct cr_args                   cr_args;
 
@@ -687,6 +855,7 @@ struct cr_env_var_conf {
                                         *name,
                                         *deflt_value,
                                         *var_value;
+     bool                                deflt;
 };
 
 /* Environment variable descriptor for colors
@@ -729,7 +898,8 @@ struct cr_global {
                                         *deflt_alt_col_1,
                                         *deflt_alt_col_2,
                                         *deflt_dow[7],
-                                        *deflt_t[CR_SUM(10)];
+                                        *deflt_t[CR_SUM(10)],
+                                        *deflt_time[CR_MAX_PERIODS];
      double                              deflt_t_v[CR_MAX_THRESHOLDS];
      int                                 cflags;
      int                                 list[CR_NB_COLORS];
@@ -758,6 +928,8 @@ struct cr_global {
                                         *insert_RE,
                                         *last_RE;
      int                                 last_color;
+     struct timeval                      ref_time;
+     struct tm                          *tm;
 };
 
 #endif    /* CR_CPRI_H */

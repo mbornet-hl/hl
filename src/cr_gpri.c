@@ -22,10 +22,11 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  [MB] cr_gpri.c Version 1.23 du 22/04/03 - 
+ *   @(#)  [MB] cr_gpri.c Version 1.28 du 22/08/15 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
+ *
  * ============================================================================
  */
 
@@ -64,17 +65,73 @@ char                *cr_best_fg[8][3] = {
 char                *cr_env_conf,
                     *cr_env_conf_glob,
                     *cr_env_default,
+
                     *cr_env_dow_spec,
-                    *cr_env_dow_RE;
+                    *cr_env_dow_RE,
+
+                    *cr_env_thres_RE,
+
+                    *cr_env_time_RE_Y,
+                    *cr_env_time_RE_m,
+                    *cr_env_time_RE_d,
+                    *cr_env_time_RE_H,
+                    *cr_env_time_RE_M,
+                    *cr_env_time_RE_S,
+                    *cr_env_time_RE_u,
+                    *cr_env_time_RE_n,
+
+                    *cr_env_time_spec_Y,
+                    *cr_env_time_spec_m,
+                    *cr_env_time_spec_d,
+                    *cr_env_time_spec_H,
+                    *cr_env_time_spec_M,
+                    *cr_env_time_spec_S,
+                    *cr_env_time_spec_u,
+                    *cr_env_time_spec_n;
+
+char				*cr_time_period_labels[] = {
+	"year",
+	"month",
+	"month name",
+	"day",
+	"hours",
+	"minutes",
+	"seconds",
+	"micro-seconds",
+	"nano-seconds",
+	NULL
+};
+
+struct cr_month      cr_months[CR_NB_MONTHS]  = { 0 };
 
 /* Environment variables (for configuration)
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 struct cr_env_var_conf                             cr_env_vars_cfg[] = {
      { &cr_env_conf,               CR_ENV_CONF,                       CR_DEFLT_CONF,                0    },
      { &cr_env_conf_glob,          CR_ENV_CONF_GLOB,                  CR_DEFLT_CONF_GLOB,           0    },
-//     { &cr_env_default,            CR_ENV_DEFLT,                      CR_DEFLT_COLOR,               0    },
+
      { &cr_env_dow_spec,           CR_ENV_DOW_SPEC,                   CR_DEFLT_DOW_SPEC,            0    },
      { &cr_env_dow_RE,             CR_ENV_DOW_RE,                     CR_DEFLT_DOW_RE,              0    },
+
+     { &cr_env_time_RE_Y,          CR_ENV_TIME_RE_Y,                  CR_DEFLT_TIME_RE_Y,           0    },
+     { &cr_env_time_RE_m,          CR_ENV_TIME_RE_m,                  CR_DEFLT_TIME_RE_m,           0    },
+     { &cr_env_time_RE_d,          CR_ENV_TIME_RE_d,                  CR_DEFLT_TIME_RE_d,           0    },
+     { &cr_env_time_RE_H,          CR_ENV_TIME_RE_H,                  CR_DEFLT_TIME_RE_H,           0    },
+     { &cr_env_time_RE_M,          CR_ENV_TIME_RE_M,                  CR_DEFLT_TIME_RE_M,           0    },
+     { &cr_env_time_RE_S,          CR_ENV_TIME_RE_S,                  CR_DEFLT_TIME_RE_S,           0    },
+     { &cr_env_time_RE_u,          CR_ENV_TIME_RE_u,                  CR_DEFLT_TIME_RE_u,           0    },
+     { &cr_env_time_RE_n,          CR_ENV_TIME_RE_n,                  CR_DEFLT_TIME_RE_n,           0    },
+
+     { &cr_env_time_spec_Y,        CR_ENV_TIME_SPEC_Y,                CR_DEFLT_TIME_SPEC_Y,         0    },
+     { &cr_env_time_spec_m,        CR_ENV_TIME_SPEC_m,                CR_DEFLT_TIME_SPEC_m,         0    },
+     { &cr_env_time_spec_d,        CR_ENV_TIME_SPEC_d,                CR_DEFLT_TIME_SPEC_d,         0    },
+     { &cr_env_time_spec_H,        CR_ENV_TIME_SPEC_H,                CR_DEFLT_TIME_SPEC_H,         0    },
+     { &cr_env_time_spec_M,        CR_ENV_TIME_SPEC_M,                CR_DEFLT_TIME_SPEC_M,         0    },
+     { &cr_env_time_spec_S,        CR_ENV_TIME_SPEC_S,                CR_DEFLT_TIME_SPEC_S,         0    },
+     { &cr_env_time_spec_u,        CR_ENV_TIME_SPEC_u,                CR_DEFLT_TIME_SPEC_u,         0    },
+     { &cr_env_time_spec_n,        CR_ENV_TIME_SPEC_n,                CR_DEFLT_TIME_SPEC_n,         0    },
+
+     { &cr_env_thres_RE,           CR_ENV_THRES_RE,                   CR_DEFLT_THRES_RE,            0    },
      { 0,                          0,                                 0,                            0    }
 };
 
@@ -103,6 +160,27 @@ struct cr_env_var_desc                             cr_env_vars[] = {
        CR_ENV_DOW_FRIDAY,           CR_DEFLT_DOW_FRIDAY_INTENS,        CR_DEFLT_DOW_FRIDAY_COLOR,      0,   0    },
      { &G.deflt_dow[6],             FALSE,
        CR_ENV_DOW_SATURDAY,         CR_DEFLT_DOW_SATURDAY_INTENS,      CR_DEFLT_DOW_SATURDAY_COLOR,    0,   0    },
+
+     { &G.deflt_time[0],            TRUE,
+       CR_ENV_TIME_PERIOD_0,        CR_DEFLT_T_PERIOD_0_INTENS,        CR_DEFLT_T_PERIOD_0_COLOR,      0,   0    },
+     { &G.deflt_time[1],            FALSE,
+       CR_ENV_TIME_PERIOD_1,        CR_DEFLT_T_PERIOD_1_INTENS,        CR_DEFLT_T_PERIOD_1_COLOR,      0,   0    },
+     { &G.deflt_time[2],            FALSE,
+       CR_ENV_TIME_PERIOD_2,        CR_DEFLT_T_PERIOD_2_INTENS,        CR_DEFLT_T_PERIOD_2_COLOR,      0,   0    },
+     { &G.deflt_time[3],            FALSE,
+       CR_ENV_TIME_PERIOD_3,        CR_DEFLT_T_PERIOD_3_INTENS,        CR_DEFLT_T_PERIOD_3_COLOR,      0,   0    },
+     { &G.deflt_time[4],            FALSE,
+       CR_ENV_TIME_PERIOD_4,        CR_DEFLT_T_PERIOD_4_INTENS,        CR_DEFLT_T_PERIOD_4_COLOR,      0,   0    },
+     { &G.deflt_time[5],            FALSE,
+       CR_ENV_TIME_PERIOD_5,        CR_DEFLT_T_PERIOD_5_INTENS,        CR_DEFLT_T_PERIOD_5_COLOR,      0,   0    },
+     { &G.deflt_time[6],            FALSE,
+       CR_ENV_TIME_PERIOD_6,        CR_DEFLT_T_PERIOD_6_INTENS,        CR_DEFLT_T_PERIOD_6_COLOR,      0,   0    },
+     { &G.deflt_time[7],            FALSE,
+       CR_ENV_TIME_PERIOD_7,        CR_DEFLT_T_PERIOD_7_INTENS,        CR_DEFLT_T_PERIOD_7_COLOR,      0,   0    },
+     { &G.deflt_time[8],            FALSE,
+       CR_ENV_TIME_PERIOD_8,        CR_DEFLT_T_PERIOD_8_INTENS,        CR_DEFLT_T_PERIOD_8_COLOR,      0,   0    },
+     { &G.deflt_time[9],            FALSE,
+       CR_ENV_TIME_PERIOD_9,        CR_DEFLT_T_PERIOD_9_INTENS,        CR_DEFLT_T_PERIOD_9_COLOR,      0,   0    },
 
      { &G.deflt_t[CR_IDX(2, 1)],    TRUE,
        CR_ENV_T_2_1,                CR_DEFLT_T_2_1_INTENS,             CR_DEFLT_T_2_1_COLOR,           0,   0    }, 
