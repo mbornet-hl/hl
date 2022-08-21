@@ -56,8 +56,8 @@ Usage
 -----
 
 ```
-hl: version 1.135
-Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
+hl: version 1.153
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -123,6 +123,18 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
            x indicates that thresholds are in hexadecimal
            si : value of the i-th threshold for 1 <= i <= 10
            c1 : color of the i-th range     for 1 <= i <= 10
+  -t  : Colorize string according to time periods
+        Syntax for time periods option : -tp[R][:num][:spec][,c1c2...c10]
+         where :
+           p is a time period specifier in [YmwdHMSun]
+           R is an optional flag telling to use an optional time reference
+             instead of the current time. The optional time reference must be
+             specified before the regex argument
+           num is an optional number of time periods (default is 1)
+           spec is a string specifying the position of date elements,
+             composed of letters in [YmbdHMSus], each one followed by the
+             number of the sub-regex it is associated to,
+         and c1c2...c7 are the optional color specifiers for the time periods
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
@@ -131,8 +143,8 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
 
 You can get a more verbose version of the usage with the '-v' option :
 ```
-hl: version 1.135
-Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp ...][--config_name ...] ]
+hl: version 1.153
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -209,102 +221,163 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJT] regexp 
            c1 : color of the i-th range     for 1 <= i <= 10
         Example : -T1,0,10,50,70,95,100  '(([0-9]+)% .*)'
         Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)% .*)'
+  -t  : Colorize string according to time periods
+        Syntax for time periods option : -tp[R][:num][:spec][,c1c2...c10]
+         where :
+           p is a time period specifier in [YmwdHMSun]
+             with the following meaning :
+               Y : year
+               m : month
+               w : week
+               d : day
+               H : hour
+               M : minute
+               S : second
+               u : micro-second
+               n : nano-second
+           R is an optional flag telling to use an optional time reference
+             instead of the current time. The optional time reference must be
+             specified before the regex argument
+           num is an optional number of time periods (default is 1)
+           spec is a string specifying the position of date elements,
+             composed of letters in [YmbdHMSus], each one followed by the
+             number of the sub-regex it is associated to,
+             with the following meaning :
+               Y : year
+               m : month
+               b : abbreviated month name
+               w : week
+               d : day
+               H : hour
+               M : minute
+               S : second
+               u : micro-second
+               n : nano-second
+         and c1c2...c7 are the optional color specifiers for the time periods
   -N  : consistent numbering of sub-expressions in -A/-I and -s
   -p  : display configuration(s) matching glob-like expression (pattern)
   -P  : display configuration(s) matching regexp
   -x  : display options count for each config (with -vH options)
 Buffer size = 64 Ko
-Environment variable HL_CONF        = "/home/machine/mb/.hl.cfg:/home/machine/mb/hl_conf:/DATA3/projets/hl/config_files"
-Environment variable HL_CONF_GLOB   = "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg:eh_hl_*.cfg"
-Environment variable HL_DOW_SPEC    is undefined. Default value = "Y2m3d4".
-Environment variable HL_DOW_REGEX   is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}))".
+Environment variable HL_CONF         =  "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf:/etc/default/hl"
+Environment variable HL_CONF_GLOB    =  "eh_hl_*.cfg:hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
+Environment variable HL_DOW_SPEC     is undefined. Default value = "Y2m3d4".
+Environment variable HL_DOW_REGEX    is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}))".
+Environment variable HL_TIME_REGEX_Y is undefined. Default value = "(([0-9]{4}))".
+Environment variable HL_TIME_REGEX_m is undefined. Default value = "(([0-9]{4})-([0-9]{2}))".
+Environment variable HL_TIME_REGEX_d is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}))".
+Environment variable HL_TIME_REGEX_H is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}))".
+Environment variable HL_TIME_REGEX_M is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}))".
+Environment variable HL_TIME_REGEX_S is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}))".
+Environment variable HL_TIME_REGEX_u is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\.([0-9]{6}))".
+Environment variable HL_TIME_REGEX_n is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\.([0-9]{9}))".
+Environment variable HL_TIME_SPEC_Y  is undefined. Default value = "Y2".
+Environment variable HL_TIME_SPEC_m  is undefined. Default value = "Y2m3".
+Environment variable HL_TIME_SPEC_d  is undefined. Default value = "Y2m3d4".
+Environment variable HL_TIME_SPEC_H  is undefined. Default value = "Y2m3d4H5".
+Environment variable HL_TIME_SPEC_M  is undefined. Default value = "Y2m3d4H5M6".
+Environment variable HL_TIME_SPEC_S  is undefined. Default value = "Y2m3d4H5M6S7".
+Environment variable HL_TIME_SPEC_u  is undefined. Default value = "Y2m3d4H5M6S7u8".
+Environment variable HL_TIME_SPEC_n  is undefined. Default value = "Y2m3d4H5M6S7n8".
+Environment variable HL_THRES_REGEX  is undefined. Default value = "([0-9]+)".
 
-Environment variable HL_DEFAULT     is undefined. Default value = "3Y".
+Environment variable HL_DEFAULT      is undefined. Default value = "3Y".
 
-Environment variable HL_A1          is undefined. Default value = "2B".
-Environment variable HL_A2          is undefined. Default value = "3c".
+Environment variable HL_A1           is undefined. Default value = "2B".
+Environment variable HL_A2           is undefined. Default value = "3c".
 
-Environment variable HL_SUNDAY      is undefined. Default value = "3R".
-Environment variable HL_MONDAY      is undefined. Default value = "2b".
-Environment variable HL_TUESDAY     is undefined. Default value = "2c".
-Environment variable HL_WEDNESDAY   is undefined. Default value = "2g".
-Environment variable HL_THURSDAY    is undefined. Default value = "3g".
-Environment variable HL_FRIDAY      is undefined. Default value = "3y".
-Environment variable HL_SATURDAY    is undefined. Default value = "3r".
+Environment variable HL_SUNDAY       is undefined. Default value = "3R".
+Environment variable HL_MONDAY       is undefined. Default value = "2b".
+Environment variable HL_TUESDAY      is undefined. Default value = "2c".
+Environment variable HL_WEDNESDAY    is undefined. Default value = "2g".
+Environment variable HL_THURSDAY     is undefined. Default value = "3g".
+Environment variable HL_FRIDAY       is undefined. Default value = "3y".
+Environment variable HL_SATURDAY     is undefined. Default value = "3r".
 
-Environment variable HL_T_2_1       is undefined. Default value = "3g".
-Environment variable HL_T_2_2       is undefined. Default value = "3r".
+Environment variable HL_TIME_0       is undefined. Default value = "3w".
+Environment variable HL_TIME_1       is undefined. Default value = "3m".
+Environment variable HL_TIME_2       is undefined. Default value = "3r".
+Environment variable HL_TIME_3       is undefined. Default value = "2y".
+Environment variable HL_TIME_4       is undefined. Default value = "3y".
+Environment variable HL_TIME_5       is undefined. Default value = "3g".
+Environment variable HL_TIME_6       is undefined. Default value = "2g".
+Environment variable HL_TIME_7       is undefined. Default value = "3c".
+Environment variable HL_TIME_8       is undefined. Default value = "3b".
+Environment variable HL_TIME_9       is undefined. Default value = "2b".
 
-Environment variable HL_T_3_1       is undefined. Default value = "3g".
-Environment variable HL_T_3_2       is undefined. Default value = "3y".
-Environment variable HL_T_3_3       is undefined. Default value = "3r".
+Environment variable HL_T_2_1        is undefined. Default value = "3g".
+Environment variable HL_T_2_2        is undefined. Default value = "3r".
 
-Environment variable HL_T_4_1       is undefined. Default value = "3b".
-Environment variable HL_T_4_2       is undefined. Default value = "3g".
-Environment variable HL_T_4_3       is undefined. Default value = "3y".
-Environment variable HL_T_4_4       is undefined. Default value = "3r".
+Environment variable HL_T_3_1        is undefined. Default value = "3g".
+Environment variable HL_T_3_2        is undefined. Default value = "3y".
+Environment variable HL_T_3_3        is undefined. Default value = "3r".
 
-Environment variable HL_T_5_1       is undefined. Default value = "3b".
-Environment variable HL_T_5_2       is undefined. Default value = "3g".
-Environment variable HL_T_5_3       is undefined. Default value = "3y".
-Environment variable HL_T_5_4       is undefined. Default value = "2r".
-Environment variable HL_T_5_5       is undefined. Default value = "3r".
+Environment variable HL_T_4_1        is undefined. Default value = "3b".
+Environment variable HL_T_4_2        is undefined. Default value = "3g".
+Environment variable HL_T_4_3        is undefined. Default value = "3y".
+Environment variable HL_T_4_4        is undefined. Default value = "3r".
 
-Environment variable HL_T_6_1       is undefined. Default value = "3b".
-Environment variable HL_T_6_2       is undefined. Default value = "3c".
-Environment variable HL_T_6_3       is undefined. Default value = "3g".
-Environment variable HL_T_6_4       is undefined. Default value = "3y".
-Environment variable HL_T_6_5       is undefined. Default value = "3r".
-Environment variable HL_T_6_6       is undefined. Default value = "3w".
+Environment variable HL_T_5_1        is undefined. Default value = "3b".
+Environment variable HL_T_5_2        is undefined. Default value = "3g".
+Environment variable HL_T_5_3        is undefined. Default value = "3y".
+Environment variable HL_T_5_4        is undefined. Default value = "2r".
+Environment variable HL_T_5_5        is undefined. Default value = "3r".
 
-Environment variable HL_T_7_1       is undefined. Default value = "3b".
-Environment variable HL_T_7_2       is undefined. Default value = "3c".
-Environment variable HL_T_7_3       is undefined. Default value = "3g".
-Environment variable HL_T_7_4       is undefined. Default value = "3y".
-Environment variable HL_T_7_5       is undefined. Default value = "3r".
-Environment variable HL_T_7_6       is undefined. Default value = "3m".
-Environment variable HL_T_7_7       is undefined. Default value = "3w".
+Environment variable HL_T_6_1        is undefined. Default value = "3b".
+Environment variable HL_T_6_2        is undefined. Default value = "3c".
+Environment variable HL_T_6_3        is undefined. Default value = "3g".
+Environment variable HL_T_6_4        is undefined. Default value = "3y".
+Environment variable HL_T_6_5        is undefined. Default value = "3r".
+Environment variable HL_T_6_6        is undefined. Default value = "3w".
 
-Environment variable HL_T_8_1       is undefined. Default value = "2b".
-Environment variable HL_T_8_2       is undefined. Default value = "3b".
-Environment variable HL_T_8_3       is undefined. Default value = "3c".
-Environment variable HL_T_8_4       is undefined. Default value = "3g".
-Environment variable HL_T_8_5       is undefined. Default value = "3y".
-Environment variable HL_T_8_6       is undefined. Default value = "3r".
-Environment variable HL_T_8_7       is undefined. Default value = "3m".
-Environment variable HL_T_8_8       is undefined. Default value = "3w".
+Environment variable HL_T_7_1        is undefined. Default value = "3b".
+Environment variable HL_T_7_2        is undefined. Default value = "3c".
+Environment variable HL_T_7_3        is undefined. Default value = "3g".
+Environment variable HL_T_7_4        is undefined. Default value = "3y".
+Environment variable HL_T_7_5        is undefined. Default value = "3r".
+Environment variable HL_T_7_6        is undefined. Default value = "3m".
+Environment variable HL_T_7_7        is undefined. Default value = "3w".
 
-Environment variable HL_T_9_1       is undefined. Default value = "2b".
-Environment variable HL_T_9_2       is undefined. Default value = "3b".
-Environment variable HL_T_9_3       is undefined. Default value = "3c".
-Environment variable HL_T_9_4       is undefined. Default value = "2g".
-Environment variable HL_T_9_5       is undefined. Default value = "3g".
-Environment variable HL_T_9_6       is undefined. Default value = "3y".
-Environment variable HL_T_9_7       is undefined. Default value = "3r".
-Environment variable HL_T_9_8       is undefined. Default value = "3m".
-Environment variable HL_T_9_9       is undefined. Default value = "3w".
+Environment variable HL_T_8_1        is undefined. Default value = "2b".
+Environment variable HL_T_8_2        is undefined. Default value = "3b".
+Environment variable HL_T_8_3        is undefined. Default value = "3c".
+Environment variable HL_T_8_4        is undefined. Default value = "3g".
+Environment variable HL_T_8_5        is undefined. Default value = "3y".
+Environment variable HL_T_8_6        is undefined. Default value = "3r".
+Environment variable HL_T_8_7        is undefined. Default value = "3m".
+Environment variable HL_T_8_8        is undefined. Default value = "3w".
 
-Environment variable HL_T_10_1      is undefined. Default value = "2b".
-Environment variable HL_T_10_2      is undefined. Default value = "3b".
-Environment variable HL_T_10_3      is undefined. Default value = "3c".
-Environment variable HL_T_10_4      is undefined. Default value = "2g".
-Environment variable HL_T_10_5      is undefined. Default value = "3g".
-Environment variable HL_T_10_6      is undefined. Default value = "3y".
-Environment variable HL_T_10_7      is undefined. Default value = "2y".
-Environment variable HL_T_10_8      is undefined. Default value = "3r".
-Environment variable HL_T_10_9      is undefined. Default value = "3m".
-Environment variable HL_T_10_10     is undefined. Default value = "3w".
+Environment variable HL_T_9_1        is undefined. Default value = "2b".
+Environment variable HL_T_9_2        is undefined. Default value = "3b".
+Environment variable HL_T_9_3        is undefined. Default value = "3c".
+Environment variable HL_T_9_4        is undefined. Default value = "2g".
+Environment variable HL_T_9_5        is undefined. Default value = "3g".
+Environment variable HL_T_9_6        is undefined. Default value = "3y".
+Environment variable HL_T_9_7        is undefined. Default value = "3r".
+Environment variable HL_T_9_8        is undefined. Default value = "3m".
+Environment variable HL_T_9_9        is undefined. Default value = "3w".
 
-Environment variable HL_T_V_1       is undefined. Default value =               0
-Environment variable HL_T_V_2       is undefined. Default value =              10
-Environment variable HL_T_V_3       is undefined. Default value =              20
-Environment variable HL_T_V_4       is undefined. Default value =              30
-Environment variable HL_T_V_5       is undefined. Default value =              40
-Environment variable HL_T_V_6       is undefined. Default value =              50
-Environment variable HL_T_V_7       is undefined. Default value =              60
-Environment variable HL_T_V_8       is undefined. Default value =              70
-Environment variable HL_T_V_9       is undefined. Default value =              80
-Environment variable HL_T_V_10      is undefined. Default value =             100
+Environment variable HL_T_10_1       is undefined. Default value = "2b".
+Environment variable HL_T_10_2       is undefined. Default value = "3b".
+Environment variable HL_T_10_3       is undefined. Default value = "3c".
+Environment variable HL_T_10_4       is undefined. Default value = "2g".
+Environment variable HL_T_10_5       is undefined. Default value = "3g".
+Environment variable HL_T_10_6       is undefined. Default value = "3y".
+Environment variable HL_T_10_7       is undefined. Default value = "2y".
+Environment variable HL_T_10_8       is undefined. Default value = "3r".
+Environment variable HL_T_10_9       is undefined. Default value = "3m".
+Environment variable HL_T_10_10      is undefined. Default value = "3w".
+
+Environment variable HL_T_V_1        is undefined. Default value =               0
+Environment variable HL_T_V_2        is undefined. Default value =              10
+Environment variable HL_T_V_3        is undefined. Default value =              20
+Environment variable HL_T_V_4        is undefined. Default value =              30
+Environment variable HL_T_V_5        is undefined. Default value =              40
+Environment variable HL_T_V_6        is undefined. Default value =              50
+Environment variable HL_T_V_7        is undefined. Default value =              60
+Environment variable HL_T_V_8        is undefined. Default value =              70
+Environment variable HL_T_V_9        is undefined. Default value =              80
+Environment variable HL_T_V_10       is undefined. Default value =             100
 ```
 To use a colorized version of the "man" command, you should define a pager :
 MANPAGER=/usr/local/bin/hl_man_pager
