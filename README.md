@@ -514,3 +514,5 @@ $ ./dates_gen -w '2000-06-23 12:34:56.123456789' | hl -twR '2000-06-23 12:34:56.
 ```
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_-twR.png)
 
+New environment variables for option -t :
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_env_-t.png)
