@@ -3,7 +3,7 @@
 #	Launch all tests for option -t of "hl"
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_all_tests_-t	Version 1.3 du 22/08/21 - 
+#	@(#)	[MB] ek_all_tests_-t	Version 1.6 du 22/09/03 - 
 #
 
 readonly REF_DATE='2000-06-23 12:34:56.123456789'
@@ -49,9 +49,15 @@ label()
 
 for opt in Y m w d H M S u n
 do
-	echo "========== `label "$opt"` =========="
-	./dates_gen -"$opt" | "$HL" -t"$opt"
-	echo "---------- `label "$opt"` with reference date $REF_DATE ----------"
-	./dates_gen -"$opt" "$REF_DATE" | "$HL" -t"$opt"R "$REF_DATE"
-	echo
+	for zero in '' '0'
+	do
+		echo "========== `label "$opt"` =========="
+		echo "[$(date '+%Y-%m-%d %H:%M:%S')]"
+		echo "./dates_gen -$opt | $HL -t${opt}${zero}"
+		./dates_gen -"$opt" | "$HL" -t"${opt}${zero}"
+		echo "---------- `label "$opt"` with reference date $REF_DATE ----------"
+		echo "./dates_gen -$opt '$REF_DATE' | $HL -t${opt}${zero}R '$REF_DATE'"
+		./dates_gen -"$opt" "$REF_DATE" | "$HL" -t"${opt}${zero}"R "$REF_DATE"
+		echo
+	done
 done

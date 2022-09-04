@@ -3,7 +3,7 @@
 #	Dates generator for tests
 #	~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_dates_gen	Version 1.4 du 22/08/21 - 
+#	@(#)	[MB] ek_dates_gen	Version 1.5 du 22/08/23 - 
 #
 
 usage()
@@ -27,9 +27,9 @@ usage()
 date_s0()
 {
 	if [ "$1" = '' ]; then
-		date '+%s'
+		date '+%s.%N'
 	else
-		date '+%s' -d "$1"
+		date '+%s.%N' -d "$1"
 	fi
 }
 

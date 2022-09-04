@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.153 du 22/08/21 - 
+ *   @(#)  [MB] cr_main.c Version 1.157 du 22/09/04 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -35,6 +35,8 @@
 #if defined(HL_BACKTRACE)
 #define _GNU_SOURCE
 #endif    /* HL_BACKTRACE */
+
+#define _POSIX_C_SOURCE 199309L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,6 +51,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <locale.h>
+#include <stdint.h>
+#include <inttypes.h>
 #if defined(HL_BACKTRACE)
 #include <signal.h>
 #include <execinfo.h>
@@ -68,6 +72,104 @@
 /* macros }}} */
 #define   NB_MATCH  12
 
+/* cr_error_malloc() {{{ */
+/******************************************************************************
+
+                         CR_ERROR_MALLOC
+
+******************************************************************************/
+void cr_error_malloc()
+{
+     fprintf(stderr, cr_err_malloc, G.prgname);
+}
+
+/* cr_error_malloc() }}} */
+/* cr_init_tm() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_TM
+
+******************************************************************************/
+void cr_init_tm(struct tm *tm)
+{
+     bzero(tm, sizeof(*tm));
+     tm->tm_mday              = 1;
+}
+
+/* cr_new_tm() }}} */
+/* cr_new_tm() {{{ */
+
+/******************************************************************************
+
+                         CR_NEW_TM
+
+******************************************************************************/
+struct tm *cr_new_tm()
+{
+     struct tm                *_tm;
+
+     if ((_tm = malloc(sizeof(*_tm))) == NULL) {
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
+     }
+
+     cr_init_tm(_tm);
+
+     return _tm;
+}
+
+/* cr_new_tm() }}} */
+/* cr_disp_tm() {{{ */
+
+/******************************************************************************
+
+                         CR_DISP_TM
+
+******************************************************************************/
+void cr_disp_tm(struct tm *tm)
+{
+     printf("tm->tm_year   = %4d (%d)\n",    tm->tm_year + 1900, tm->tm_year);
+     printf("tm->tm_mon    =   %02d (%d)\n", tm->tm_mon + 1, tm->tm_mon);
+     printf("tm->tm_mday   =   %02d\n",      tm->tm_mday);
+     printf("tm->tm_hour   =   %02d\n",      tm->tm_hour);
+     printf("tm->tm_min    =   %02d\n",      tm->tm_min);
+     printf("tm->tm_sec    =   %02d\n",      tm->tm_sec);
+     printf("tm->tm_wday   = %3d\n",         tm->tm_wday);
+     printf("tm->tm_yday   = %3d\n",         tm->tm_yday);
+     printf("tm->tm_isdst  = %3d\n",         tm->tm_isdst);
+}
+
+/* cr_disp_time_desc() }}} */
+/* cr_disp_time_desc() {{{ */
+
+/******************************************************************************
+
+                         CR_DISP_TIME_DESC
+
+******************************************************************************/
+void cr_disp_time_desc(cr_time_desc *time_desc)
+{
+     printf("nsec_epoch    = %19lld\n",      time_desc->nsec_epoch);
+     printf("tspec.tv_sec  = %10ld\n",       time_desc->tspec.tv_sec);
+     printf("tspec.tv_nsec =           %09ld\n",
+                                             time_desc->tspec.tv_nsec);
+     printf("tm->tm_year   = %4d (%d)\n",    time_desc->tm->tm_year + 1900, time_desc->tm->tm_year);
+     printf("tm->tm_mon    =   %02d (%d)\n", time_desc->tm->tm_mon + 1, time_desc->tm->tm_mon);
+     printf("tm->tm_mday   =   %02d\n",      time_desc->tm->tm_mday);
+     printf("tm->tm_hour   =   %02d\n",      time_desc->tm->tm_hour);
+     printf("tm->tm_min    =   %02d\n",      time_desc->tm->tm_min);
+     printf("tm->tm_sec    =   %02d\n",      time_desc->tm->tm_sec);
+     printf("tm->tm_wday   = %3d\n",         time_desc->tm->tm_wday);
+     printf("tm->tm_yday   = %3d\n",         time_desc->tm->tm_yday);
+     printf("tm->tm_isdst  = %3d\n",         time_desc->tm->tm_isdst);
+     printf("%4d-%02d-%02d %02d:%02d:%02d.%09ld\n",
+            time_desc->tm->tm_year + 1900, time_desc->tm->tm_mon + 1, time_desc->tm->tm_mday,
+            time_desc->tm->tm_hour, time_desc->tm->tm_min, time_desc->tm->tm_sec,
+            time_desc->tspec.tv_nsec);
+}
+
+/* cr_disp_time_desc() }}} */
 /* cr_str_color() {{{ */
 
 /******************************************************************************
@@ -108,6 +210,26 @@ int cr_tm_copy(struct tm *tm_dst, struct tm *tm_src)
 }
 
 /* cr_tm_copy() }}} */
+/* cr_time_desc_copy() {{{ */
+
+/******************************************************************************
+
+                         CR_TIME_DESC_COPY
+
+******************************************************************************/
+int cr_time_desc_copy(cr_time_desc *dst, cr_time_desc *src)
+{
+     dst->time                = src->time;
+     dst->nsec                = src->nsec;
+     dst->nsec_epoch          = src->nsec_epoch;
+
+     dst->tspec.tv_sec        = src->tspec.tv_sec;
+     dst->tspec.tv_nsec       = src->tspec.tv_nsec;
+
+     cr_tm_copy(dst->tm, src->tm);
+}
+
+/* cr_time_desc_copy() }}} */
 /* cr_month_cmp() {{{ */
 
 /******************************************************************************
@@ -115,7 +237,7 @@ int cr_tm_copy(struct tm *tm_dst, struct tm *tm_src)
                          CR_MONTH_CMP
 
 ******************************************************************************/
-int cr_month_cmp(struct cr_month *m1, struct cr_month *m2)
+int cr_month_cmp(cr_month *m1, cr_month *m2)
 {
      return strcmp(m1->name, m2->name);
 }
@@ -130,8 +252,8 @@ int cr_month_cmp(struct cr_month *m1, struct cr_month *m2)
 ******************************************************************************/
 int cr_get_month_num(char *name)
 {
-     static struct cr_month        *_last    = NULL;
-     struct cr_month                _searched;
+     static cr_month               *_last    = NULL;
+     cr_month                       _searched;
      int                            _num;
 
      if (_last != NULL && !strcmp(name, _last->name)) {
@@ -153,14 +275,14 @@ int cr_get_month_num(char *name)
 }
 
 /* cr_get_month_num() }}} */
-/* cr_init_months() {{{ */
+/* cr_init_months_names() {{{ */
 
 /******************************************************************************
 
-                         CR_INIT_MONTHS
+                         CR_INIT_MONTHS_NAMES
 
 ******************************************************************************/
-void cr_init_months()
+void cr_init_months_names()
 {
      struct tm                      _dates;
      char                          *_locale, *_mon[CR_NB_MONTHS], _tmp[32];
@@ -175,7 +297,7 @@ void cr_init_months()
      }
 
      bzero(&_dates, sizeof(_dates));
-     _dates.tm_year      = 2022 - 1900;
+     _dates.tm_year      = G.time_desc.tm->tm_year;
      _dates.tm_mday      = 1;
 
      for (_i = 0; _i < CR_NB_MONTHS; _i++) {
@@ -189,7 +311,7 @@ void cr_init_months()
            (int (*)(const void *, const void *)) cr_month_cmp);
 }
 
-/* cr_init_months() }}} */
+/* cr_init_months_names() }}} */
 /* cr_init_start_time() {{{ */
 
 /******************************************************************************
@@ -199,45 +321,365 @@ void cr_init_months()
 ******************************************************************************/
 void cr_init_start_time()
 {
-     time_t               _time;
      struct tm           *_tm;
 
-     if (G.ref_time.tv_sec == 0) {
-          if (gettimeofday(&G.ref_time, 0) != 0) {
-               perror("gettimeofday");
-               exit(CR_EXIT_ERR_GETTIMEOFDAY);
-          }
-     }
+     time_t               _sec;
+     long int             _ns;
 
-     _time               = time(0);
-     G.tm                = localtime(&_time);
+#if 0
+     /* Get clock resolution
+        ~~~~~~~~~~~~~~~~~~~~ */
+     if (clock_getres(CLOCK_REALTIME, &G.time_desc.tspec) < 0) {
+          perror("clock_getres");
+          exit(CR_EXIT_ERR_CLOCK_GETTIME);
+     }
+     CR_DEBUG("Clock res : sec = %ld ns = %ld\n",
+              G.time_desc.tspec.tv_sec, G.time_desc.tspec.tv_nsec);
+#endif    /* 0 */
+
+     /* Get current clock value
+        ~~~~~~~~~~~~~~~~~~~~~~~ */
+     if (clock_gettime(CLOCK_REALTIME, &G.time_desc.tspec) < 0) {
+          perror("clock_gettime");
+          exit(CR_EXIT_ERR_CLOCK_GETTIME);
+     }
+     _sec                     = G.time_desc.tspec.tv_sec;
+     _ns                      = G.time_desc.tspec.tv_nsec;
+
+     G.time_desc.nsec_epoch   = (uint64_t) _sec * CR_10e9 + (uint64_t) _ns;
+     G.time_desc.time         = G.time_desc.tspec.tv_sec;
+     G.time_desc.tm           = localtime(&G.time_desc.tspec.tv_sec);
+
+     CR_DEBUG("Current time: %lld nanoseconds since the Epoch\n", G.time_desc.nsec_epoch);
+     if (G.debug) {
+          cr_disp_time_desc(&G.time_desc);
+     }
 }
 
 /* cr_init_start_time() }}} */
+/* cr_set_bounds() {{{ */
+
+/******************************************************************************
+
+                         CR_SET_BOUNDS
+
+******************************************************************************/
+void cr_set_bounds(cr_RE_time_desc *RE_t, long period)
+{
+     int                       _i;
+     long                      _delta;
+     struct tm                *_tm;
+
+     _delta                        = RE_t->coeff * period;
+
+     for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+          RE_t->lower_bounds[_i].tm               = cr_new_tm();
+          RE_t->lower_bounds[_i].nsec_epoch       = ((RE_t->ref_time.tspec.tv_sec - ((_i+1) * _delta)) * CR_10e9)
+                                                  + RE_t->ref_time.tspec.tv_nsec;
+          RE_t->lower_bounds[_i].tspec.tv_nsec    = RE_t->lower_bounds[_i].nsec_epoch % CR_10e9;
+          RE_t->lower_bounds[_i].tspec.tv_sec     = RE_t->lower_bounds[_i].nsec_epoch / CR_10e9;
+          _tm                                     = localtime(&RE_t->lower_bounds[_i].tspec.tv_sec);
+          cr_tm_copy(RE_t->lower_bounds[_i].tm, _tm);
+
+          RE_t->upper_bounds[_i].tm               = cr_new_tm();
+          RE_t->upper_bounds[_i].nsec_epoch       = ((RE_t->ref_time.tspec.tv_sec + ((_i + 1) * _delta)) * CR_10e9)
+                                                  + RE_t->ref_time.tspec.tv_nsec;
+          RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
+          RE_t->upper_bounds[_i].tspec.tv_sec     = RE_t->upper_bounds[_i].nsec_epoch / CR_10e9;
+          _tm                                     = localtime(&RE_t->upper_bounds[_i].tspec.tv_sec);
+          cr_tm_copy(RE_t->upper_bounds[_i].tm, _tm);
+
+          CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+          CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
+
+          CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+          CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
+     }
+}
+
+/* cr_set_bounds() }}} */
+/* cr_init_bounds() {{{ */
+
+/******************************************************************************
+
+                         CR_INIT_BOUNDS
+
+******************************************************************************/
+void cr_init_bounds(cr_RE_time_desc *RE_t)
+{
+     int                       _i, _delta_y, _delta_m;
+     long                      _delta;
+     struct tm                *_tm;
+
+     CR_ENTERING;
+
+CR_DEBUG("period_type = %d coeff = %d\n", RE_t->period_type, RE_t->coeff);
+     if (G.debug) {
+// X
+//           cr_disp_time_desc(&RE_t->ref_time);
+     }
+
+     switch (RE_t->period_type) {
+
+     case CR_PERIOD_YEAR:
+          for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+X
+CR_DEBUG("_i = %d\n", _i);
+               RE_t->lower_bounds[_i].tm               = cr_new_tm();
+               cr_tm_copy(RE_t->lower_bounds[_i].tm, RE_t->ref_time.tm);
+//               RE_t->lower_bounds[_i].tm->tm_year     -= (_i * RE_t->coeff);
+               RE_t->lower_bounds[_i].tm->tm_year     -= ((_i+1) * RE_t->coeff);
+CR_DEBUG("==========> ref_time.tm.tm_year = %d\n", RE_t->ref_time.tm->tm_year + 1900);
+               RE_t->lower_bounds[_i].tm->tm_isdst     = -1;
+               RE_t->lower_bounds[_i].tspec.tv_sec     = mktime(RE_t->lower_bounds[_i].tm);
+               RE_t->lower_bounds[_i].nsec_epoch       = (RE_t->lower_bounds[_i].tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec;
+               RE_t->lower_bounds[_i].tspec.tv_nsec    = RE_t->lower_bounds[_i].nsec_epoch % CR_10e9;
+
+               RE_t->upper_bounds[_i].tm               = cr_new_tm();
+               cr_tm_copy(RE_t->upper_bounds[_i].tm, RE_t->ref_time.tm);
+               RE_t->upper_bounds[_i].tm->tm_year     += ((_i+1) * RE_t->coeff);
+               RE_t->upper_bounds[_i].tm->tm_isdst     = -1;
+               RE_t->upper_bounds[_i].tspec.tv_sec     = mktime(RE_t->upper_bounds[_i].tm);
+               RE_t->upper_bounds[_i].nsec_epoch       = (RE_t->upper_bounds[_i].tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec;
+               RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
+
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
+
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
+
+               if (G.debug) {
+X
+                    cr_disp_time_desc(&RE_t->lower_bounds[_i]);
+X
+                    cr_disp_time_desc(&RE_t->upper_bounds[_i]);
+               }
+          }
+          break;
+
+     case CR_PERIOD_MONTH:
+          for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+X
+CR_DEBUG("_i = %d\n", _i);
+               _delta_m                 = ((_i+1) * RE_t->coeff) % 12;
+               _delta_y                 = ((_i+1) * RE_t->coeff) / 12;
+
+               RE_t->lower_bounds[_i].tm               = cr_new_tm();
+               cr_tm_copy(RE_t->lower_bounds[_i].tm, RE_t->ref_time.tm);
+
+               if (RE_t->ref_time.tm->tm_mon < _delta_m) {
+                    RE_t->lower_bounds[_i].tm->tm_mon      += 12 - _delta_m;
+                    RE_t->lower_bounds[_i].tm->tm_year     -= 1  + _delta_y;
+               }
+               else {
+                    RE_t->lower_bounds[_i].tm->tm_mon      -= _delta_m;
+                    RE_t->lower_bounds[_i].tm->tm_year     -= _delta_y;
+               }
+CR_DEBUG("==========> ref_time.tm.tm_year = %d\n", RE_t->ref_time.tm->tm_year + 1900);
+               RE_t->lower_bounds[_i].tm->tm_isdst     = -1;
+               RE_t->lower_bounds[_i].tspec.tv_sec     = mktime(RE_t->lower_bounds[_i].tm);
+               RE_t->lower_bounds[_i].nsec_epoch       = (RE_t->lower_bounds[_i].tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec;
+               RE_t->lower_bounds[_i].tspec.tv_nsec    = RE_t->lower_bounds[_i].nsec_epoch % CR_10e9;
+
+               _delta_m                 = ((_i + 1) * RE_t->coeff) % 12;
+               _delta_y                 = ((_i + 1) * RE_t->coeff) / 12;
+
+               RE_t->upper_bounds[_i].tm               = cr_new_tm();
+               cr_tm_copy(RE_t->upper_bounds[_i].tm, RE_t->ref_time.tm);
+
+               if (RE_t->ref_time.tm->tm_mon + _delta_m >= 12) {
+                    RE_t->upper_bounds[_i].tm->tm_mon      += _delta_m - 12;
+                    RE_t->upper_bounds[_i].tm->tm_year     += _delta_y + 1;
+               }
+               else {
+                    RE_t->upper_bounds[_i].tm->tm_mon      += _delta_m;
+                    RE_t->upper_bounds[_i].tm->tm_year     += _delta_y;
+               }
+               RE_t->upper_bounds[_i].tm->tm_isdst     = -1;
+               RE_t->upper_bounds[_i].tspec.tv_sec     = mktime(RE_t->upper_bounds[_i].tm);
+               RE_t->upper_bounds[_i].nsec_epoch       = (RE_t->upper_bounds[_i].tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec;
+               RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
+
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
+
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
+
+               if (G.debug) {
+X
+                    cr_disp_time_desc(&RE_t->lower_bounds[_i]);
+X
+                    cr_disp_time_desc(&RE_t->upper_bounds[_i]);
+               }
+          }
+          break;
+
+     case CR_PERIOD_WEEK:
+          cr_set_bounds(RE_t, CR_PERIOD_w);
+          break;
+
+     case CR_PERIOD_DAY:
+          cr_set_bounds(RE_t, CR_PERIOD_d);
+          break;
+
+     case CR_PERIOD_HOUR:
+          cr_set_bounds(RE_t, CR_PERIOD_H);
+          break;
+
+     case CR_PERIOD_MIN:
+          cr_set_bounds(RE_t, CR_PERIOD_M);
+          break;
+
+     case CR_PERIOD_SEC:
+          cr_set_bounds(RE_t, CR_PERIOD_S);
+          break;
+
+     case CR_PERIOD_USEC:
+          for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+               RE_t->lower_bounds[_i].tm               = cr_new_tm();
+               RE_t->lower_bounds[_i].nsec_epoch       = (RE_t->ref_time.tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec - ((_i+1) * 1000 * RE_t->coeff);
+               RE_t->lower_bounds[_i].tspec.tv_nsec    = RE_t->lower_bounds[_i].nsec_epoch % CR_10e9;
+               RE_t->lower_bounds[_i].tspec.tv_sec     = RE_t->lower_bounds[_i].nsec_epoch / CR_10e9;
+
+               _tm                                     = localtime(&RE_t->lower_bounds[_i].tspec.tv_sec);
+               cr_tm_copy(RE_t->lower_bounds[_i].tm, _tm);
+
+               RE_t->upper_bounds[_i].tm               = cr_new_tm();
+               RE_t->upper_bounds[_i].nsec_epoch       = (RE_t->ref_time.tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec + ((_i+1) * 1000 * RE_t->coeff);
+               RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
+               RE_t->upper_bounds[_i].tspec.tv_sec     = RE_t->upper_bounds[_i].nsec_epoch / CR_10e9;
+
+               _tm                                     = localtime(&RE_t->upper_bounds[_i].tspec.tv_sec);
+               cr_tm_copy(RE_t->upper_bounds[_i].tm, _tm);
+
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
+
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
+          }
+          break;
+
+     case CR_PERIOD_NSEC:
+X
+          for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+               RE_t->lower_bounds[_i].tm               = cr_new_tm();
+               RE_t->lower_bounds[_i].nsec_epoch       = (RE_t->ref_time.tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec - ((_i+1) * RE_t->coeff);
+               RE_t->lower_bounds[_i].tspec.tv_nsec    = RE_t->lower_bounds[_i].nsec_epoch % CR_10e9;
+               RE_t->lower_bounds[_i].tspec.tv_sec     = RE_t->lower_bounds[_i].nsec_epoch / CR_10e9;
+
+               _tm                                     = localtime(&RE_t->lower_bounds[_i].tspec.tv_sec);
+               cr_tm_copy(RE_t->lower_bounds[_i].tm, _tm);
+
+               RE_t->upper_bounds[_i].tm               = cr_new_tm();
+               RE_t->upper_bounds[_i].nsec_epoch       = (RE_t->ref_time.tspec.tv_sec * CR_10e9)
+                                                       + RE_t->ref_time.tspec.tv_nsec + ((_i+1) * RE_t->coeff);
+               RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
+               RE_t->upper_bounds[_i].tspec.tv_sec     = RE_t->upper_bounds[_i].nsec_epoch / CR_10e9;
+
+               _tm                                     = localtime(&RE_t->upper_bounds[_i].tspec.tv_sec);
+               cr_tm_copy(RE_t->upper_bounds[_i].tm, _tm);
+
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
+
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
+          }
+          break;
+
+     default:
+X
+          fprintf(stderr, "%s(%d)\n", __func__, __LINE__);
+          fprintf(stderr, "%s: internal error, period_type = %d\n",
+                  RE_t->period_type);
+          exit(CR_EXIT_ERR_INTERNAL);
+     }
+// fprintf(G.out, "\n");
+     CR_LEAVING;
+}
+
+/* cr_init_bounds() }}} */
+/* cr_ctime() {{{ */
+
+/******************************************************************************
+
+                         CR_CTIME
+
+******************************************************************************/
+char * cr_ctime(long long nsec, char *buf)
+{
+     time_t                    _time;
+
+     _time                    = nsec / CR_10e9;
+     strcpy(buf, ctime(&_time));
+     buf[strlen(buf) - 1]     = '\0';
+
+     return buf;
+}
+
+/* cr_ctime() }}} */
 /* cr_get_period_idx() {{{ */
 
 /******************************************************************************
 
-                              CR_GET_PERIOD_IDX
+                         CR_GET_PERIOD_IDX
 
 ******************************************************************************/
-int cr_get_period_idx(struct cr_RE_time_desc *time_desc, time_t time)
+int cr_get_period_idx(cr_RE_time_desc *RE_t, cr_time_desc *time_desc)
 {
-     long                 _delay;
-     int                  _idx;
+     int                  _i;
+     char                 _buf1[64], _buf2[64];
 
-// printf("Data time : %s", ctime(&time));
-// printf("Ref  time : %s", ctime(&time_desc->ref_time.tv_sec));
+     CR_ENTERING;
 
-     _delay              = abs(time_desc->ref_time.tv_sec - time);
-     _idx                = _delay / time_desc->period_length;
-// printf("period IDX = %d\n", _idx);
-     if (_idx >= CR_LAST_PERIOD_IDX) {
-          _idx                = CR_LAST_PERIOD_IDX;
+     if (G.debug) {
+          CR_DEBUG("RE_t->ref_time :\n");
+          cr_disp_time_desc(&RE_t->ref_time);
+          printf("\n");
+
+          CR_DEBUG("time_desc :\n");
+          cr_disp_time_desc(time_desc);
+          printf("\n");
      }
 
-// printf("period IDX = %d\n", _idx);
-     return _idx;
+     for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
+          CR_DEBUG("%s() : _i = %2d\n", __func__, _i);
+
+          CR_DEBUG("Lower : %lld <> %lld --- %s <> %s\n",
+                   time_desc->nsec_epoch, RE_t->lower_bounds[_i].nsec_epoch,
+                   cr_ctime(time_desc->nsec_epoch, _buf1),
+                   cr_ctime(RE_t->lower_bounds[_i].nsec_epoch, _buf2));
+
+          CR_DEBUG("Upper : %lld <> %lld --- %s <> %s\n",
+                   time_desc->nsec_epoch, RE_t->upper_bounds[_i].nsec_epoch,
+                   cr_ctime(time_desc->nsec_epoch, _buf1),
+                   cr_ctime(RE_t->upper_bounds[_i].nsec_epoch, _buf2));
+
+          if ((time_desc->nsec_epoch > RE_t->lower_bounds[_i].nsec_epoch)
+          &&  (time_desc->nsec_epoch < RE_t->upper_bounds[_i].nsec_epoch)) {
+               break;
+          }
+     }
+
+     if (_i >= CR_LAST_PERIOD_IDX) {
+          _i                       = CR_LAST_PERIOD_IDX;
+     }
+
+
+     CR_DEBUG("==========> Period IDX = %d\n", _i);
+
+     CR_LEAVING;
+     return _i;
 }
 
 /* cr_get_period_idx() }}} */
@@ -245,10 +687,10 @@ int cr_get_period_idx(struct cr_RE_time_desc *time_desc, time_t time)
 
 /******************************************************************************
 
-                         CR_INIT_REF_TIME
+                    CR_INIT_REF_TIME
 
 ******************************************************************************/
-bool cr_init_ref_time(char *ref_time, struct cr_re_desc *re_desc)
+bool cr_init_ref_time(char *ref_time, cr_re_desc *re_desc)
 {
      char                      *_regex, _errbuf[256], _tmp_str[10240];
      size_t                    _nmatch  = NB_MATCH;
@@ -260,15 +702,19 @@ bool cr_init_ref_time(char *ref_time, struct cr_re_desc *re_desc)
      long                      _value;
      struct tm                *_tm;
      time_t                    _time;
-     struct cr_RE_time_desc   *_time_desc;
+     cr_RE_time_desc          *_time_desc;
 
-X
      _time_desc               = &re_desc->time;
-X
      _regex                   = re_desc->regex[0];
+     _tm                      = re_desc->time.ref_time.tm;
+
+#if 0
+     if (G.debug) {
 X
-     _tm                      = &re_desc->time.ref_time_tm;
-X
+          CR_DEBUG("_time_desc->ref_time :\n");
+          cr_disp_time_desc(&_time_desc->ref_time);
+     }
+#endif    /* 0 */
 
      /* Compile regex
         ~~~~~~~~~~~~~ */
@@ -278,126 +724,137 @@ X
                   G.prgname, _regex, _errbuf);
           exit(1);
      }
-X
-fprintf(stderr, "ref_time = [%s]\n", ref_time);
+
+//     CR_DEBUG("ref_time = [%s]\n", ref_time);
 
      /* Execute regex
         ~~~~~~~~~~~~~ */
      if ((_retcode = regexec(&_reg, ref_time, _nmatch, _pmatch, _eflags)) == 0) {
-//          printf("  MATCH FOR [%s] // [%s]\n", ref_time, _regex);
+          //          printf("  MATCH FOR [%s] // [%s]\n", ref_time, _regex);
 
-X
           /* Search for the date elements : loop on substrings
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-          for (_j = 0; _j < _max_sub; _j++) {
-X
+          for (_j = 0; _j <= _max_sub; _j++) {
+               CR_DEBUG("_j = %d sub_RE_num = %d\n", _j, _time_desc->sub_RE_num.num[CR_TIME_IDX_n]);
+
                if (_j == 0 && _pmatch[1].rm_so != -1) {
-X
                     continue;
                }
 
-X
                _s                       = _pmatch[_j].rm_so;
                _e                       = _pmatch[_j].rm_eo - 1;
 
-X
                strncpy(_tmp_str, ref_time + _s, _e - _s + 1);
                _tmp_str[_e -_s + 1]     = 0;
                _value                   = atol(_tmp_str);
-X
 
 //               printf("    [sub-exp %2d] OFFSET = %3d : %3d -> %3d match = [%s]\n",
 //                            _j, _e - _s + 1, _s, _e, _tmp_str);
 //               printf("    [sub-exp %2d] DATE ELT : value = %ld\n", _j, _value);
 
-X
                if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_Y]) {
-X
                     _year          = atoi(_tmp_str);
                     _tm->tm_year   = _year - 1900;
                     CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_Y], _year);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_m]) {
-X
                     _month         = atoi(_tmp_str);
                     _tm->tm_mon    = _month - 1;
                     CR_DEBUG("Month found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_m], _month);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_m], _month);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_mn]) {
-X
                     _month         = cr_get_month_num(_tmp_str);
                     _tm->tm_mon    = _month - 1;
                     CR_DEBUG("Month name found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_mn], _month);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_mn], _month);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_d]) {
-X
                     _day           = atoi(_tmp_str);
                     _tm->tm_mday   = _day;
                     CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_d], _day);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_d], _day);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_H]) {
-X
                     _hour          = atoi(_tmp_str);
                     _tm->tm_hour   = _hour;
                     CR_DEBUG("Hour  found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_H], _hour);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_H], _hour);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_M]) {
-X
                     _min           = atoi(_tmp_str);
                     _tm->tm_min    = _min;
                     CR_DEBUG("Min   found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_M], _min);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_M], _min);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_S]) {
-X
                     _sec           = atoi(_tmp_str);
                     _tm->tm_sec    = _sec;
                     CR_DEBUG("Sec   found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_S], _sec);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_S], _sec);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_u]) {
-X
                     _usec          = atoi(_tmp_str);
+                    re_desc->time.ref_time.tspec.tv_nsec  = _usec * 1000;
                     CR_DEBUG("µsec  found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_u], _usec);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_u], _usec);
                }
                else if (_j == _time_desc->sub_RE_num.num[CR_TIME_IDX_n]) {
-X
                     _nsec          = atoi(_tmp_str);
+                    re_desc->time.ref_time.tspec.tv_nsec  = _nsec;
                     CR_DEBUG("nsec  found (RE_num = %d) : %4d\n",
-				         _time_desc->sub_RE_num.num[CR_TIME_IDX_n], _nsec);
+                             _time_desc->sub_RE_num.num[CR_TIME_IDX_n], _nsec);
                }
+               else {
+                    CR_DEBUG("_j = %d sub_RE_num = %d\n",
+                             _j, _time_desc->sub_RE_num.num[CR_TIME_IDX_n]);
+               }
+
+#if 0
+X
+cr_disp_tm(_tm);
+X
+cr_disp_tm(_time_desc->ref_time.tm);
+#endif    /* 0 */
           }
 
-          _time_desc->ref_time_tm.tm_isdst     = G.tm->tm_isdst;
           if (_year == 0) {
 X
-               _time_desc->ref_time_tm.tm_year         = _year - 1900;
-               _year                                   = _time_desc->ref_time_tm.tm_year + 1900;
+               _time_desc->ref_time.tm->tm_year       = G.time_desc.tm->tm_year;
+               _year                                   = _time_desc->ref_time.tm->tm_year + 1900;
                CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
-			          _time_desc->sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                         _time_desc->sub_RE_num.num[CR_TIME_IDX_Y], _year);
           }
 
+#if 0
 X
+cr_disp_tm(_time_desc->ref_time.tm);
+#endif    /* 0 */
           /* Convert ASCII date to calendar  time
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-          if ((_time_desc->ref_time.tv_sec = mktime(&_time_desc->ref_time_tm)) == -1) {
+          _time_desc->ref_time.tm->tm_isdst      = -1;
+          if ((_time_desc->ref_time.tspec.tv_sec = mktime(_time_desc->ref_time.tm)) == -1) {
                perror("mktime");
                exit(CR_EXIT_ERR_MKTIME);
           }
-
-//          printf("Ref time = %s", ctime(&_time_desc->ref_time.tv_sec));
      }
      else {
-X
           fprintf(stderr, "_retcode = %d\n", _retcode);
      }
+     _time_desc->ref_time.tm->tm_isdst      = G.time_desc.tm->tm_isdst;
+#if 0
 X
+cr_disp_tm(_time_desc->ref_time.tm);
+#endif    /* 0 */
+
+     _time_desc->ref_time.nsec_epoch         = (_time_desc->ref_time.tspec.tv_sec * CR_10e9)
+                                             +  _time_desc->ref_time.tspec.tv_nsec;
+
+     if (G.debug) {
+          CR_DEBUG("Reference time :\n");
+          cr_disp_time_desc(&_time_desc->ref_time);
+     }
 
      return (_retcode == 0);
 }
@@ -425,18 +882,6 @@ char *cr_char_to_str(unsigned char c)
 }
 
 /* cr_char_to_str() }}} */
-/* cr_error_malloc() {{{ */
-/******************************************************************************
-
-                         CR_ERROR_MALLOC
-
-******************************************************************************/
-void cr_error_malloc()
-{
-     fprintf(stderr, cr_err_malloc, G.prgname);
-}
-
-/* cr_error_malloc() }}} */
 /* cr_error_syntax() {{{ */
 
 /******************************************************************************
@@ -444,17 +889,26 @@ void cr_error_malloc()
                          CR_ERROR_SYNTAX
 
 ******************************************************************************/
-void cr_error_syntax(struct cr_root_args *root_args)
+void cr_error_syntax(cr_root_args *root_args)
 {
      char                 _c, *_p, *_option;
      cr_args             *_args;
 
      _args               = root_args->args;
-     _args->idx--;
+     if (_args->idx > 0) {
+          _args->idx--;
+          if (*(_args->argp) != NULL) {
+               _c                  = (*_args->argp)[_args->idx];
+               _p                  = &(*_args->argp)[_args->idx];
+          }
+          *_p                 = 0;
+     }
+     else {
+          _args->argp--;
+          _args->idx          = 0;
+     }
      _option             = &(*_args->argp)[0];
-     _c                  = (*_args->argp)[_args->idx];
-     _p                  = &(*_args->argp)[_args->idx];
-     *_p                 = 0;
+X
 
      fprintf(stderr, "%s: syntax error on '%s' after \"%s\"\n",
             G.prgname, cr_char_to_str(_c), _option);
@@ -655,7 +1109,7 @@ void cr_transition(char c, int *ref_state, int new_state)
                               CR_LIST2ARGV
 
 ******************************************************************************/
-void cr_list2argv(struct cr_config *config)
+void cr_list2argv(cr_config *config)
 {
      /* Convert a list of cr_arg elements into an array argv,
      * and free the initial list (must not be called twice
@@ -664,7 +1118,7 @@ void cr_list2argv(struct cr_config *config)
      * from argv[1]
        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      char                     **_argv;
-     struct cr_arg             *_arg, *_old_arg;
+     cr_arg                    *_arg, *_old_arg;
      int                        _size;
 
 //   CR_ENTERING;
@@ -700,9 +1154,9 @@ void cr_list2argv(struct cr_config *config)
                               CR_LISTS2ARGV
 
 ******************************************************************************/
-void cr_lists2argv(struct cr_configs *configs)
+void cr_lists2argv(cr_configs *configs)
 {
-     struct cr_config         *_config;
+     cr_config                *_config;
 
      for (_config = configs->extract; _config != 0; _config = _config->next) {
           cr_list2argv(_config);
@@ -972,7 +1426,26 @@ CR_NEW(root_args)
                          CR_NEW_RE_DESC
 
 ******************************************************************************/
-CR_NEW(re_desc)
+cr_re_desc * cr_new_re_desc()
+{
+     cr_re_desc                    *_re;
+
+     if ((_re = malloc(sizeof(*_re))) == NULL) {
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
+     }
+
+     bzero(_re, sizeof(*_re));
+
+     _re->time.ref_time.tm         = cr_new_tm();
+#if 0
+X
+cr_disp_time_desc(&_re->time.ref_time);
+#endif    /* 0 */
+
+     return _re;
+}
+
 
 /* cr_new_re_desc() }}} */
 /* cr_new_color() {{{ */
@@ -992,10 +1465,10 @@ CR_NEW(color)
                          CR_CREATE_COLOR
 
 ******************************************************************************/
-struct cr_color *cr_create_color(int color, int intensity)
+cr_color *cr_create_color(int color, int intensity)
 {
      // XXX : for Alternate option
-     struct cr_color     *_color;
+     cr_color            *_color;
 
      _color              = cr_new_color();
      _color->col_num     = color;
@@ -2573,9 +3046,9 @@ void cr_pos_unspecified(char *date_elt_name)
 ******************************************************************************/
 void cr_pos_inconsistency(char *date_elt_1, char *date_elt_2)
 {
-	if (G.verbose) {
-		CR_DEBUG("\n");
-	}
+     if (G.verbose) {
+          CR_DEBUG("\n");
+     }
      fprintf(stderr, "%s: regex numbers for %s and %s are identical !\n",
              G.prgname, date_elt_1, date_elt_2);
 }
@@ -2642,10 +3115,10 @@ void cr_set_sub_RE_nums(struct cr_RE_num *sub_RE, char *fmt_spec)
      int                       _state = CR_STATE_INITIAL, *_ref_date_elt;
      bool                      _get_next_char = TRUE;
 
-	CR_DEBUG("fmt_spec = \"%s\"\n", fmt_spec);
+     CR_DEBUG("fmt_spec = \"%s\"\n", fmt_spec);
 
      for (_p = fmt_spec; *_p != '\0'; ) {
-		_c					= *_p;
+          _c                       = *_p;
           _get_next_char           = TRUE;
 
           switch (_state) {
@@ -2992,7 +3465,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
 
      char                     *_option;
      int                       _nb_sub, *_ref_date_elt, _color_count;
-	struct cr_RE_num		*_sub_RE_num;
+     struct cr_RE_num         *_sub_RE_num;
 
      CR_ENTERING;
 
@@ -3007,7 +3480,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
      _re->idx_regex_select    = 0;
      _re->matching_str        = NULL;
      _re->change_on_diff      = TRUE;
-	_sub_RE_num			= &_re->dow.sub_RE_num;
+     _sub_RE_num              = &_re->dow.sub_RE_num;
      G.out                    = stdout;
 
      _curr_col_idx            = 0;
@@ -3017,7 +3490,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
      _possible_RE             = cr_env_dow_RE;
      _possible_spec           = cr_env_dow_spec;
 
-	cr_init_RE_num(_sub_RE_num);
+     cr_init_RE_num(_sub_RE_num);
      _color_count             = 0;
 
      _lg                      = 7;
@@ -3204,18 +3677,21 @@ CR_DEBUG("================> NEXT ARG        = [%s]\n", *root_args->args->argp);
 CR_DEBUG("================> POSSIBLE REGEX  = [%s]\n", _possible_RE);
 CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
 
+X
      if (!cr_is_RE_num_set(_sub_RE_num)) {
           /* No date format specified : used default value
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		cr_set_sub_RE_nums(&_re->dow.sub_RE_num, _possible_spec);
+          cr_set_sub_RE_nums(&_re->dow.sub_RE_num, _possible_spec);
      }
 
+X
      cr_check_time_sub_RE(_sub_RE_num);
 
      if (_regexp == NULL) {
           _regexp                  = cr_env_dow_RE;
      }
 
+X
      /* Count number of possible sub strings
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      for (_p = _regexp; (*_p); _p++) {
@@ -3224,6 +3700,7 @@ CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
           }
      }
 
+X
      _nb_sub                  = _re->max_sub - 1;
 
 #if 0
@@ -3236,6 +3713,7 @@ CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
      }
 #endif
 
+X
      if (!G.consistency) {
           _selector++;   // '0' => regexp number 1
      }
@@ -3243,6 +3721,7 @@ CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
      _re->regex[0]            = _regexp;
      _re->regex[1]            = NULL;
 
+X
      /* Initialize missing colors with default colors
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      for (_i = 0; _i < CR_MAX_DAYS; _i++) {
@@ -3251,9 +3730,11 @@ CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
           }
      }
 
+X
      if (G.debug || G.verbose) {
           struct cr_color     *_color;
 
+X
           CR_DEBUG("Selector  = %d\n",   _re->idx_regex_select);
           CR_DEBUG("regex[0]  = [%s]\n", _re->regex[0]);
           CR_DEBUG("regex[1]  = %p\n",   _re->regex[1]);
@@ -3269,6 +3750,7 @@ CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
           CR_DEBUG("\n");
      }
 
+X
      if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
           (void) regerror(_error, &_re->reg[0], _errbuf, sizeof(_errbuf));
           fprintf(stderr, "%s: regcomp error for \"%s\" : %s\n",
@@ -3743,20 +4225,19 @@ struct cr_re_desc *cr_decode_time(cr_root_args *root_args)
      bool                      _reference, _sub_RE_specified, _get_next_char = TRUE,
                                _start_from_0 = FALSE;
      static bool               _init_done = FALSE;
-     struct tm                *_ref_tm;
 
      CR_ENTERING;
-
-     /* Initialize months management
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-     if (_init_done == FALSE) {
-          cr_init_months();
-          _init_done               = TRUE;
-     }
 
      /* Get current time
         ~~~~~~~~~~~~~~~~ */
      cr_init_start_time();
+
+     /* Initialize months management
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     if (_init_done == FALSE) {
+          cr_init_months_names();
+          _init_done               = TRUE;
+     }
 
      _re                      = cr_new_re_desc();
      _re->time.used           = TRUE;
@@ -3793,6 +4274,7 @@ struct cr_re_desc *cr_decode_time(cr_root_args *root_args)
 
      if (_args != NULL) {
           _option                  = *_args->argp;
+CR_DEBUG("_option = [%s]\n", _option);
      }
 
      /* Allocate memory for the color descriptors
@@ -3901,6 +4383,7 @@ struct cr_re_desc *cr_decode_time(cr_root_args *root_args)
                     break;
 
                default:
+X
                     /* No time period specification
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                     cr_error_syntax(root_args);
@@ -4161,11 +4644,12 @@ CR_DEBUG("================> POSSIBLE SPEC   = [%s]\n", _possible_spec);
 X
           /* No date format specified : used default value
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-		cr_set_sub_RE_nums(_sub_RE_num, _possible_spec);
+          cr_set_sub_RE_nums(_sub_RE_num, _possible_spec);
      }
 X
-cr_disp_RE_nums(_sub_RE_num);
+// cr_disp_RE_nums(_sub_RE_num);
 
+X
      cr_check_time_sub_RE(_sub_RE_num);
 
 #if 0
@@ -4179,22 +4663,23 @@ cr_disp_RE_nums(_sub_RE_num);
           _regexp                  = _possible_RE;
      }
      _re->time.start_from_0   = _start_from_0;
+     _re->time.period_type    = _period_type;
      _re->time.period_length  = _period_length * _incr;
+     _re->time.coeff          = _incr;
 
      if (_reference) {
-          /* XXX TODO : create tm struct for reference time !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          /* Reference specified
+             ~~~~~~~~~~~~~~~~~~~ */
      }
      else {
-CR_DEBUG("=====> Init de _ref_tm \n");
-          _ref_tm                  = G.tm;
+          /* Reference unspecified : use current time
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+          cr_time_desc_copy(&_re->time.ref_time, &G.time_desc);
      }
 
      /* Copy time reference into the descriptor
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-     cr_tm_copy(&_re->time.ref_time_tm, _ref_tm);
-
-     _re->time.ref_time.tv_sec      = mktime(&_re->time.ref_time_tm);
+     _re->time.ref_time.tm        = cr_new_tm();
 
      if (_regexp == NULL) {
           _regexp                  = _possible_RE;
@@ -4260,6 +4745,7 @@ CR_DEBUG("=====> Init de _ref_tm \n");
           CR_DEBUG("\n");
      }
 
+X
 CR_DEBUG("================> USED REGEX      = [%s]\n", _regexp);
      /* Compile regular expression
         ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -4270,64 +4756,34 @@ CR_DEBUG("================> USED REGEX      = [%s]\n", _regexp);
           exit(CR_EXIT_ERR_REGCOMP);
      }
 
-#if 0
-     if (_start_from_0) {
-          /* Reset date elements smaller than period type
-             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-          if (_period_type <= CR_PERIOD_NSEC) {
-//               _re->time.ref_time_tm.tm_nsec      = 0;
-          }
-          if (_period_type <= CR_PERIOD_USEC) {
-//               _re->time.ref_time_tm.tm_nsec      = 0;
-          }
-          if (_period_type <= CR_PERIOD_SEC) {
-//               _re->time.ref_time_tm.tm_usec      = 0;
-          }
-          if (_period_type <= CR_PERIOD_MIN) {
-               _re->time.ref_time_tm.tm_sec       = 0;
-          }
-          if (_period_type <= CR_PERIOD_HOUR) {
-               _re->time.ref_time_tm.tm_min       = 0;
-          }
-          if (_period_type <= CR_PERIOD_DAY) {
-               _re->time.ref_time_tm.tm_hour      = 0;
-          }
-          if (_period_type <= CR_PERIOD_WEEK) {
-               _re->time.ref_time_tm.tm_wday      = 1;
-          }
-          if (_period_type <= CR_PERIOD_MONTH) {
-               _re->time.ref_time_tm.tm_mday      = 1;
-          }
-          if (_period_type <= CR_PERIOD_YEAR) {
-               _re->time.ref_time_tm.tm_mon       = 0;
-               _re->time.ref_time_tm.tm_yday      = 0;
-          }
-     }
-#endif    /* 0 */
-
 X
      if (_reference) {
+X
           if (_ref_time == NULL) {
+X
                fprintf(stderr, "%s: reference time missing !\n", G.prgname);
                exit(CR_EXIT_ERR_USAGE);
           }
           else {
                /* Convert ASCII reference time
                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* XXX TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-CR_DEBUG("================> REFERENCE TIME = [%s]\n", _ref_time);
+X
+               CR_DEBUG("================> REFERENCE TIME = [%s]\n", _ref_time);
+               if (cr_init_ref_time(_ref_time, _re) != TRUE) {
+X
+                    fprintf(stderr, "%s: error while analyzing reference time !\n", G.prgname);
+                    exit(CR_EXIT_ERR_REGEXEC);
+               }
           }
      }
      else {
-          CR_DEBUG("================> NO REFERENCE SPECIFIED\n");
+          CR_DEBUG("================> NO REFERENCE SPECIFIED : using current time\n");
+          cr_time_desc_copy(&_re->time.ref_time, &G.time_desc);
      }
 
-     if (_reference) {
-          if (cr_init_ref_time(_ref_time, _re) != TRUE) {
-               fprintf(stderr, "%s: error while analyzing reference time !\n", G.prgname);
-               exit(CR_EXIT_ERR_REGEXEC);
-          }
-     }
+// X
+// cr_disp_time_desc(&_re->time.ref_time);
+     cr_init_bounds(&_re->time);
 
      CR_LEAVING;
      return _re;
@@ -5017,7 +5473,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.153");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.157");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5184,7 +5640,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.153");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.157");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -5273,7 +5729,7 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, "        Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)%% .*)'\n");
      }
      fprintf(G.usage_out, "  -t  : Colorize string according to time periods\n");
-     fprintf(G.usage_out, "        Syntax for time periods option : -tp[R][:num][:spec][,c1c2...c10]\n");
+     fprintf(G.usage_out, "        Syntax for time periods option : -tp[0][R][:num][:spec][,c1c2...c10]\n");
      fprintf(G.usage_out, "         where :\n");
      fprintf(G.usage_out, "           p is a time period specifier in [YmwdHMSun]\n");
      if (G.verbose) {
@@ -5288,6 +5744,7 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, "               u : micro-second\n");
           fprintf(G.usage_out, "               n : nano-second\n");
      }
+     fprintf(G.usage_out, "           0 tells that the date must be framed at the beginning of the period\n");
      fprintf(G.usage_out, "           R is an optional flag telling to use an optional time reference\n");
      fprintf(G.usage_out, "             instead of the current time. The optional time reference must be\n");
      fprintf(G.usage_out, "             specified before the regex argument\n");
@@ -5559,7 +6016,7 @@ void cr_set_desc(struct cr_re_desc *re, int offset, int s, int e, int marker)
                break;
 
           default:
-               fprintf(stderr, "%s: erreur interne, marker = %d\n",
+               fprintf(stderr, "%s: internal error, marker = %d\n",
                        G.prgname, marker);
                exit(CR_EXIT_ERR_INTERNAL);
           }
@@ -5668,19 +6125,56 @@ long cr_next_val(struct cr_re_desc *re)
  *   1 <= month <= 12,
  *   year > 1752 (in the U.K.)
  */
-int cr_day_of_the_week(int year, int month, int day)
+int cr_day_of_the_week(struct cr_time_desc *t)
 {
      static int          _t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 
 //fprintf(G.debug_out, "DAY OF THE WEEK : YEAR = %4d Month = %2d Day = %2d\n", year, month, day);
-     if (month < 3 ) {
-          year                -= 1;
+     if (t->tm->tm_mon < 3 ) {
+          t->tm->tm_year         -= 1;
      }
 
-     return (year + year/4 - year/100 + year/400 + _t[month - 1] + day) % 7;
+     return (t->tm->tm_year + t->tm->tm_year/4 - t->tm->tm_year/100 + t->tm->tm_year/400
+             + _t[t->tm->tm_mon - 1] + t->tm->tm_mday) % 7;
 }
 
 /* cr_day_of_the_week() }}} */
+/* cr_reset_tm() {{{ */
+
+/******************************************************************************
+
+                              CR_RESET_TM
+
+******************************************************************************/
+void cr_reset_tm(struct tm *tm)
+{
+     tm->tm_year         = 0;
+     tm->tm_mon          = 0;
+     tm->tm_mday         = 0;
+     tm->tm_hour         = 0;
+     tm->tm_min          = 0;
+     tm->tm_sec          = 0;
+
+     tm->tm_wday         = 0;
+     tm->tm_yday         = 0;
+     tm->tm_isdst        = 0;
+}
+
+/* cr_reset_tm() }}} */
+/* cr_reset_time_desc() {{{ */
+
+/******************************************************************************
+
+                              CR_RESET_TIME_DESC
+
+******************************************************************************/
+void cr_reset_time_desc(struct cr_time_desc *t)
+{
+     bzero((char *) t, sizeof(*t));
+     t->tm                    = cr_new_tm();
+}
+
+/* cr_reset_time_desc() }}} */
 /* cr_read_input() {{{ */
 
 /******************************************************************************
@@ -5701,9 +6195,8 @@ void cr_read_input(void)
      char                      _matching_str[CR_SIZE + 1];
      bool                      _change;
      long                      _new_val, _expected;
-     int                       _year, _month, _day, _dow,
-                               _hour, _min, _sec, _usec, _nsec;
-     time_t                    _time;
+     int                       _dow;
+     struct cr_time_desc       _t;
 
      _nmatch        = sizeof(_pmatch) / sizeof(_pmatch[0]);
 
@@ -5712,10 +6205,6 @@ void cr_read_input(void)
           /* Reset of color descriptors
              ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
           cr_init_desc();
-
-//          _year               = 0,
-//          _month              = 0;
-//          _day                = 0;
 
           G.length       = strlen(G.line);
           _idx_last      = G.length - 1;
@@ -5998,9 +6487,7 @@ void cr_read_input(void)
 
                               /* Reset date elements
                                  ~~~~~~~~~~~~~~~~~~~ */
-                              _year               = 0,
-                              _month              = 0;
-                              _day                = 0;
+                              cr_reset_time_desc(&_t);
                               _dow                = CR_UNINITIALIZED;
 
                               /* Search for the date : loop on substrings
@@ -6023,24 +6510,31 @@ void cr_read_input(void)
 
 
                                    if (_j == _re->dow.sub_RE_num.num[CR_TIME_IDX_Y]) {
-                                        _year          = atoi(_tmp_str);
+                                        _t.tm->tm_year = atoi(_tmp_str);
                                         CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
-                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_Y], _t.tm->tm_year);
                                    }
                                    else if (_j == _re->dow.sub_RE_num.num[CR_TIME_IDX_m]) {
-                                        _month         = atoi(_tmp_str);
+                                        _t.tm->tm_mon  = atoi(_tmp_str);
                                         CR_DEBUG("Month found (RE_num = %d) : %4d\n",
-                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_m], _month);
+                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_m], _t.tm->tm_mon);
                                    }
                                    if (_j == _re->dow.sub_RE_num.num[CR_TIME_IDX_d]) {
-                                        _day      = atoi(_tmp_str);
+                                        _t.tm->tm_mday = atoi(_tmp_str);
                                         CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
-                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_d], _day);
+                                                 _re->dow.sub_RE_num.num[CR_TIME_IDX_d], _t.tm->tm_mday);
                                    }
 
-                                   if (_year != 0 && _month != 0 && _day != 0) {
-                                        _dow           = cr_day_of_the_week(_year, _month, _day);
-                                        CR_DEBUG("Day of week = %d (%4d-%02d-%02d)\n", _dow, _year, _month, _day);
+                                   if (_t.tm->tm_year != 0 && _t.tm->tm_mon != 0 && _t.tm->tm_mday != 0) {
+//                                        _dow           = cr_day_of_the_week(_year, _month, _day);
+                                        _dow           = cr_day_of_the_week(&_t);
+                                        CR_DEBUG("Day of week = %d (%4d-%02d-%02d)\n",
+                                                 _dow, _t.tm->tm_year, _t.tm->tm_mon, _t.tm->tm_mday);
+                                   }
+
+                                   if (G.debug) {
+X
+                                        cr_disp_time_desc(&_t);
                                    }
                               }
 
@@ -6189,17 +6683,14 @@ void cr_read_input(void)
                     }
                     else if (_re->time.used) {
                          double                    _value;
-                         int                       _t, _period_idx;
-                         struct tm                 _tm;
+                         int                       _period_idx;
+                         struct cr_time_desc       _t;
 
-                         CR_DEBUG("TIME PERIOD COLORS ...\n");
+                         CR_DEBUG("=========================> TIME PERIOD COLORS ...\n");
 
-CR_DEBUG("=========================> TIME PERIOD COLORS ...\n");
-// cr_disp_regex();
                          /* Search for multiple matches on the line
                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
                          _search_no     = 1;
-// fprintf(G.debug_out, "_off = %d  G.length = %d line = [%s]\n", _off, G.length, G.line);
                          for (_off = 0, _eflags = 0;
                               _off < G.length &&
                               regexec(&_re->reg[_i], G.line + _off, _nmatch, _pmatch,
@@ -6211,28 +6702,8 @@ CR_DEBUG("=========================> TIME PERIOD COLORS ...\n");
 
                               /* Reset date elements
                                  ~~~~~~~~~~~~~~~~~~~ */
-                              _year               = 0,
-                              _month              = 0;
-                              _day                = 0;
-                              _hour               = 0;
-                              _min                = 0;
-                              _sec                = 0;
-                              _usec               = 0;
-                              _nsec               = 0;
-                              _time               = CR_UNINITIALIZED;
+                              cr_reset_time_desc(&_t);
                               _period_idx         = 0;
-
-                              _tm.tm_year         = 0;
-                              _tm.tm_mon          = 0;
-                              _tm.tm_mday         = 0;
-                              _tm.tm_hour         = 0;
-                              _tm.tm_min          = 0;
-                              _tm.tm_sec          = 0;
-
-                              _tm.tm_wday         = 0;
-                              _tm.tm_yday         = 0;
-                              _tm.tm_isdst        = 0;
-
 
                               /* Search for the date : loop on substrings
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -6254,120 +6725,130 @@ CR_DEBUG("=========================> TIME PERIOD COLORS ...\n");
                                                 _j, _off, _s, _e, _re->regex[_i], _tmp_str);
                                    CR_DEBUG("    [sub-exp %2d] DATE ELT : value = %g\n", _j, _value);
                                    CR_DEBUG("\n");
+#if 0
+X
+cr_disp_time_desc(&_re->time.ref_time);
+X
+cr_disp_time_desc(&_t);
+#endif    /* 0 */
 
                                    if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_Y]) {
-                                        _year          = atoi(_tmp_str);
-                                        _tm.tm_year    = _year - 1900;
+                                        _t.tm->tm_year = atoi(_tmp_str) - 1900;
                                         CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_Y], _t.tm->tm_year);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_m]) {
-                                        _month         = atoi(_tmp_str);
-                                        _tm.tm_mon     = _month - 1;
+                                        _t.tm->tm_mon  = atoi(_tmp_str) - 1;
                                         CR_DEBUG("Month found (RE_num = %d) : %4d\n",
-                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_m], _month);
+                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_m], _t.tm->tm_mon);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_mn]) {
-                                        _month         = cr_get_month_num(_tmp_str);
-                                        _tm.tm_mon     = _month - 1;
+                                        _t.tm->tm_mon  = cr_get_month_num(_tmp_str) - 1;
                                         CR_DEBUG("Month found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_mn], _month);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_mn], _t.tm->tm_mon);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_d]) {
-                                        _day           = atoi(_tmp_str);
-                                        _tm.tm_mday    = _day;
+                                        _t.tm->tm_mday = atoi(_tmp_str);
                                         CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_d], _day);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_d], _t.tm->tm_mday);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_H]) {
-                                        _hour          = atoi(_tmp_str);
-                                        _tm.tm_hour    = _hour;
+                                        _t.tm->tm_hour = atoi(_tmp_str);
                                         CR_DEBUG("Hour  found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_H], _day);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_H], _t.tm->tm_hour);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_M]) {
-                                        _min           = atoi(_tmp_str);
-                                        _tm.tm_min     = _min;
+                                        _t.tm->tm_min  = atoi(_tmp_str);
                                         CR_DEBUG("Min   found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_M], _day);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_M], _t.tm->tm_min);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_S]) {
-                                        _sec           = atoi(_tmp_str);
-                                        _tm.tm_sec     = _sec;
+                                        _t.tm->tm_sec  = atoi(_tmp_str);
                                         CR_DEBUG("Sec   found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_S], _day);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_S], _t.tm->tm_sec);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_u]) {
-                                        _usec          = atoi(_tmp_str);
+                                        _t.nsec        = atoi(_tmp_str) * 1000;
                                         CR_DEBUG("µsec  found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_u], _day);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_u], _t.nsec);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_n]) {
-                                        _nsec          = atoi(_tmp_str);
+                                        _t.nsec          = atoi(_tmp_str);
                                         CR_DEBUG("nsec  found (RE_num = %d) : %4d\n",
-                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_n], _day);
+                                                 _re->time.sub_RE_num.num[CR_TIME_IDX_n], _t.nsec);
                                    }
                               }
 
-                              _tm.tm_isdst        = G.tm->tm_isdst;
-                              if (_year == 0) {
-                                   _tm.tm_year    = G.tm->tm_year;
-                                   _year          = _tm.tm_year + 1900;
-                                   CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
-                                            _re->time.sub_RE_num.num[CR_TIME_IDX_Y], _year);
+                              if (G.debug) {
+X
+                                   cr_disp_time_desc(&_t);
                               }
+
+                              if (_t.tm->tm_year == 0) {
+                                   _t.tm->tm_year = G.time_desc.tm->tm_year;
+                                   CR_DEBUG("Year  found (RE_num = %d) : %4d\n",
+                                            _re->time.sub_RE_num.num[CR_TIME_IDX_Y], _t.tm->tm_year);
+                              }
+
+                              _t.tm->tm_isdst          = -1;
 
                               /* Convert ASCII date to calendar  time
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                              if ((_time = mktime(&_tm)) == -1) {
+                              if ((_t.tspec.tv_sec = mktime(_t.tm)) == -1) {
                                    perror("mktime");
                                    exit(CR_EXIT_ERR_MKTIME);
                               }
 
+                              _t.tm->tm_isdst          = G.time_desc.tm->tm_isdst;
+
                               /* Search for the right color
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                              _period_idx              = cr_get_period_idx(&_re->time, _time);
+X
+                              _t.tspec.tv_nsec         = _t.nsec;
+                              _t.nsec_epoch            = ((_t.tspec.tv_sec * CR_10e9)
+                                                       +   _t.tspec.tv_nsec);
 
-                              CR_DEBUG("TIME SINCE THE EPOCH : %s\n", ctime(&_time));
+                              CR_DEBUG("TIME SINCE THE EPOCH : %s\n", ctime(&_t.tspec.tv_sec));
+                              CR_DEBUG("TIME SINCE THE EPOCH : %19lld nano-seconds since the Epoch\n",
+                                       _t.nsec_epoch);
                               CR_DEBUG("     TIME PERIODS : _idx = ...\n");
+
+                              _period_idx              = cr_get_period_idx(&_re->time, &_t);
 
                               /* Colorize : loop on substrings
                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//                              if (_dow != CR_UNINITIALIZED) {
-                                   for (_j = 0; _j < _re->max_sub; _j++) {
-                                        CR_DEBUG("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
+                              for (_j = 0; _j < _re->max_sub; _j++) {
+                                   CR_DEBUG("%s %s(%d) : _j = %d\n", __func__, __FILE__, __LINE__, _j);
 
-                                        if (_j == 0 && _pmatch[1].rm_so != -1) {
-                                             continue;
-                                        }
+                                   if (_j == 0 && _pmatch[1].rm_so != -1) {
+                                        continue;
+                                   }
 
-                                        _s   = _pmatch[_j].rm_so;
-                                        _e   = _pmatch[_j].rm_eo - 1;
+                                   _s   = _pmatch[_j].rm_so;
+                                   _e   = _pmatch[_j].rm_eo - 1;
+
+                                   if (G.debug) {
+                                        strncpy(_tmp_str,
+                                                G.line + _off + _s, _e - _s + 1);
+                                        _tmp_str[_e -_s + 1]   = 0;
+                                        fprintf(G.debug_out,
+                                                "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
+                                                _off, _s, _e, _re->regex[_i], _tmp_str, _j);
+                                   }
+
+                                   strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
+                                   _tmp_str[_e -_s + 1]   = 0;
+
+                                   if (_s >= 0) {
+                                        cr_set_desc_dow(_re, _off, _s, _e, _re->time.cols[_period_idx]);
 
                                         if (G.debug) {
-                                             strncpy(_tmp_str,
-                                                     G.line + _off + _s, _e - _s + 1);
-                                             _tmp_str[_e -_s + 1]   = 0;
-                                             fprintf(G.debug_out,
-                                                     "    OFFSET = %3d : %3d => %3d [%s] [%s] _j = %d\n",
-                                                     _off, _s, _e, _re->regex[_i], _tmp_str, _j);
-                                        }
-
-                                        strncpy(_tmp_str, G.line + _off + _s, _e - _s + 1);
-                                        _tmp_str[_e -_s + 1]   = 0;
-
-                                        if (_s >= 0) {
-                                             cr_set_desc_dow(_re, _off, _s, _e, _re->time.cols[_period_idx]);
-
-                                             if (G.debug) {
-                                                  cr_dump_color(_re->time.cols[_period_idx]);
-                                                  fprintf(G.debug_out, "    offset = %d, [%d => %d], col = %d\n",
-                                                          _off, _s, _e, _re->time.cols[_period_idx]->col_num);
-//                                                fprintf(G.debug_out, "\n");
-                                             }
+                                             cr_dump_color(_re->time.cols[_period_idx]);
+                                             fprintf(G.debug_out, "    offset = %d, [%d => %d], col = %d\n",
+                                                     _off, _s, _e, _re->time.cols[_period_idx]->col_num);
                                         }
                                    }
-//                              }
+                              }
 
                               /* To handle empty strings
                                  ~~~~~~~~~~~~~~~~~~~~~~~ */

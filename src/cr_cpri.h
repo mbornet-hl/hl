@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.77 du 22/08/15 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.82 du 22/09/03 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -38,6 +38,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <regex.h>
+#include <stdint.h>
 
 /* Sum of the N first numbers
    ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -256,6 +257,15 @@
 #define   CR_TIME_IDX_FIRST             (CR_TIME_IDX_Y)
 #define   CR_TIME_IDX_LAST              (CR_TIME_IDX_n)
 
+/* Comparison types
+   ~~~~~~~~~~~~~~~~ */
+#define   CR_CMP_Y                      (1)
+#define   CR_CMP_Ym                     (2)
+#define   CR_CMP_Ymd                    (3)
+#define   CR_CMP_s                      (4)
+#define   CR_CMP_u                      (5)
+#define   CR_CMP_n                      (6)
+
 #define   CR_DEFLT_T_PERIOD_0_INTENS    (3)
 #define   CR_DEFLT_T_PERIOD_1_INTENS    (3)
 #define   CR_DEFLT_T_PERIOD_2_INTENS    (3)
@@ -304,6 +314,7 @@
 #define   CR_PERIOD_u                   (1)       /* Unit = micro-seconds  */
 #define   CR_PERIOD_n                   (1)       /* Unit = nano-seconds   */
 
+#define   CR_10e9                       (1000000000L)
 
 /* Default color
    ~~~~~~~~~~~~~ */
@@ -693,6 +704,7 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_EXIT_ERR_GETTIMEOFDAY      ( 14)
 #define   CR_EXIT_ERR_MKTIME            ( 15)
 #define   CR_EXIT_ERR_REGEXEC           ( 16)
+#define   CR_EXIT_ERR_CLOCK_GETTIME     ( 17)
 
 #define   CR_EXIT_ERR_SEGV              (125)
 #define   CR_EXIT_ERR_INTERNAL          (126)
@@ -701,35 +713,41 @@ struct cr_##name *cr_new_##name(void)                                      \
 
 /* Structures
    ~~~~~~~~~~ */
+typedef struct cr_month                  cr_month;
 struct cr_month {
      int             num;
      char           *name;
 };
 
+/* Color descriptor
+   ~~~~~~~~~~~~~~~~ */
+typedef struct cr_color                  cr_color;
 struct cr_color {
      int                                 col_num;
      int                                 intensity;
      FILE                               *out;
 };
 
+typedef struct cr_RE_num                 cr_RE_num;
 struct cr_RE_num {
      int                                 num[CR_NB_TIME_PERIOD_TYPES + 1];
 };
 
+/* Day Of Week descriptor
+   ~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_RE_dow_desc               cr_RE_dow_desc;
 struct cr_RE_dow_desc {
-     struct cr_color                   **cols;                   /* Array for DOW colors       */
+     cr_color                          **cols;                   /* Array for DOW colors       */
      int                                 idx;                    /* Current DOW index          */
      bool                                used;                   /* Colorize day of week       */
-     struct cr_RE_num                    sub_RE_num;             /* Sub-RE numbers             */
-#if 0
-     int                                 year_RE_num;            /* Number of sub-RE for year  */
-     int                                 month_RE_num;           /* Number of sub-RE for month */
-     int                                 day_RE_num;             /* Number of sub-RE for day   */
-#endif    /* 0 */
+     cr_RE_num                           sub_RE_num;             /* Sub-RE numbers             */
 };
 
+/* Thresholds descriptor
+   ~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_RE_threshold_desc      cr_RE_threshold_desc;
 struct cr_RE_threshold_desc {
-     struct cr_color                   **cols;                   /* Array for threshold colors */
+     cr_color                          **cols;                   /* Array for threshold colors */
      int                                 idx;                    /* Current threshold index    */
      bool                                used;                   /* Colorize thresholds        */
      double                              threshold[CR_MAX_THRESHOLDS];
@@ -738,23 +756,38 @@ struct cr_RE_threshold_desc {
      int                                 base;                   /* decimal or hexadecimal     */
 };
 
+/* Time descriptor
+   ~~~~~~~~~~~~~~~ */
+typedef struct cr_time_desc              cr_time_desc;
+struct cr_time_desc {
+     time_t                              time;                   /* Seconds since the Epoch    */
+     long                                nsec;                   /* Nano-seconds               */
+     uint64_t                            nsec_epoch;             /* Nano-seconds since Epoch   */
+     struct timespec                     tspec;
+     struct tm                          *tm;                     /* Broken-down time           */
+};
+
 /* Time periods descriptor
    ~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_RE_time_desc           cr_RE_time_desc;
 struct cr_RE_time_desc {
-     struct cr_color                   **cols;                   /* Array for periods colors   */
+     cr_color                          **cols;                   /* Array for periods colors   */
      int                                 idx;                    /* Current period index       */
      int                                 period_type;            /* Period type: Y, m, d, ...  */
      long                                period_length;          /* Period length in seconds   */
+     int                                 coeff;                  /* Number of periods          */
      bool                                used;                   /* Colorize time periods      */
      bool                                start_from_0;           /* Periods start from 0       */
      bool                                reference;              /* Delay from time reference  */
-     struct timeval                      ref_time;               /* Time reference             */
-     struct tm                           ref_time_tm;            /* Broken-down time reference */
-     struct cr_RE_num                    sub_RE_num;             /* Sub-RE numbers             */
+     cr_time_desc                        ref_time;               /* Reference time             */
+     cr_time_desc                        lower_bounds[CR_MAX_PERIODS],
+                                         upper_bounds[CR_MAX_PERIODS];
+     cr_RE_num                           sub_RE_num;             /* Sub-RE numbers             */
 };
 
 /* Regexp descriptor
    ~~~~~~~~~~~~~~~~~ */
+typedef struct cr_re_desc                cr_re_desc;
 struct cr_re_desc {
      regex_t                             reg[2];
      char                               *regex[2];
@@ -762,14 +795,14 @@ struct cr_re_desc {
                                          inside_zone;
      int                                 cflags;
      int                                 curr_level;
-     struct cr_color                     col;
-     struct cr_re_desc                  *next;
+     cr_color                            col;
+     cr_re_desc                         *next;
      int                                 max_sub;
-     struct cr_color                   **alt_cols;               /* Array for alternate colors */
+     cr_color                          **alt_cols;               /* Array for alternate colors */
      int                                 alt_idx;                /* Current alternate index    */
-     struct cr_RE_dow_desc               dow;                    /* DOW descriptor             */
-     struct cr_RE_threshold_desc         threshold;              /* Thresholds descriptor      */
-     struct cr_RE_time_desc              time;                   /* Time periods descriptor    */
+     cr_RE_dow_desc                      dow;                    /* DOW descriptor             */
+     cr_RE_threshold_desc                threshold;              /* Thresholds descriptor      */
+     cr_RE_time_desc                     time;                   /* Time periods descriptor    */
      int                                 idx_regex_select;       /* Index of selector regex    */
      char                               *matching_str;           /* String matching the        */
                                                                  /* selector regex             */
@@ -786,34 +819,43 @@ struct cr_re_desc {
 
 /* Color descriptor
    ~~~~~~~~~~~~~~~~ */
+typedef struct cr_col_desc               cr_col_desc;
 struct cr_col_desc {
      bool                                used;
-     struct cr_color                    *col;
+     cr_color                           *col;
      int                                 marker;
 };
 
+typedef struct cr_arg                    cr_arg;
 struct cr_arg {
      char                               *value;
-     struct cr_arg                      *next;
+     cr_arg                             *next;
 };
 
+/* Configuration descriptor
+   ~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_config                 cr_config;
 struct cr_config {
      char                               *name;
      bool                                visited;
      char                               *config_file;
-     struct cr_config                   *next;
-     struct cr_arg                      *extract,
+     cr_config                          *next;
+     cr_arg                             *extract,
                                         *insert;
      int                                 argc;
      char                              **argv;
      int                                 nb_opts;
 };
 
+/* Configuration list element
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_configs                cr_configs;
 struct cr_configs {
-     struct cr_config                   *extract,
+     cr_config                          *extract,
                                         *insert;
 };
 
+typedef struct cr_args                   cr_args;
 struct cr_args {
      int                                 argc;
      char                              **argv;
@@ -822,27 +864,26 @@ struct cr_args {
      int                                 idx;          // Index of the current 
                                                        // character
      char                               *next_arg;
-     struct cr_args                     *prev;
-     struct cr_config                   *config;
+     cr_args                            *prev;
+     cr_config                          *config;
      int                                 level;
-//     char                              **p,
      char                              **regexp;
      bool                                param_before_RE;
      char                              **param;
 };
-typedef struct cr_args                   cr_args;
 
+typedef struct cr_root_args              cr_root_args;
 struct cr_root_args {
      char                               *opts;
      char                               *optarg;
      cr_args                            *args;
-     struct cr_configs                  *configs;
+     cr_configs                         *configs;
      int                                 state;
 };
-typedef struct cr_root_args              cr_root_args;
 
 /* Descriptor for  string copy, one character at a time
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_str                    cr_str;
 struct cr_str {
      char                               *s;
      char                               *e;
@@ -850,6 +891,7 @@ struct cr_str {
 
 /* Environment variable descriptor for configuration
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_env_var_conf           cr_env_var_conf;
 struct cr_env_var_conf {
      char                              **var,
                                         *name,
@@ -860,8 +902,9 @@ struct cr_env_var_conf {
 
 /* Environment variable descriptor for colors
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_env_var_desc           cr_env_var_desc;
 struct cr_env_var_desc {
-     struct cr_color                   **color_desc;
+     cr_color                          **color_desc;
      bool                                skip_line;
      char                               *name;
      char                                deflt_intens,
@@ -872,6 +915,7 @@ struct cr_env_var_desc {
 
 /* Environment variable descriptor for thresholds
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_env_var_thres          cr_env_var_thres;
 struct cr_env_var_thres {
      char                               *name;
      bool                                skip_line;
@@ -882,6 +926,7 @@ struct cr_env_var_thres {
 
 /* Global structure descriptor
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+typedef struct cr_global                 cr_global;
 struct cr_global {
      char                               *prgname;
 
@@ -892,7 +937,7 @@ struct cr_global {
                                         *op_string,
                                         *base_string;
      char                               *cfg_filename;
-     struct cr_color                     color_RE[CR_NB_COLORS],
+     cr_color                            color_RE[CR_NB_COLORS],
                                         *curr_col,
                                         *deflt_color,
                                         *deflt_alt_col_1,
@@ -905,7 +950,7 @@ struct cr_global {
      int                                 list[CR_NB_COLORS];
      int                                 idx_list;
      char                                line[CR_SIZE + 1];
-     struct cr_col_desc                  desc[CR_SIZE + 1];
+     cr_col_desc                         desc[CR_SIZE + 1];
      int                                 length;
      bool                                debug,
                                          verbose,
@@ -923,13 +968,13 @@ struct cr_global {
      bool                                begin_specified,
                                          end_specified;
      int                                 intensity;
-     struct cr_configs                   configs;
-     struct cr_re_desc                  *extract_RE,
+     cr_configs                          configs;
+     cr_re_desc                         *extract_RE,
                                         *insert_RE,
                                         *last_RE;
      int                                 last_color;
      struct timeval                      ref_time;
-     struct tm                          *tm;
+     cr_time_desc                        time_desc;
 };
 
 #endif    /* CR_CPRI_H */
