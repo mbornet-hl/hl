@@ -3,7 +3,7 @@
 #	Launch all tests for option -t of "hl"
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_all_tests_-t	Version 1.6 du 22/09/03 - 
+#	@(#)	[MB] ek_all_tests_-t	Version 1.7 du 22/09/04 - 
 #
 
 readonly REF_DATE='2000-06-23 12:34:56.123456789'
@@ -16,30 +16,39 @@ label()
 {
 	case "$1" in
 		Y)		echo "year"
+				coeffs='1 2'
 				;;
 
 		m)		echo "month"
+				coeffs='1 2 3'
 				;;
 
 		w)		echo "week"
+				coeffs='1 2 3 4'
 				;;
 
 		d)		echo "day"
+				coeffs='1 2 5 7 10 14'
 				;;
 
 		H)		echo "hour"
+				coeffs='1 2 4 8 12 24'
 				;;
 
 		M)		echo "minute"
+				coeffs='1 5 10 15 20 30 45 60'
 				;;
 
 		S)		echo "second"
+				coeffs='1 5 10 30 60 90'
 				;;
 
 		u)		echo "micro-second"
+				coeffs='1 5 10'
 				;;
 
 		n)		echo "nano-second"
+				coeffs='1 5 10'
 				;;
 
 		*)		echo "unknown period"
@@ -49,15 +58,20 @@ label()
 
 for opt in Y m w d H M S u n
 do
-	for zero in '' '0'
+	label "$opt" > /dev/null
+
+	for coeff in $coeffs
 	do
-		echo "========== `label "$opt"` =========="
-		echo "[$(date '+%Y-%m-%d %H:%M:%S')]"
-		echo "./dates_gen -$opt | $HL -t${opt}${zero}"
-		./dates_gen -"$opt" | "$HL" -t"${opt}${zero}"
-		echo "---------- `label "$opt"` with reference date $REF_DATE ----------"
-		echo "./dates_gen -$opt '$REF_DATE' | $HL -t${opt}${zero}R '$REF_DATE'"
-		./dates_gen -"$opt" "$REF_DATE" | "$HL" -t"${opt}${zero}"R "$REF_DATE"
-		echo
+		for zero in '' '0'
+		do
+			echo "========== `label "$opt"` =========="
+			echo "[$(date '+%Y-%m-%d %H:%M:%S')]"
+			echo "./dates_gen -$opt | $HL -t${opt}${zero}:${coeff}"
+			./dates_gen -"$opt" | "$HL" -t"${opt}${zero}:${coeff}"
+			echo "---------- `label "$opt"` with reference date $REF_DATE ----------"
+			echo "./dates_gen -$opt '$REF_DATE' | $HL -t${opt}${zero}R:${coeff} '$REF_DATE'"
+			./dates_gen -"$opt" "$REF_DATE" | "$HL" -t"${opt}${zero}"R:${coeff} "$REF_DATE"
+			echo
+		done
 	done
 done
