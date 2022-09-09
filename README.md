@@ -17,6 +17,14 @@ At the present time, **hl** has only been included in the ArchLinux distribution
 
 Another way to contribute is to **share the configurations that you have created that could help other people**. To do so, please add a small comment above your configuration to specify your name, the creation date of your configuration and its purpose, and add an example of the data (as a separate file : 50 lines max) that your configuration colorizes. You also can add a screenshot of the result of the colorization of your data. Those files will be located in a sub-directory of the *examples* directory.
 
+Donation
+--------
+If this software helps you, please consider donating [here](https://paypal.me/MartialBornet) !
+Donations will encourage me to keep working on this software, fix bugs (if any), and create new configurations.
+This work (software and configuration) is only done during my free time. It helps me a lot, and I hope it helps you too.
+
+Thank you.
+
 **In more detail** :
 
 This command is a compiled C program which can colorize text with up to 42 colors according to specified regular expressions. It can colorize patterns on a line when it finds a match, or colorize a group of lines from a start marker to an end marker, or alternate colors when the value of a match changes, or when it doesn't change.
