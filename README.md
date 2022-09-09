@@ -25,8 +25,8 @@ This work (software and configuration) is only done during my free time. It help
 
 Thank you.
 
-**In more detail** :
-
+Purpose - In more detail 
+------------------------
 This command is a compiled C program which can colorize text with up to 42 colors according to specified regular expressions. It can colorize patterns on a line when it finds a match, or colorize a group of lines from a start marker to an end marker, or alternate colors when the value of a match changes, or when it doesn't change.
 Configuration files can be placed anywhere on the file system (not only in /etc/default) as long as you initialize the environment variables.
 It uses regcomp() and regexec() to colorize (highlight) strings from stdin using options on the command line.
