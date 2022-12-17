@@ -17,9 +17,9 @@ At the present time, **hl** has only been included in the ArchLinux distribution
 
 Another way to contribute is to **share the configurations that you have created that could help other people**. To do so, please add a small comment above your configuration to specify your name, the creation date of your configuration and its purpose, and add an example of the data (as a separate file : 50 lines max) that your configuration colorizes. You also can add a screenshot of the result of the colorization of your data. Those files will be located in a sub-directory of the *examples* directory.
 
-Donation
+[Donation](https://paypal.me/MartialBornet)
 --------
-If this software helps you, please consider donating [here](https://paypal.me/MartialBornet) !
+If this software helps you, please consider donating here : [https://paypal.me/MartialBornet](https://paypal.me/MartialBornet) !
 Donations will encourage me to keep working on this software, fix bugs (if any), and create new configurations.
 This work (software and configuration) is only done during my free time. It helps me a lot, and I hope it helps you too.
 
