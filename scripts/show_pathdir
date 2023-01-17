@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+#	Display N components of a PATH variable.
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_show_pathdir	Version 1.1 du 23/01/17 - 
+#
+#	The contents of the path are displayed with N times, each time
+# 	with an highlighted nth component, n ranging from 1 to N.
+#
+#	hl configurations that are used are named path1 to path20.
+#
+
+name='/path'
+max=20
+
+usage()
+{
+	cat <<- EOF
+		Usage: $PROGNAME [-n N|-N N] [variable_name]
+
+		Examples :
+		  show_pathdir
+		  show_pathdir -n 5
+		  show_pathdir PATH
+		  show_pathdir -n 10 LD_LIBRARY_PATH
+	EOF
+}
+
+show_path_dirs()
+{
+	for i in `eval echo '{1..'"$max"'}'`
+	do
+		printf "%2d %s\n" "$i" "$1" | hl --"path$i"
+	done
+}
+
+PROGNAME=$(basename "$0")
+
+while getopts 'hn:N:' opt
+do
+	case "$opt" in
+		n|N)	max="$OPTARG"
+			;;
+
+		h|*)	usage
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND - 1))
+
+for i in `eval echo '{1..'"$max"'}'`
+do
+	if [ "$i" -eq 1 ]; then
+		path="$name$i"
+	else
+		path="$path:$name$i"
+	fi
+done
+
+if [ "$1" = '' ]; then
+	show_path_dirs "$path"
+else
+	eval show_path_dirs '$'"$1"
+fi
