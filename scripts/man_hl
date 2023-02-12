@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+#	Display a man page with colorized keywords
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_man_hl	Version 1.1 du 23/02/12 - 
+#
+
+if [ "$1" = '' ]; then
+	cat <<- EOF >&2
+		Usage: $PROGNAME page [keyword1 [keyword2 [keyword3 ...]]]
+	EOF
+	exit 1
+fi
+
+man "$1" | hl -ei -1R "$1" -3g "$2" -3y "$3" -3c "$4" -2r "$5" | less -RX
