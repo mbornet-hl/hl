@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.157 du 22/09/04 - 
+ *   @(#)  [MB] cr_main.c Version 1.158 du 23/02/19 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -140,7 +140,7 @@ void cr_disp_tm(struct tm *tm)
      printf("tm->tm_isdst  = %3d\n",         tm->tm_isdst);
 }
 
-/* cr_disp_time_desc() }}} */
+/* cr_disp_tm() }}} */
 /* cr_disp_time_desc() {{{ */
 
 /******************************************************************************
@@ -5473,7 +5473,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.157");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.158");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5640,7 +5640,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.157");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.158");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -6128,14 +6128,20 @@ long cr_next_val(struct cr_re_desc *re)
 int cr_day_of_the_week(struct cr_time_desc *t)
 {
      static int          _t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+     int                  _y, _m, _d;
 
-//fprintf(G.debug_out, "DAY OF THE WEEK : YEAR = %4d Month = %2d Day = %2d\n", year, month, day);
-     if (t->tm->tm_mon < 3 ) {
-          t->tm->tm_year         -= 1;
+     _y                  = t->tm->tm_year;
+     _m                  = t->tm->tm_mon;
+     _d                  = t->tm->tm_mday;
+
+     CR_DEBUG("DAY OF THE WEEK : YEAR = %4d Month = %2d Day = %2d\n",
+               _y, _m, _d);
+
+     if (_m < 3 ) {
+          _y                  -= 1;
      }
 
-     return (t->tm->tm_year + t->tm->tm_year/4 - t->tm->tm_year/100 + t->tm->tm_year/400
-             + _t[t->tm->tm_mon - 1] + t->tm->tm_mday) % 7;
+     return (_y + _y/4 - _y/100 + _y/400 + _t[_m - 1] + _d) % 7;
 }
 
 /* cr_day_of_the_week() }}} */
