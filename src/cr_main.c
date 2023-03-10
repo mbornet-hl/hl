@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.158 du 23/02/19 - 
+ *   @(#)  [MB] cr_main.c Version 1.160 du 23/03/10 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -36,7 +36,9 @@
 #define _GNU_SOURCE
 #endif    /* HL_BACKTRACE */
 
+#if ! defined(__APPLE__)
 #define _POSIX_C_SOURCE 199309L
+#endif    /* __APPLE__ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -196,7 +198,7 @@ char *cr_str_color(int intensity, int color_num)
                          CR_TM_COPY
 
 ******************************************************************************/
-int cr_tm_copy(struct tm *tm_dst, struct tm *tm_src)
+void cr_tm_copy(struct tm *tm_dst, struct tm *tm_src)
 {
      tm_dst->tm_year          = tm_src->tm_year;
      tm_dst->tm_mon           = tm_src->tm_mon;
@@ -217,7 +219,7 @@ int cr_tm_copy(struct tm *tm_dst, struct tm *tm_src)
                          CR_TIME_DESC_COPY
 
 ******************************************************************************/
-int cr_time_desc_copy(cr_time_desc *dst, cr_time_desc *src)
+void cr_time_desc_copy(cr_time_desc *dst, cr_time_desc *src)
 {
      dst->time                = src->time;
      dst->nsec                = src->nsec;
@@ -289,7 +291,7 @@ void cr_init_months_names()
      int                            _i;
 
      if ((_locale = getenv("LC_ALL")) != NULL) {
-          CR_DEBUG("locale = \"%s\"\n", G.prgname, _locale);
+          CR_DEBUG("locale = \"%s\"\n", _locale);
 
           if (setlocale(LC_ALL, _locale) == NULL) {
                fprintf(stderr, "%s: setlocale() error !\n", G.prgname);
@@ -601,7 +603,7 @@ X
 X
           fprintf(stderr, "%s(%d)\n", __func__, __LINE__);
           fprintf(stderr, "%s: internal error, period_type = %d\n",
-                  RE_t->period_type);
+                  G.prgname, RE_t->period_type);
           exit(CR_EXIT_ERR_INTERNAL);
      }
 // fprintf(G.out, "\n");
@@ -3654,7 +3656,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                }
                else if (cr_is_a_color(_c)) {
                     if (_color_count++ >= CR_MAX_DAYS) {
-                         fprintf(stderr, "%s: too many colors specified !\n, G.progname");
+                         fprintf(stderr, "%s: too many colors specified !\n", G.prgname);
                          cr_error_syntax(root_args);
                     }
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
@@ -5473,7 +5475,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.158");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.160");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5640,7 +5642,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.158");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.160");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -6745,42 +6747,42 @@ cr_disp_time_desc(&_t);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_m]) {
                                         _t.tm->tm_mon  = atoi(_tmp_str) - 1;
-                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("Month found (RE_num = %d) :   %02d\n",
                                                   _re->time.sub_RE_num.num[CR_TIME_IDX_m], _t.tm->tm_mon);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_mn]) {
                                         _t.tm->tm_mon  = cr_get_month_num(_tmp_str) - 1;
-                                        CR_DEBUG("Month found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("Month found (RE_num = %d) :   %02d\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_mn], _t.tm->tm_mon);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_d]) {
                                         _t.tm->tm_mday = atoi(_tmp_str);
-                                        CR_DEBUG("Day   found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("Day   found (RE_num = %d) :   %2d\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_d], _t.tm->tm_mday);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_H]) {
                                         _t.tm->tm_hour = atoi(_tmp_str);
-                                        CR_DEBUG("Hour  found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("Hour  found (RE_num = %d) :   %02d\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_H], _t.tm->tm_hour);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_M]) {
                                         _t.tm->tm_min  = atoi(_tmp_str);
-                                        CR_DEBUG("Min   found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("Min   found (RE_num = %d) :   %02d\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_M], _t.tm->tm_min);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_S]) {
                                         _t.tm->tm_sec  = atoi(_tmp_str);
-                                        CR_DEBUG("Sec   found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("Sec   found (RE_num = %d) :   %02d\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_S], _t.tm->tm_sec);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_u]) {
                                         _t.nsec        = atoi(_tmp_str) * 1000;
-                                        CR_DEBUG("µsec  found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("µsec  found (RE_num = %d) : %06ld\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_u], _t.nsec);
                                    }
                                    else if (_j == _re->time.sub_RE_num.num[CR_TIME_IDX_n]) {
                                         _t.nsec          = atoi(_tmp_str);
-                                        CR_DEBUG("nsec  found (RE_num = %d) : %4d\n",
+                                        CR_DEBUG("nsec  found (RE_num = %d) : %09ld\n",
                                                  _re->time.sub_RE_num.num[CR_TIME_IDX_n], _t.nsec);
                                    }
                               }
