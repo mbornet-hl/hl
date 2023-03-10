@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#	Remove escape sequences from stdin
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_hl_nocolors	Version 1.1 du 23/03/10 - 
+#
+
+sed 's/\[[0-9;]*[a-zA-Z]//g'
