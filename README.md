@@ -524,3 +524,61 @@ $ ./dates_gen -w '2000-06-23 12:34:56.123456789' | hl -twR '2000-06-23 12:34:56.
 
 New environment variables for option -t :
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_env_-t.png)
+
+Extracting information from standard input (super-grep, for advanced users)
+---------------------------------------------------------------------------
+**hl** can also be used to extract information from standard input. The idea is to send to **stderr** information that should normally have been colorized. It's somewhat like a **grep** that is able to extract **parts of lines** instead of extracting complete lines.
+To better understand, run the following command :
+```
+$ man 5 acl | hl -ei -E3n '\<acl_[^(]+\(3\)' 2>&1 > /dev/null  | sed 's/,/\n/g' | sort -u
+acl_add_perm(3)
+acl_calc_mask(3)
+acl_check(3)
+acl_clear_perms(3)
+acl_cmp(3)
+acl_copy_entry(3)
+acl_copy_ext(3)
+acl_copy_int(3)
+acl_create_entry(3)
+acl_delete_def_file(3)
+acl_delete_entry(3)
+acl_delete_perm(3)
+acl_dup(3)
+acl_entries(3)
+acl_equiv_mode(3)
+acl_error(3)
+acl_extended_fd(3)
+acl_extended_file(3)
+acl_extended_file_nofollow(3)
+acl_free(3)
+acl_from_mode(3)
+acl_from_text(3)
+acl_get_entry(3)
+acl_get_fd(3)
+acl_get_file(3)
+acl_get_perm(3)
+acl_get_permset(3)
+acl_get_qualifier(3)
+acl_get_tag_type(3)
+acl_init(3)
+acl_set_fd(3)
+acl_set_file(3)
+acl_set_permset(3)
+acl_set_qualifier(3)
+acl_set_tag_type(3)
+acl_size(3)
+acl_to_any_text(3)
+acl_to_text(3)
+acl_valid(3)
+```
+then run the following command and try to locate the above functions in the man page :
+```
+$ man 5 acl | less -RX
+```
+and finally run the command :
+```
+$ man 5 acl | hl -ei -3c '\<acl_[^(]+\(3\)' | less -RX
+```
+You can see that all strings colorized in high cyan have been extracted, sent to stderr, then post-processed to display them one per line.
+
+The **-E** option allows you to extract selected strings by redirecting them to **stderr**.
