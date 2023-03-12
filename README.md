@@ -525,9 +525,9 @@ $ ./dates_gen -w '2000-06-23 12:34:56.123456789' | hl -twR '2000-06-23 12:34:56.
 New environment variables for option -t :
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_env_-t.png)
 
-Extracting information from standard input (super-grep, for advanced users)
----------------------------------------------------------------------------
-**hl** can also be used to extract information from standard input. The idea is to send to **stderr** information that should normally have been colorized. It's somewhat like a **grep** that is able to extract **parts of lines** instead of extracting complete lines.
+Extracting information from standard input (for advanced users)
+---------------------------------------------------------------
+**hl** can also be used to extract information from standard input. The idea is to send to **stderr** information that should normally have been colorized. It's somewhat like a **grep -o** that is able to extract **parts of lines**.
 To better understand, run the following command :
 ```
 $ man 5 acl | hl -ei -E3n '\<acl_[^(]+\(3\)' 2>&1 > /dev/null  | sed 's/,/\n/g' | sort -u
