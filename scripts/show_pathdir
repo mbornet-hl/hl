@@ -3,7 +3,7 @@
 #	Display N components of a PATH variable.
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_show_pathdir	Version 1.1 du 23/01/17 - 
+#	@(#)	[MB] ek_show_pathdir	Version 1.2 du 23/06/15 - 
 #
 #	The contents of the path are displayed with N times, each time
 # 	with an highlighted nth component, n ranging from 1 to N.
@@ -17,13 +17,16 @@ max=20
 usage()
 {
 	cat <<- EOF
-		Usage: $PROGNAME [-n N|-N N] [variable_name]
+		Usage: $PROGNAME [-n N|-N N] [-s] [variable_name]
+		  -n : specify maximum number of displayed lines
+		  -s : short display (only directories)
 
 		Examples :
 		  show_pathdir
 		  show_pathdir -n 5
 		  show_pathdir PATH
 		  show_pathdir -n 10 LD_LIBRARY_PATH
+		  show_pathdir -s -n 10 LD_LIBRARY_PATH
 	EOF
 }
 
@@ -31,16 +34,25 @@ show_path_dirs()
 {
 	for i in `eval echo '{1..'"$max"'}'`
 	do
-		printf "%2d %s\n" "$i" "$1" | hl --"path$i"
-	done
+		if [ "$short" = 'true' ]; then
+			dir=$(echo "$1" | tr ':' '\012' | sed -n "${i}p")
+			echo "$dir"
+		else
+			printf "%2d %s\n" "$i" "$1" | hl --"path$i"
+		fi
+
+	done | sed '/^$/d'
 }
 
 PROGNAME=$(basename "$0")
 
-while getopts 'hn:N:' opt
+while getopts 'hn:N:s' opt
 do
 	case "$opt" in
 		n|N)	max="$OPTARG"
+			;;
+
+		s)	short='true'
 			;;
 
 		h|*)	usage
