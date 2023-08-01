@@ -3,7 +3,7 @@
 #	hl_tool : do various operations on hl configurations files
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_hl_tool	Version 1.21 du 22/01/30 - 
+#	@(#)	[MB] ek_hl_tool	Version 1.23 du 23/08/01 - 
 #
 
 # usage {{{
@@ -24,7 +24,7 @@ usage()
 
 	cat <<- EOF | $FILTER
 		Usage: $PROGNAME [-h|-A|-C|-c|-D|-d|-f|-L|-l|-M|-m|-s|-x] [args]
-		Version 1.21
+		Version 1.23
 
 		  -h : help (this message)
 
@@ -381,7 +381,13 @@ all_md5_configs()
 		done | sort -k1,1
 		echo
 
-	done | hl -A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A0,2G3g '^([^ ]+) '
+	done | hl								\
+		-A0,2B3c '^[^ ]+ +([^ ]+) '			\
+		-A#1:0,2G3g:3r2R '^([^ ]+) '			\
+		-A#1:0,1B3b:3m3M '^[^ ]+ +[^ ]+ +([^ ]+)'
+
+#	-A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A0,2G3g '^([^ ]+) '
+#	done | hl -A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A#1:0,2G3r2R:2 '^([^ ]+) '
 }
 
 # all_md5_configs }}}
