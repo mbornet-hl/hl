@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2022, Martial Bornet
+ * Copyright (C) 2015-2023, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2022.
+ *   (C) Copyright Martial Bornet, 2015-2023.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.82 du 22/09/03 -  
+ *   @(#)  [MB] cr_cpri.h Version 1.87 du 23/08/01 -  
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -632,17 +632,17 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_W_SELECTOR_ID        ( 5)
 #define   CR_STATE_W_SEPARATOR          ( 6)
 #define   CR_STATE_W_INTENSITY          ( 7)
-#define   CR_STATE_W_INTENSITY2         ( 8)
+#define   CR_STATE_W_INTENSITY_2        ( 8)
 #define   CR_STATE_W_COLOR              ( 9)
 #define   CR_STATE_W_NUM                (10)
 #define   CR_STATE_W_DMY                (11)
-#define   CR_STATE_W_DMY2               (12)
+#define   CR_STATE_W_DMY_2              (12)
 #define   CR_STATE_W_EQUAL              (13)
 #define   CR_STATE_W_COMMA              (14)
 #define   CR_STATE_W_SIGN               (15)
 #define   CR_STATE_W_DIGIT              (16)
 #define   CR_STATE_W_COLUMN             (17)
-#define   CR_STATE_W_COMMA2             (18)
+#define   CR_STATE_W_COMMA_2            (18)
 #define   CR_STATE_W_NO_COLOR           (19)
 #define   CR_STATE_W_END                (20)
 #define   CR_STATE_W_OPTION             (21)
@@ -661,6 +661,10 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_ERR_FOLLOWING        (34)
 #define   CR_STATE_ERR_MISSING_ARG      (35)
 #define   CR_STATE_ERR_SYNTAX_ERROR     (36)
+#define   CR_STATE_W_OPT_NUM            (37)
+#define   CR_STATE_W_SELECTOR           (38)
+#define   CR_STATE_W_END_2              (39)
+#define   CR_STATE_W_COLOR_2            (40)
 
 #define   CR_UNINITIALIZED              (-1)
 #define   CR_MAX_DAYS                   ( 7)
@@ -705,6 +709,7 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_EXIT_ERR_MKTIME            ( 15)
 #define   CR_EXIT_ERR_REGEXEC           ( 16)
 #define   CR_EXIT_ERR_CLOCK_GETTIME     ( 17)
+#define   CR_EXIT_ERR_INVALID_REFERENCE ( 18)
 
 #define   CR_EXIT_ERR_SEGV              (125)
 #define   CR_EXIT_ERR_INTERNAL          (126)
@@ -785,6 +790,12 @@ struct cr_RE_time_desc {
      cr_RE_num                           sub_RE_num;             /* Sub-RE numbers             */
 };
 
+typedef struct cr_alt_desc               cr_alt_desc;
+struct cr_alt_desc {
+     cr_color                          **alt_cols;               /* Array for alternate colors */
+     int                                 alt_idx;                /* Current alternate index    */
+};
+
 /* Regexp descriptor
    ~~~~~~~~~~~~~~~~~ */
 typedef struct cr_re_desc                cr_re_desc;
@@ -798,8 +809,11 @@ struct cr_re_desc {
      cr_color                            col;
      cr_re_desc                         *next;
      int                                 max_sub;
-     cr_color                          **alt_cols;               /* Array for alternate colors */
-     int                                 alt_idx;                /* Current alternate index    */
+     cr_alt_desc                         alt[2];                 /* Alternate colors sets      */
+     cr_alt_desc                        *curr_alt;               /* Current alt colors set     */
+     bool                                change;                 /* Change from the last test  */
+     int                                 trigger_num;            /* Number of triggering opt   */
+     cr_re_desc                         *triggering_opt;         /* Triggering alt option      */
      cr_RE_dow_desc                      dow;                    /* DOW descriptor             */
      cr_RE_threshold_desc                threshold;              /* Thresholds descriptor      */
      cr_RE_time_desc                     time;                   /* Time periods descriptor    */

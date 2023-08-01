@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (C) 2015-2022, Martial Bornet
+ * Copyright (C) 2015-2023, Martial Bornet
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2022.
+ *   (C) Copyright Martial Bornet, 2015-2023.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.160 du 23/03/10 - 
+ *   @(#)  [MB] cr_main.c Version 1.168 du 23/08/01 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -152,7 +152,7 @@ void cr_disp_tm(struct tm *tm)
 ******************************************************************************/
 void cr_disp_time_desc(cr_time_desc *time_desc)
 {
-     printf("nsec_epoch    = %19lld\n",      time_desc->nsec_epoch);
+     printf("nsec_epoch    = %19ld\n",       time_desc->nsec_epoch);
      printf("tspec.tv_sec  = %10ld\n",       time_desc->tspec.tv_sec);
      printf("tspec.tv_nsec =           %09ld\n",
                                              time_desc->tspec.tv_nsec);
@@ -352,7 +352,7 @@ void cr_init_start_time()
      G.time_desc.time         = G.time_desc.tspec.tv_sec;
      G.time_desc.tm           = localtime(&G.time_desc.tspec.tv_sec);
 
-     CR_DEBUG("Current time: %lld nanoseconds since the Epoch\n", G.time_desc.nsec_epoch);
+     CR_DEBUG("Current time: %ld nanoseconds since the Epoch\n", G.time_desc.nsec_epoch);
      if (G.debug) {
           cr_disp_time_desc(&G.time_desc);
      }
@@ -391,10 +391,10 @@ void cr_set_bounds(cr_RE_time_desc *RE_t, long period)
           _tm                                     = localtime(&RE_t->upper_bounds[_i].tspec.tv_sec);
           cr_tm_copy(RE_t->upper_bounds[_i].tm, _tm);
 
-          CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+          CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->lower_bounds[_i].nsec_epoch);
           CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
 
-          CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+          CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->upper_bounds[_i].nsec_epoch);
           CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
      }
 }
@@ -447,10 +447,10 @@ CR_DEBUG("==========> ref_time.tm.tm_year = %d\n", RE_t->ref_time.tm->tm_year + 
                                                        + RE_t->ref_time.tspec.tv_nsec;
                RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
 
-               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->lower_bounds[_i].nsec_epoch);
                CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
 
-               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->upper_bounds[_i].nsec_epoch);
                CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
 
                if (G.debug) {
@@ -507,10 +507,10 @@ CR_DEBUG("==========> ref_time.tm.tm_year = %d\n", RE_t->ref_time.tm->tm_year + 
                                                        + RE_t->ref_time.tspec.tv_nsec;
                RE_t->upper_bounds[_i].tspec.tv_nsec    = RE_t->upper_bounds[_i].nsec_epoch % CR_10e9;
 
-               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->lower_bounds[_i].nsec_epoch);
                CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
 
-               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->upper_bounds[_i].nsec_epoch);
                CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
 
                if (G.debug) {
@@ -562,10 +562,10 @@ X
                _tm                                     = localtime(&RE_t->upper_bounds[_i].tspec.tv_sec);
                cr_tm_copy(RE_t->upper_bounds[_i].tm, _tm);
 
-               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->lower_bounds[_i].nsec_epoch);
                CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
 
-               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->upper_bounds[_i].nsec_epoch);
                CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
           }
           break;
@@ -591,10 +591,10 @@ X
                _tm                                     = localtime(&RE_t->upper_bounds[_i].tspec.tv_sec);
                cr_tm_copy(RE_t->upper_bounds[_i].tm, _tm);
 
-               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->lower_bounds[_i].nsec_epoch);
+               CR_DEBUG("lower_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->lower_bounds[_i].nsec_epoch);
                CR_DEBUG("lower_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->lower_bounds[_i].tspec.tv_nsec);
 
-               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19lld\n", _i, RE_t->upper_bounds[_i].nsec_epoch);
+               CR_DEBUG("upper_bounds[%d].nsec_epoch    = %19ld\n",  _i, RE_t->upper_bounds[_i].nsec_epoch);
                CR_DEBUG("upper_bounds[%d].tspec.tv_nsec = %19ld\n",  _i, RE_t->upper_bounds[_i].tspec.tv_nsec);
           }
           break;
@@ -657,12 +657,12 @@ int cr_get_period_idx(cr_RE_time_desc *RE_t, cr_time_desc *time_desc)
      for (_i = 0; _i < CR_MAX_PERIODS; _i++) {
           CR_DEBUG("%s() : _i = %2d\n", __func__, _i);
 
-          CR_DEBUG("Lower : %lld <> %lld --- %s <> %s\n",
+          CR_DEBUG("Lower : %ld <> %ld --- %s <> %s\n",
                    time_desc->nsec_epoch, RE_t->lower_bounds[_i].nsec_epoch,
                    cr_ctime(time_desc->nsec_epoch, _buf1),
                    cr_ctime(RE_t->lower_bounds[_i].nsec_epoch, _buf2));
 
-          CR_DEBUG("Upper : %lld <> %lld --- %s <> %s\n",
+          CR_DEBUG("Upper : %ld <> %ld --- %s <> %s\n",
                    time_desc->nsec_epoch, RE_t->upper_bounds[_i].nsec_epoch,
                    cr_ctime(time_desc->nsec_epoch, _buf1),
                    cr_ctime(RE_t->upper_bounds[_i].nsec_epoch, _buf2));
@@ -973,8 +973,8 @@ char *cr_state_to_str(int state)
           _str                     = "W_INTENSITY";
           break;
 
-     case CR_STATE_W_INTENSITY2 :
-          _str                     = "W_INTENSITY2";
+     case CR_STATE_W_INTENSITY_2 :
+          _str                     = "W_INTENSITY_2";
           break;
 
      case CR_STATE_W_COLOR :
@@ -989,8 +989,8 @@ char *cr_state_to_str(int state)
           _str                     = "W_DMY";
           break;
 
-     case CR_STATE_W_DMY2 :
-          _str                     = "W_DMY2";
+     case CR_STATE_W_DMY_2 :
+          _str                     = "W_DMY_2";
           break;
 
      case CR_STATE_W_EQUAL :
@@ -1013,8 +1013,8 @@ char *cr_state_to_str(int state)
           _str                     = "W_COLUMN";
           break;
 
-     case CR_STATE_W_COMMA2 :
-          _str                     = "W_COMMA2";
+     case CR_STATE_W_COMMA_2 :
+          _str                     = "W_COMMA_2";
           break;
 
      case CR_STATE_W_END :
@@ -1076,6 +1076,22 @@ char *cr_state_to_str(int state)
 
      case CR_STATE_FINAL:
           _str                     = "FINAL";
+          break;
+
+     case CR_STATE_W_OPT_NUM :
+          _str                     = "W_OPT_NUM";
+          break;
+
+     case CR_STATE_W_SELECTOR :
+          _str                     = "W_SELECTOR";
+          break;
+
+     case CR_STATE_W_COLOR_2 :
+          _str                     = "W_COLOR_2";
+          break;
+
+     case CR_STATE_W_END_2 :
+          _str                     = "W_END_2";
           break;
 
      default:
@@ -1661,6 +1677,32 @@ void cr_dump_root_args(struct cr_root_args *root_args)
 }
 
 /* cr_dump_root_args() }}} */
+/* cr_dump_alt_desc() {{{ */
+
+/******************************************************************************
+
+                              CR_DUMP_ALT_DESC
+
+******************************************************************************/
+void cr_dump_alt_desc(cr_alt_desc *alt_desc, int idx)
+{
+     int                       _i;
+     struct cr_color          *_color;
+
+     fprintf(G.debug_out, "alt_desc (%d): [%p]\n", idx, alt_desc);
+     fprintf(G.debug_out, "    idx       = \"%2d\"\n", alt_desc->alt_idx);
+     for (_i = 0; ; _i++) {
+          _color              = alt_desc->alt_cols[_i];
+          if (_color == NULL) {
+               break;
+          }
+          fprintf(G.debug_out, "Color[%d][%d]  = (%d, %2d)  (%p)\n",
+                   idx, _i, _color->intensity, _color->col_num, _color);
+     }
+     fprintf(G.debug_out, "\n");
+}
+
+/* cr_dump_alt_desc() }}} */
 /* cr_is_selector() {{{ */
 
 /******************************************************************************
@@ -2470,7 +2512,7 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
      cr_args                  *_args;
      struct cr_color         **_alt_colors;
      struct cr_re_desc        *_re;
-     int                       _error, _i;
+     int                       _error, _i, _j, _trigger_num = -1;
      char                      _errbuf[256], *_p, *_option;
 
      CR_ENTERING;
@@ -2482,7 +2524,9 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
      _re->col.intensity       = 0;
      _re->col.out             = G.out;
      _re->max_sub             = 1;
-     _re->alt_idx             = 0;
+     _re->alt[0].alt_idx      = 0;
+     _re->alt[1].alt_idx      = 0;
+     _re->curr_alt            = &_re->alt[0];
      _re->idx_regex_select    = 0;
      _re->matching_str        = NULL;
      _re->change_on_diff      = TRUE;
@@ -2512,15 +2556,19 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
      /* Allocate memory for the color descriptors
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
      _size                    = (_lg + 1) * sizeof(struct cr_color **);
-     if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
-          cr_error_malloc();
-          exit(CR_EXIT_ERR_MALLOC);
-     }
-     _re->alt_cols            = _alt_colors;
+     for (_i = 0; _i < (sizeof(_re->alt) / sizeof(_re->alt[0])); _i++) {
+          if ((_alt_colors = (struct cr_color **) malloc(_size)) == NULL) {
+               cr_error_malloc();
+               exit(CR_EXIT_ERR_MALLOC);
+          }
+          _re->alt[_i].alt_cols    = _alt_colors;
 
-     for (_i = 0; _i < (_lg + 1); _i++) {
-          _alt_colors[_i]          = NULL;
+          for (_j = 0; _j < (_lg + 1); _j++) {
+               _alt_colors[_j]          = NULL;
+          }
      }
+     _alt_colors              =
+     _re->curr_alt->alt_cols  = _re->alt[0].alt_cols;
 
      /* Decode options
         ~~~~~~~~~~~~~~ */
@@ -2531,6 +2579,34 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
           switch (_state) {
 
           case CR_STATE_INITIAL:
+               switch (_c) {
+
+               case '#' :
+                    cr_transition(_c, &_state, CR_STATE_W_OPT_NUM);
+                    break;
+
+               case ',' :
+                    _selector      = 0;
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+                    break;
+
+               case '\0':
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+                    break;
+
+               default:
+                    if (cr_is_selector(_c)) {
+                         _selector      = _c - '0';
+                         cr_transition(_c, &_state, CR_STATE_W_SEPARATOR);
+                    }
+                    else {
+                         cr_error_syntax(root_args);
+                    }
+                    break;
+               }
+               break;
+
+          case CR_STATE_W_SELECTOR:
                switch (_c) {
 
                case ',' :
@@ -2551,6 +2627,25 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                          cr_error_syntax(root_args);
                     }
                     break;
+               }
+               break;
+
+          case CR_STATE_W_OPT_NUM:
+               if (cr_is_int(_c)) {
+                    _trigger_num   = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_COLUMN);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_COLUMN:
+               if (_c == ':') {
+                    cr_transition(_c, &_state, CR_STATE_W_SELECTOR);
+               }
+               else {
+                    cr_error_syntax(root_args);
                }
                break;
 
@@ -2600,6 +2695,55 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
                     cr_transition(_c, &_state, CR_STATE_W_END);
                }
+               else if (_c == ':') {
+                    _alt_colors[_curr_col_idx++]  = NULL;
+                    _alt_colors    = _re->alt[1].alt_cols;
+                    _curr_col_idx  = 0;
+                    _re->curr_alt  = &_re->alt[1];
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY_2);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_INTENSITY_2:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR_2);
+               }
+               else if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    cr_transition(_c, &_state, CR_STATE_W_END_2);
+               }
+               else {
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_COLOR_2:
+               if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    cr_transition(_c, &_state, CR_STATE_W_END_2);
+               }
+               else {
+                    cr_error_invalid_color(_c);
+                    cr_error_syntax(root_args);
+               }
+               break;
+
+          case CR_STATE_W_END_2:
+               if (cr_is_intensity(_c)) {
+                    G.intensity    = _c - '0';
+                    cr_transition(_c, &_state, CR_STATE_W_COLOR_2);
+               }
+               else if (cr_is_a_color(_c)) {
+                    _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
+                    cr_transition(_c, &_state, CR_STATE_W_END_2);
+               }
+               else if (_c == '\0') {
+                    cr_transition(_c, &_state, CR_STATE_FINAL);
+               }
                else {
                     cr_error_syntax(root_args);
                }
@@ -2618,17 +2762,24 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
           }
      }
 
+     _re->trigger_num              = _trigger_num;
      _alt_colors[_curr_col_idx++]  = NULL;
 
-     if (_alt_colors[0] == NULL) {
-          _alt_colors[0]           = G.deflt_alt_col_1;
+     for (_i = 0; _i < (sizeof(_re->alt[0].alt_cols) / sizeof(_re->alt[0].alt_cols[0])); _i++) {
+          _alt_colors         = _re->alt[_i].alt_cols;
+
+          if (_alt_colors[0] == NULL) {
+               _alt_colors[0]           = G.deflt_alt_col_1;
+          }
+          if (_alt_colors[1] == NULL) {
+               _alt_colors[1]           = G.deflt_alt_col_2;
+          }
+          if (_regexp == NULL) {
+               _regexp                  = CR_DEFLT_ALT_REGEXP;
+          }
      }
-     if (_alt_colors[1] == NULL) {
-          _alt_colors[1]           = G.deflt_alt_col_2;
-     }
-     if (_regexp == NULL) {
-          _regexp                  = CR_DEFLT_ALT_REGEXP;
-     }
+
+     _re->curr_alt            = &_re->alt[0];
 
      /* Count number of possible sub strings
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -2651,14 +2802,17 @@ struct cr_re_desc *cr_decode_alternate(cr_root_args *root_args)
           CR_DEBUG("Selector  = %d\n",   _re->idx_regex_select);
           CR_DEBUG("regex[0]  = [%s]\n", _re->regex[0]);
           CR_DEBUG("regex[1]  = %p\n",   _re->regex[1]);
-          for (_i = 0; ; _i++) {
-               _color              = _re->alt_cols[_i];
-               if (_color == NULL) {
-                    break;
+          for (_i = 0; _i < (sizeof(_re->alt) / sizeof(_re->alt[0])); _i++) {
+               for (_j = 0; ; _j++) {
+                    _color              = _re->alt[_i].alt_cols[_j];
+                    if (_color == NULL) {
+                         break;
+                    }
+                    CR_DEBUG("Color[%d][%d]  = (%d, %2d)  (%p)\n",
+                             _i, _j, _color->intensity, _color->col_num, _color);
                }
-               CR_DEBUG("Color[%d]  = (%d, %d)  (%p)\n", _i, _color->intensity, _color->col_num, _color);
+               CR_DEBUG("\n");
           }
-          CR_DEBUG("\n");
      }
 
      if ((_error = regcomp(&_re->reg[0], _regexp, _re->cflags)) != 0) {
@@ -2700,7 +2854,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
      _re->col.intensity       = 0;
      _re->col.out             = G.out;
      _re->max_sub             = 1;
-     _re->alt_idx             = 0;
+     _re->alt[0].alt_idx      = 0;
      _re->idx_regex_select    = 0;
      _re->matching_str        = NULL;
      _re->change_on_diff      = TRUE;
@@ -2736,7 +2890,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
           cr_error_malloc();
           exit(CR_EXIT_ERR_MALLOC);
      }
-     _re->alt_cols            = _alt_colors;
+     _re->alt[0].alt_cols     = _alt_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
           _alt_colors[_i]          = NULL;
@@ -2973,7 +3127,7 @@ struct cr_re_desc *cr_decode_sequential(cr_root_args *root_args)
           CR_DEBUG(_fmt, _re->param);
 
           for (_i = 0; ; _i++) {
-               _color              = _re->alt_cols[_i];
+               _color              = _re->alt[0].alt_cols[_i];
                if (_color == NULL) {
                     break;
                }
@@ -3134,7 +3288,7 @@ void cr_set_sub_RE_nums(struct cr_RE_num *sub_RE, char *fmt_spec)
                }
                else {
                     cr_transition(_c, &_state, CR_STATE_ERR_SYNTAX_ERROR);
-               };
+               }
                break;
 
           case CR_STATE_W_FMT_SPEC:
@@ -3514,7 +3668,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
           exit(CR_EXIT_ERR_MALLOC);
      }
      _re->dow.cols            = _dow_colors;
-     _re->alt_cols            = _dow_colors;
+     _re->alt[0].alt_cols     = _dow_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
           _dow_colors[_i]          = NULL;
@@ -3591,7 +3745,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                     break;
 
                case ':' :
-                    cr_transition(_c, &_state, CR_STATE_W_DMY2);
+                    cr_transition(_c, &_state, CR_STATE_W_DMY_2);
                     break;
 
                case ',' :
@@ -3608,7 +3762,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                }
                break;
 
-          case CR_STATE_W_DMY2:
+          case CR_STATE_W_DMY_2:
                switch (_c) {
 
                case 'Y' :
@@ -3633,7 +3787,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                break;
 
           case CR_STATE_W_INTENSITY:
-          case CR_STATE_W_INTENSITY2:
+          case CR_STATE_W_INTENSITY_2:
                if (_c == '\0') {
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                }
@@ -3643,7 +3797,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                }
                else if (cr_is_a_color(_c)) {
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY_2);
                }
                else {
                     cr_error_syntax(root_args);
@@ -3660,7 +3814,7 @@ struct cr_re_desc *cr_decode_dow(cr_root_args *root_args)
                          cr_error_syntax(root_args);
                     }
                     _dow_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
-                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY2);
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY_2);
                }
                else {
                     cr_error_invalid_color(_c);
@@ -3863,7 +4017,7 @@ struct cr_re_desc *cr_decode_thresholds(cr_root_args *root_args)
           exit(CR_EXIT_ERR_MALLOC);
      }
      _re->threshold.cols      = _range_colors;
-     _re->alt_cols            = _range_colors;
+     _re->alt[0].alt_cols     = _range_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
           _range_colors[_i]          = NULL;
@@ -4059,7 +4213,7 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
                     G.intensity    = _c - '0';
                }
                else if (cr_is_a_color(_c)) {
-                    cr_transition(_c, &_state, CR_STATE_W_COMMA2);
+                    cr_transition(_c, &_state, CR_STATE_W_COMMA_2);
                     _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
                }
                else {
@@ -4069,7 +4223,7 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
 
           case CR_STATE_W_COLOR:
                if (cr_is_a_color(_c)) {
-                    cr_transition(_c, &_state, CR_STATE_W_COMMA2);
+                    cr_transition(_c, &_state, CR_STATE_W_COMMA_2);
                     _range_colors[_curr_col_idx]  = cr_decode_color(_c, G.intensity);
                }
                else {
@@ -4078,7 +4232,7 @@ CR_DEBUG("_thresholds_count = %d\n", _thresholds_count);
                }
                break;
 
-          case CR_STATE_W_COMMA2:
+          case CR_STATE_W_COMMA_2:
                switch (_c) {
 
                case ',' :
@@ -4287,7 +4441,7 @@ CR_DEBUG("_option = [%s]\n", _option);
           exit(CR_EXIT_ERR_MALLOC);
      }
      _re->time.cols           = _time_colors;
-     _re->alt_cols            = _time_colors;
+     _re->alt[0].alt_cols     = _time_colors;
 
      for (_i = 0; _i < (_lg + 1); _i++) {
           _time_colors[_i]         = NULL;
@@ -5068,7 +5222,7 @@ void cr_disp_regex()
 
 // fprintf(G.debug_out, "======================================== DISP_REGEX ==============================\n");
      for (_i = 0, _re = G.extract_RE; _re != NULL; _re = _re->next) {
-          if (_re->alt_cols == NULL) {
+          if (_re->alt[0].alt_cols == NULL) {
                printf("[%2d  ] ", ++_i);
                cr_start_color(&_re->col);
                printf("%s", _re->regex[0]);
@@ -5087,15 +5241,15 @@ void cr_disp_regex()
 
                _i++;
                for (_j = 0; ; _j++) {
-                    _color              = _re->alt_cols[_j];
+                    _color              = _re->alt[0].alt_cols[_j];
                     if (_color == NULL) {
                          break;
                     }
 
                     printf("[%2d.%d] ", _i, _j);
-                    cr_start_color(_re->alt_cols[_j]);
+                    cr_start_color(_re->alt[0].alt_cols[_j]);
                     printf("%s", _re->regex[0]);
-                    cr_end_color(_re->alt_cols[_j]);
+                    cr_end_color(_re->alt[0].alt_cols[_j]);
                     printf("\n");
                }
           }
@@ -5285,6 +5439,83 @@ void cr_display_config(int search_mode, char *re)
 }
 
 /* cr_display_config() }}} */
+/* cr_set_alternate_links() {{{ */
+
+/******************************************************************************
+
+                         CR_SET_ALTERNATE_LINKS
+
+******************************************************************************/
+void cr_set_alternate_links()
+{
+     struct cr_re_desc        *_re, **_alt_RE_array, **_ref_re;
+     int                       _count = 0, _i = 0;
+     bool                      _error = FALSE;
+
+     /* Count alternate options
+        ~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
+          if (_re->alternate) {
+               _count++;
+          }
+     }
+
+     /* Allocate temporary array for alternate RE
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     if ((_alt_RE_array = (cr_re_desc **) malloc((_count + 1) * sizeof(cr_re_desc **))) == 0) {
+          /* Memory allocation error
+             ~~~~~~~~~~~~~~~~~~~~~~~ */
+          cr_error_malloc();
+          exit(CR_EXIT_ERR_MALLOC);
+     }
+
+     /* Store alternate RE addresses in the array
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+     for (_re = G.extract_RE; _re != NULL; _re = _re->next) {
+          if (_re->alternate) {
+               _alt_RE_array[_i++]      = _re;
+          }
+     }
+     _alt_RE_array[_i++]      = NULL;
+
+     /* Initialize links
+        ~~~~~~~~~~~~~~~~ */
+     for (_ref_re = _alt_RE_array; *_ref_re != NULL; _ref_re++) {
+          _re                      = *_ref_re;
+          if (_re->trigger_num >= 0) {
+               if (_re->trigger_num <= _count) {
+                    _re->triggering_opt      = _alt_RE_array[_re->trigger_num - 1];
+               }
+               else {
+                    fprintf(stderr, "%s: invalid number of triggering option (%d) in option %ld\n",
+                            G.prgname, _re->trigger_num, (_ref_re - _alt_RE_array) + 1);
+                    _error         = TRUE;
+               }
+          }
+     }
+
+     if (G.debug) {
+          for (_ref_re = _alt_RE_array; *_ref_re != NULL; _ref_re++) {
+               _re                      = *_ref_re;
+               if (_re->alternate) {
+                    printf("re [%p] : alternate, ", _re);
+                    if (_re->trigger_num < 0) {
+                         printf("NOT triggered\n");
+                    }
+                    else {
+                         printf("triggered by %d [%p]\n",
+                                _re->trigger_num, _re->triggering_opt);
+                    }
+               }
+          }
+     }
+
+     if (_error) {
+          exit(CR_EXIT_ERR_INVALID_REFERENCE);
+     }
+}
+
+/* cr_set_alternate_links() }}} */
 /* main() {{{ */
 
 /******************************************************************************
@@ -5475,7 +5706,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.160");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.168");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5560,7 +5791,7 @@ int main(int argc, char *argv[])
 // CR_DEBUG("regexp before cr_decode_time() call :\n");
 // cr_disp_regex();
                _re                 = cr_decode_time(_root_args);
-// CR_DEBUG("_re->alt_cols = %p\n", _re->alt_cols);
+// CR_DEBUG("_re->alt[0].alt_cols = %p\n", _re->alt[0].alt_cols);
                _re->time.used = TRUE;
                cr_add_to_list(_re);
 // CR_DEBUG("regexp after cr_decode_time() call : [%s]\n", _re->regex[0]);
@@ -5600,28 +5831,36 @@ int main(int argc, char *argv[])
                break;
 
           default:
+X
                fprintf(stderr, "%s: unknown option '%s' !\n", G.prgname, cr_char_to_str(_opt));
                cr_usage(FALSE);
                break;
           }
      }
 
+     cr_set_alternate_links();
+
      if (G.disp_regex) {
           cr_disp_regex();
      }
 
+X
      if (G.disp_nb_opts) {
           /* Only display configuration pathname, options count and config name
              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
           G.verbose      = 1;
           cr_read_config_files();
           cr_display_config(CR_CONF_LIST_ALL, NULL);
+X
           exit(CR_EXIT_OK);
      }
+X
 
      cr_read_input();
+X
 
      cr_free_RE();
+X
      return CR_EXIT_OK;
 }
 
@@ -5642,7 +5881,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.160");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.168");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -6309,15 +6548,33 @@ void cr_read_input(void)
                                    }
                               }
 
+                              _re->change    = _change;
                               if (_change) {
-                                   /* Color change : select next color
-                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                                   _re->alt_idx++;
-                                   if (_re->alt_cols[_re->alt_idx] == NULL) {
-                                        _re->alt_idx   = 0;
+                                   if (_re->triggering_opt)  {
+                                        /* Triggering option exists
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                        if (_re->triggering_opt->change) {
+                                             /* Use first colors set
+                                                ~~~~~~~~~~~~~~~~~~~~ */
+                                             _re->curr_alt       = &_re->alt[0];
+
+                                             /* Reset index of 2nd colors set
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                             _re->alt[1].alt_idx = -1;
+                                        }
+                                        else {
+                                             /* Use second colors set
+                                                ~~~~~~~~~~~~~~~~~~~~~ */
+                                             _re->curr_alt       = &_re->alt[1];
+                                        }
                                    }
 
-                                   CR_DEBUG("***** CHANGE COLOR ***** : alt_idx = %d\n", _re->alt_idx);
+                                   /* Color change : select next color from current set
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                                   _re->curr_alt->alt_idx++;
+                                   if (_re->curr_alt->alt_cols[_re->curr_alt->alt_idx] == NULL) {
+                                        _re->curr_alt->alt_idx      = 0;
+                                   }
                               }
 
                               /* Loop on substrings
@@ -6342,16 +6599,21 @@ void cr_read_input(void)
                                    }
 
                                    if (_s >= 0) {
-                                        cr_set_desc_alt(_re, _off, _s, _e, _re->alt_cols[_re->alt_idx]);
+                                        cr_set_desc_alt(_re, _off, _s, _e,
+                                                        _re->curr_alt->alt_cols[_re->curr_alt->alt_idx]);
 
                                         if (G.debug) {
-                                             cr_dump_color(_re->alt_cols[_re->alt_idx]);
+                                             cr_dump_color(_re->curr_alt->alt_cols[_re->curr_alt->alt_idx]);
                                              fprintf(G.debug_out, "    offset = %d, [%d => %d], col = %d\n",
-                                                     _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
+                                                     _off, _s, _e,
+                                                     _re->curr_alt->alt_cols[_re->curr_alt->alt_idx]->col_num);
 //                                             fprintf(G.debug_out, "\n");
                                         }
                                    }
                               }
+
+                              CR_DEBUG("***** CHANGE COLOR ***** : alt_idx = %d\n",
+                                       _re->curr_alt->alt_idx);
 
                               /* To handle empty strings
                                  ~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -6431,12 +6693,13 @@ void cr_read_input(void)
                               if (_change) {
                                    /* Color change : select next color
                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                                   _re->alt_idx++;
-                                   if (_re->alt_cols[_re->alt_idx] == NULL) {
-                                        _re->alt_idx   = 0;
+                                   _re->alt[0].alt_idx++;
+                                   if (_re->alt[0].alt_cols[_re->alt[0].alt_idx] == NULL) {
+                                        _re->alt[0].alt_idx   = 0;
                                    }
 
-                                   CR_DEBUG("***** CHANGE COLOR ***** : alt_idx = %d\n", _re->alt_idx);
+                                   CR_DEBUG("***** CHANGE COLOR ***** : alt_idx = %d\n",
+                                            _re->alt[0].alt_idx);
                               }
 
                               /* Loop on substrings
@@ -6461,12 +6724,14 @@ void cr_read_input(void)
                                    }
 
                                    if (_s >= 0) {
-                                        cr_set_desc_alt(_re, _off, _s, _e, _re->alt_cols[_re->alt_idx]);
+                                        cr_set_desc_alt(_re, _off, _s, _e,
+                                                        _re->alt[0].alt_cols[_re->alt[0].alt_idx]);
 
                                         if (G.debug) {
-                                             cr_dump_color(_re->alt_cols[_re->alt_idx]);
+                                             cr_dump_color(_re->alt[0].alt_cols[_re->alt[0].alt_idx]);
                                              fprintf(G.debug_out, "    offset = %d, [%d => %d], col = %d\n",
-                                                     _off, _s, _e, _re->alt_cols[_re->alt_idx]->col_num);
+                                                     _off, _s, _e,
+                                                     _re->alt[0].alt_cols[_re->alt[0].alt_idx]->col_num);
                                         }
                                    }
                               }
@@ -6817,7 +7082,7 @@ X
                                                        +   _t.tspec.tv_nsec);
 
                               CR_DEBUG("TIME SINCE THE EPOCH : %s\n", ctime(&_t.tspec.tv_sec));
-                              CR_DEBUG("TIME SINCE THE EPOCH : %19lld nano-seconds since the Epoch\n",
+                              CR_DEBUG("TIME SINCE THE EPOCH : %19ld nano-seconds since the Epoch\n",
                                        _t.nsec_epoch);
                               CR_DEBUG("     TIME PERIODS : _idx = ...\n");
 
