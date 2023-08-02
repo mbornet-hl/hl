@@ -1,0 +1,27 @@
+Examples of -A options using the original syntax :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-A
+-A5
+-A,cy
+-A,m
+-A,1b
+-A,2g3y
+-A7,R2w
+-A2,2By
+-A3,2C3g
+
+Extensions (links between -A/-I options) :
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-A0,2B3c regex_1 -A#1:0,2G3r2R:2r2R regex_2
+                   ^^   ^^^^^^ ^^^^
+                    |   |      |
+                    |   |      +----------> second colors set, selected
+                    |   |                   when there is a change on the string matched by regex_2
+                    |   |                   but not on the string matched by regex_1
+                    |   |
+                    |   +-----------------> first (main) colors set
+                    |
+                    +---------------------> number of the -A/-I option conditioning the change of color set
+                                            here : '-A0,2B3c'
+
+Use of the second colors set (2r2R) in the second -A option is triggered by the first (#1) -A option.
