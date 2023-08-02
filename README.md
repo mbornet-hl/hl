@@ -525,6 +525,9 @@ $ ./dates_gen -w '2000-06-23 12:34:56.123456789' | hl -twR '2000-06-23 12:34:56.
 New environment variables for option -t :
 ![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_env_-t.png)
 
+Enhanced display for hl_tool -M (configurations checksums) :
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/hl_tool_-M_example.png)
+
 Extracting information from standard input (for advanced users)
 ---------------------------------------------------------------
 **hl** can also be used to extract information from standard input. The idea is to send to **stderr** information that should normally have been colorized. It's somewhat like a **grep -o** that is able to extract **parts of lines**.
