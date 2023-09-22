@@ -1,25 +1,31 @@
-.\" 	@(#)	[MB] cr_hl.1	Version 1.17 du 19/06/02 - 
-.TH "HL" "1" "April 2020" "" "User Commands"
+.\" 	@(#)	[MB] cr_hl.1	Version 1.19 du 23/09/22 - 
+.TH "HL" "1" "September 2023" "" "User Commands"
 .SH "NAME" 
-.B hl - Colorize strings matching regular expressions
+hl - Colorize strings matching regular expressions
 .SH "VERSION"
 .PP
-Version 1.91
+Version 1.168
 .SH "SYNOPSIS" 
 .PP 
-\fBhl\fP \fB [-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAI] regexp ...][--config_name ...] ]\fP
+\fBhl\fP \fB [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...]\fP
 
 or :
 
 \fBhl\fP \fBregexp\fP
+
+with environment variable HL_DEFAULT initialized
 
 .SH "DESCRIPTION" 
 .PP 
 \fBhl\fP 
 reads standard input and colorize strings matching regular expressions with specified colors.
 .SH "OPTIONS" 
+.IP "\fB-o\fP         " 10
+usage will be displayed on stdout (default = stderr)
+.IP "\fB-O\fP         " 10
+debug messages will be displayed on stdout (default = stderr)
 .IP "\fB-h\fP         " 10 
-display help message
+display help message. When -v is specified before -h (or when using -vh), some examples are given and environment variables are displayed with their current and default values
 .IP "\fB-H\fP         " 10 
 display help message and configuration names found in $HOME/.hl.cfg
 .IP "\fB-V\fP " 10
@@ -102,7 +108,80 @@ Specifies parameters to alternate colors when matching string stays identical.
 		Syntax for alternate options : -{A|I}[[s],c1c2...cn]
 where s is a number from 0 to 9 indicating the selection regexp number,
 and c1, c2, ... cn are color specifiers to use
+.TP
+		The following syntax : -{A|I}#a:s1,c11c12...c1n:c21c22..c2p
+ may be used to select a second color set in case there is a change detected
+by this -A (or -I) option but not by another -A (or -I) option whose number is given by #a.
+ (See example 11 for more explanation).
+
 Alternate colors implies extended regular expressions (-e)
+.IP "\fB-s\fP " 10
+Alternate colors when the string matched by the selection regex is the image by a simple
+function (+, -, * or /) of the value of the previous matching string
+.TP
+		Syntax for sequential control option : -s[[-+*/]p[adox]:][n],c1c2...cn]
+where p is a positive integer (parameter),
+n is a number from 0 to 9 indicating the selection regexp number,
+and c1, c2, ... cn are color specifiers to use
+ d : decimal (default)
+ o : octal
+ x : hexadecimal
+ a : ascii (first character of the matching string)
+Alternate colors implies extended regular expressions (-e)
+.IP "\fB-J\fP " 10
+Colorize date according to the day of the week
+.TP
+        Syntax for day of week option : -J[Ys1ms2ds3[,c1c2...c7]]
+where :
+ s1 : number of the sub-regex for the year
+ s2 : number of the sub-regex for the month
+ s3 : number of the sub-regex for the day of the month
+and c1c2...c7 are the optional color specifiers for Sunday to Saturday
+.IP "\fB-T\fP " 10
+Colorize string according to specified thresholds values
+.TP
+        Syntax for thresholds option : -Ts[x],s1[:c1],s2[:c2]...s10[:c10]
+where :
+ s is a number from 0 to 9 indicating the selection regexp number,
+ x indicates that thresholds are in hexadecimal
+ si : value of the i-th threshold for 1 <= i <= 10
+ c1 : color of the i-th range     for 1 <= i <= 10
+.IP "\fB-t\fP " 10
+Colorize string according to time periods
+.TP
+        Syntax for time periods option : -tp[0][R][:num][:spec][,c1c2...c10]
+where :
+ p is a time period specifier in [YmwdHMSun]
+  with the following meaning :
+    Y : year
+    m : month
+    w : week
+    d : day
+    H : hour
+    M : minute
+    S : second
+    u : micro-second
+    n : nano-second
+ 0 tells that the date must be framed at the beginning of the period
+ R is an optional flag telling to use an optional time reference
+  instead of the current time. The optional time reference must be
+  specified before the regex argument
+ num is an optional number of time periods (default is 1)
+ spec is a string specifying the position of date elements,
+  composed of letters in [YmbdHMSus], each one followed by the
+  number of the sub-regex it is associated to,
+  with the following meaning :
+    Y : year
+    m : month
+    b : abbreviated month name
+    w : week
+    d : day
+    H : hour
+    M : minute
+    S : second
+    u : micro-second
+    n : nano-second
+  and c1c2...c7 are the optional color specifiers for the time periods
 
 .SH "PRIORITIES"
 A color specifier always has a higher priority than the one that follows.
@@ -121,39 +200,336 @@ If no parenthesis are specified in the regular expression, then all characters m
 If parenthesis are specified, only characters captured in the parenthesis will be colorized.
 
 .SH "ENVIRONMENT VARIABLES"
-
 .TP
-HL_DEFAULT : default color
+HL_DEFAULT
 \fBhl\fP can be used to quickly highlight strings matching a regular expression with a default color.
-The environment variable HL_DEFAULT must be defined and initialized with a valid color specifier,
-such as "g", "2r" or "3G".
-
-The default value is "3Y".
+The environment variable HL_DEFAULT may be defined and initialized with a valid color specifier,
+such as "g", "2r" or "3Y".
+.TP
+HL_CONF
+may contain a list or directory pathnames in which configurations files may be found. The pathnames are separated by a column (':'), like in PATH.
+.TP
+HL_CONF_GLOB
+may contain a list of globbing expressions specifying patterns for configurations filenames. Expressions are separated by a column (':').
+.TP
+HL_DOW_SPEC
+may contain a specifier for the specification of a date. Used with -J option, for colorizing the day of the week.
+.TP
+HL_DOW_REGEX
+may contain a regex for the specification of a date. Used with HL_DOW_SPEC.
+.TP
+HL_TIME_REGEX_Y
+may contain a regex for the specification of the year.
+.TP
+HL_TIME_REGEX_m
+may contain a regex for the specification of the numerical month (plus year).
+.TP
+HL_TIME_REGEX_d
+may contain a regex for the specification of the day (plus year and month).
+.TP
+HL_TIME_REGEX_H
+may contain a regex for the specification of the hour of the day (plus year, month and day).
+.TP
+HL_TIME_REGEX_M
+may contain a regex for the specification of the minutes of the hour (plus year, month, day and hour).
+.TP
+HL_TIME_REGEX_S
+may contain a regex for the specification of the seconds of the hour (plus year, month, day, hour and minutes).
+.TP
+HL_TIME_REGEX_u
+may contain a regex for the specification of the microseconds (plus the date).
+.TP
+HL_TIME_REGEX_n
+may contain a regex for the specification of the nanoseconds (plus the date).
+.TP
+HL_TIME_SPEC_Y
+may contain a specifier for the year.
+.TP
+HL_TIME_SPEC_m
+may contain a specifier for the month.
+.TP
+HL_TIME_SPEC_d
+may contain a specifier for the day.
+.TP
+HL_TIME_SPEC_H
+may contain a specifier for the hours.
+.TP
+HL_TIME_SPEC_M
+may contain a specifier for the minutes.
+.TP
+HL_TIME_SPEC_S
+may contain a specifier for the seconds.
+.TP
+HL_TIME_SPEC_u
+may contain a specifier for the microseconds.
+.TP
+HL_TIME_SPEC_n
+may contain a specifier for the nanoseconds.
+.TP
+HL_THRES_REGEX
+may contain a regex for the selection of the numbers to colorize using -T option (thresholds).
 
 .TP
-HL_A1 : first color specifier variable for color alternate
-
-The default value is 2B.
+HL_A1
+may contain the default color specifier for the 1st color of the -A (or -I) option.
+.TP
+HL_A2
+may contain the default color specifier for the 2nd color of the -A (or -I) option.
 
 .TP
-HL_A2 : second color specifier variable for color alternate
-
-The default value is 1n (no color).
+HL_SUNDAY
+may contain the default color specifier for Sunday of the -J option.
+.TP
+HL_MONDAY
+may contain the default color specifier for Monday of the -J option.
+.TP
+HL_TUESDAY
+may contain the default color specifier for Tuesday of the -J option.
+.TP
+HL_WEDNESDAY
+may contain the default color specifier for Wednesday of the -J option.
+.TP
+HL_THURSDAY
+may contain the default color specifier for Thursday of the -J option.
+.TP
+HL_FRIDAY
+may contain the default color specifier for Friday of the -J option.
+.TP
+HL_SATURDAY
+may contain the default color specifier for Saturday of the -J option.
 
 .TP
-HL_CONF : list of paths for configuration files
-This variable allows the user to specify the pathnames of the configuration files or those of directories containing
-configuration files. The separator between pathnames is ':', as in the shell PATH variable.
-
-The default value is "$HOME/.hl.cfg:/etc/default/hl".
+HL_TIME_0
+may contain the default color specifier for period 0 of the -t option.
+.TP
+HL_TIME_1
+may contain the default color specifier for period 1 of the -t option.
+.TP
+HL_TIME_2
+may contain the default color specifier for period 2 of the -t option.
+.TP
+HL_TIME_3
+may contain the default color specifier for period 3 of the -t option.
+.TP
+HL_TIME_4
+may contain the default color specifier for period 4 of the -t option.
+.TP
+HL_TIME_5
+may contain the default color specifier for period 5 of the -t option.
+.TP
+HL_TIME_6
+may contain the default color specifier for period 6 of the -t option.
+.TP
+HL_TIME_7
+may contain the default color specifier for period 7 of the -t option.
+.TP
+HL_TIME_8
+may contain the default color specifier for period 8 of the -t option.
+.TP
+HL_TIME_9
+may contain the default color specifier for period 9 of the -t option.
 
 .TP
-HL_CONF_GLOB : list of patterns for configuration filenames matching
-This variable allows the user to specify a list of patterns for a generic specification of configuration filenames
-(globbing : see glob(7)). The separator between pathnames is ':', as in the shell PATH variable.
+HL_T_2_1
+may contain the default color specifier for the 1st of 2 ranges of the -T option.
+.TP
+HL_T_2_2
+may contain the default color specifier for the 2nd of 2 ranges of the -T option.
 
-The default value is "hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg".
+.TP
+HL_T_3_1
+may contain the default color specifier for the 1st of 3 ranges of the -T option.
+.TP
+HL_T_3_2
+may contain the default color specifier for the 2nd of 3 ranges of the -T option.
+.TP
+HL_T_3_3
+may contain the default color specifier for the 3rd of 3 ranges of the -T option.
 
+.TP
+HL_T_4_1
+may contain the default color specifier for the 1st of 4 ranges of the -T option.
+.TP
+HL_T_4_2
+may contain the default color specifier for the 2nd of 4 ranges of the -T option.
+.TP
+HL_T_4_3
+may contain the default color specifier for the 3rd of 4 ranges of the -T option.
+.TP
+HL_T_4_4
+may contain the default color specifier for the 4th of 4 ranges of the -T option.
+
+.TP
+HL_T_5_1
+may contain the default color specifier for the 1st of 5 ranges of the -T option.
+.TP
+HL_T_5_2
+may contain the default color specifier for the 2nd of 5 ranges of the -T option.
+.TP
+HL_T_5_3
+may contain the default color specifier for the 3rd of 5 ranges of the -T option.
+.TP
+HL_T_5_4
+may contain the default color specifier for the 4th of 5 ranges of the -T option.
+.TP
+HL_T_5_5
+may contain the default color specifier for the 5th of 5 ranges of the -T option.
+
+.TP
+HL_T_6_1
+may contain the default color specifier for the 1st of 6 ranges of the -T option.
+.TP
+HL_T_6_2
+may contain the default color specifier for the 2nd of 6 ranges of the -T option.
+.TP
+HL_T_6_3
+may contain the default color specifier for the 3rd of 6 ranges of the -T option.
+.TP
+HL_T_6_4
+may contain the default color specifier for the 4th of 6 ranges of the -T option.
+.TP
+HL_T_6_5
+may contain the default color specifier for the 5th of 6 ranges of the -T option.
+.TP
+HL_T_6_6
+may contain the default color specifier for the 6th of 6 ranges of the -T option.
+
+.TP
+HL_T_7_1
+may contain the default color specifier for the 1st of 7 ranges of the -T option.
+.TP
+HL_T_7_2
+may contain the default color specifier for the 2nd of 7 ranges of the -T option.
+.TP
+HL_T_7_3
+may contain the default color specifier for the 3rd of 7 ranges of the -T option.
+.TP
+HL_T_7_4
+may contain the default color specifier for the 4th of 7 ranges of the -T option.
+.TP
+HL_T_7_5
+may contain the default color specifier for the 5th of 7 ranges of the -T option.
+.TP
+HL_T_7_6
+may contain the default color specifier for the 6th of 7 ranges of the -T option.
+.TP
+HL_T_7_7
+may contain the default color specifier for the 7th of 7 ranges of the -T option.
+
+.TP
+HL_T_8_1
+may contain the default color specifier for the 1st of 8 ranges of the -T option.
+.TP
+HL_T_8_2
+may contain the default color specifier for the 2nd of 8 ranges of the -T option.
+.TP
+HL_T_8_3
+may contain the default color specifier for the 3rd of 8 ranges of the -T option.
+.TP
+HL_T_8_4
+may contain the default color specifier for the 4th of 8 ranges of the -T option.
+.TP
+HL_T_8_5
+may contain the default color specifier for the 5th of 8 ranges of the -T option.
+.TP
+HL_T_8_6
+may contain the default color specifier for the 6th of 8 ranges of the -T option.
+.TP
+HL_T_8_7
+may contain the default color specifier for the 7th of 8 ranges of the -T option.
+.TP
+HL_T_8_8
+may contain the default color specifier for the 8th of 8 ranges of the -T option.
+
+.TP
+HL_T_9_1
+may contain the default color specifier for the 1st of 9 ranges of the -T option.
+.TP
+HL_T_9_2
+may contain the default color specifier for the 2nd of 9 ranges of the -T option.
+.TP
+HL_T_9_3
+may contain the default color specifier for the 3rd of 9 ranges of the -T option.
+.TP
+HL_T_9_4
+may contain the default color specifier for the 4th of 9 ranges of the -T option.
+.TP
+HL_T_9_5
+may contain the default color specifier for the 5th of 9 ranges of the -T option.
+.TP
+HL_T_9_6
+may contain the default color specifier for the 6th of 9 ranges of the -T option.
+.TP
+HL_T_9_7
+may contain the default color specifier for the 7th of 9 ranges of the -T option.
+.TP
+HL_T_9_8
+may contain the default color specifier for the 8th of 9 ranges of the -T option.
+.TP
+HL_T_9_9
+may contain the default color specifier for the 9th of 9 ranges of the -T option.
+
+.TP
+HL_T_10_1
+may contain the default color specifier for the 1st of 10 ranges of the -T option.
+.TP
+HL_T_10_2
+may contain the default color specifier for the 2nd of 10 ranges of the -T option.
+.TP
+HL_T_10_3
+may contain the default color specifier for the 3rd of 10 ranges of the -T option.
+.TP
+HL_T_10_4
+may contain the default color specifier for the 4th of 10 ranges of the -T option.
+.TP
+HL_T_10_5
+may contain the default color specifier for the 5th of 10 ranges of the -T option.
+.TP
+HL_T_10_6
+may contain the default color specifier for the 6th of 10 ranges of the -T option.
+.TP
+HL_T_10_7
+may contain the default color specifier for the 7th of 10 ranges of the -T option.
+.TP
+HL_T_10_8
+may contain the default color specifier for the 8th of 10 ranges of the -T option.
+.TP
+HL_T_10_9
+may contain the default color specifier for the 9th of 10 ranges of the -T option.
+.TP
+HL_T_10_10
+may contain the default color specifier for the 10th of 10 ranges of the -T option.
+
+.TP
+HL_T_V_1
+may contain the lower limit of the 1st range of the -T option
+.TP
+HL_T_V_2
+may contain the lower limit of the 2nd range of the -T option
+.TP
+HL_T_V_3
+may contain the lower limit of the 3rd range of the -T option
+.TP
+HL_T_V_4
+may contain the lower limit of the 4th range of the -T option
+.TP
+HL_T_V_5
+may contain the lower limit of the 5th range of the -T option
+.TP
+HL_T_V_6
+may contain the lower limit of the 6th range of the -T option
+.TP
+HL_T_V_7
+may contain the lower limit of the 7th range of the -T option
+.TP
+HL_T_V_8
+may contain the lower limit of the 8th range of the -T option
+.TP
+HL_T_V_9
+may contain the lower limit of the 9th range of the -T option
+.TP
+HL_T_V_10
+may contain the lower limit of the 10th range of the -T option
 
 .SH "EXAMPLES"
 .TP
@@ -230,6 +606,20 @@ Example 10 :
 Define default alternate colors in environment variables so that you can use -A or -I without specifing colors.
 Only two colors may be specified that way.
 
+.TP
+Example 11 :
+.B	cmd | hl -A0,2B3c '^[^ ]+ +([^ ]+) ' -A#1:0,2G3g:3r2R '^([^ ]+) ' -A#1:0,1B3b:3m3M '^[^ ]+ +[^ ]+ +([^ ]+)'
+
+This set of options comes from the hl_tool script and it is intended to alternate the colors of the 2nd field with colors 2B and 3c,
+to alternate the colors of the 1st field with colors 2G and 3g, but if there is a change on the 1st field but not not the 2nd field,
+the color set to use is 3r and 2R. The change of the set is triggered by using the -A#1 string, where #1 denotes the number of the
+-A option which must be checked to decide whether to switch or not.
+In the same way, the 3rd -A option alternates the colors of the 3rd field with colors 1B and 3b, but in case of a change on the 3rd
+field and not on the 2nd field, the color set to use is 3m and 3M. This is achieved by using the syntax -A#1, just line the previous
+option. This extension of the -A option has been implemented to synchronize the color changes of fields 1 and 2 when using option -M
+of the hl_tool script, in order to make the result more readable.
+
+
 .SH "FILES"
 .TP
 Since version 1.57, the default configuration for \fBhl\fP is \fB/etc/default/hl\fP . This configuration file is common to all users.
@@ -288,7 +678,6 @@ hl		:
 	-M  ' +(.*\<magenta\>).*reverse video.*'
 	-C  ' +(.*\<cyan\>...).*reverse video.*'
 	-W  ' +(.*\<white\>..).*reverse video.*'
-	-w  '(\(reverse video\))'
 	-r  '.*\<red\>.*'
 	-g  '.*\<green\>.*'
 	-y  '.*\<yellow\>.*'
@@ -302,8 +691,8 @@ hl		:
 hl(5)
 
 .SH "MAN PAGE VERSION"
-The version of this man page is 1.17.
-It is compatible with hl version 1.63 and upper.
+The version of this man page is 1.19.
+It is compatible with hl version 1.168 and upper.
 
 .SH "AUTHOR" 
 .PP 
