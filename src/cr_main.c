@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.168 du 23/08/01 - 
+ *   @(#)  [MB] cr_main.c Version 1.169 du 23/09/28 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -5706,7 +5706,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.168");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.169");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5881,7 +5881,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.168");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.169");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -5923,12 +5923,21 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "        Syntax for alternate options : -{A|I}[[s],c1c2...cn]\n");
      fprintf(G.usage_out, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
      fprintf(G.usage_out, "         and c1, c2, ... cn are color specifiers to use\n");
-     fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
      if (G.verbose) {
           fprintf(G.usage_out, "        Example : -A2,2By  '(^([^ ]+ [0-9]{2} ..:..):..)'\n");
           fprintf(G.usage_out, "        Example : -A1 '(.*([12][0-9]{3}[-/][0-9]{2}[-/][0-9]{2})[   ]+.*)'\n");
           fprintf(G.usage_out, "        Example : -I1 '^([^:]*:[^:]*:([^:]*)[:]*.*)'\n");
      }
+     fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
+	fprintf(G.usage_out, "        Syntax for the use of a 2nd colorset triggered by another option :\n");
+	fprintf(G.usage_out, "         -{A|I}#a:s,c11c12...c1n:c21c22...c2p\n");
+     fprintf(G.usage_out, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
+	fprintf(G.usage_out, "         a is the number of the option that triggers the use of the 2nd colorset,\n");
+	fprintf(G.usage_out, "         c11c12...c1n are the colors of the 1st colorset, and\n");
+	fprintf(G.usage_out, "         c21c22...c2p are the colors of the 2nd colorset\n");
+     if (G.verbose) {
+          fprintf(G.usage_out, "        Example : -A0,2B3c '^[^ ]+ +([^ ]+) ' -A#1:0,2G3g:3r2R '^([^ ]+) '\n");
+	}
      fprintf(G.usage_out, "  -s  : alternate colors when the string matched by the selection regex is the image\n");
      fprintf(G.usage_out, "        by a simple function (+, -, * or /) of the value of the previous matching string\n");
      fprintf(G.usage_out, "        Syntax for sequential control option : -s[[-+*/]p[%s]:][n],c1c2...cn]\n",
