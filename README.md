@@ -64,8 +64,8 @@ Usage
 -----
 
 ```
-hl: version 1.153
-Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
+hl: version 1.169
+Usage: ./hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -106,6 +106,12 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
          where s is a number from 0 to 9 indicating the selection regexp number,
          and c1, c2, ... cn are color specifiers to use
         Alternate colors implies extended regular expressions (-e)
+        Syntax for the use of a 2nd colorset triggered by another option :
+         -{A|I}#a:s,c11c12...c1n:c21c22...c2p
+         where s is a number from 0 to 9 indicating the selection regexp number,
+         a is the number of the option that triggers the use of the 2nd colorset,
+         c11c12...c1n are the colors of the 1st colorset, and
+         c21c22...c2p are the colors of the 2nd colorset
   -s  : alternate colors when the string matched by the selection regex is the image
         by a simple function (+, -, * or /) of the value of the previous matching string
         Syntax for sequential control option : -s[[-+*/]p[adox]:][n],c1c2...cn]
@@ -132,9 +138,10 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
            si : value of the i-th threshold for 1 <= i <= 10
            c1 : color of the i-th range     for 1 <= i <= 10
   -t  : Colorize string according to time periods
-        Syntax for time periods option : -tp[R][:num][:spec][,c1c2...c10]
+        Syntax for time periods option : -tp[0][R][:num][:spec][,c1c2...c10]
          where :
            p is a time period specifier in [YmwdHMSun]
+           0 tells that the date must be framed at the beginning of the period
            R is an optional flag telling to use an optional time reference
              instead of the current time. The optional time reference must be
              specified before the regex argument
@@ -151,8 +158,8 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
 
 You can get a more verbose version of the usage with the '-v' option :
 ```
-hl: version 1.153
-Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
+hl: version 1.169
+Usage: ./hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -192,10 +199,17 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
         Syntax for alternate options : -{A|I}[[s],c1c2...cn]
          where s is a number from 0 to 9 indicating the selection regexp number,
          and c1, c2, ... cn are color specifiers to use
-        Alternate colors implies extended regular expressions (-e)
         Example : -A2,2By  '(^([^ ]+ [0-9]{2} ..:..):..)'
         Example : -A1 '(.*([12][0-9]{3}[-/][0-9]{2}[-/][0-9]{2})[   ]+.*)'
         Example : -I1 '^([^:]*:[^:]*:([^:]*)[:]*.*)'
+        Alternate colors implies extended regular expressions (-e)
+        Syntax for the use of a 2nd colorset triggered by another option :
+         -{A|I}#a:s,c11c12...c1n:c21c22...c2p
+         where s is a number from 0 to 9 indicating the selection regexp number,
+         a is the number of the option that triggers the use of the 2nd colorset,
+         c11c12...c1n are the colors of the 1st colorset, and
+         c21c22...c2p are the colors of the 2nd colorset
+        Example : -A0,2B3c '^[^ ]+ +([^ ]+) ' -A#1:0,2G3g:3r2R '^([^ ]+) '
   -s  : alternate colors when the string matched by the selection regex is the image
         by a simple function (+, -, * or /) of the value of the previous matching string
         Syntax for sequential control option : -s[[-+*/]p[adox]:][n],c1c2...cn]
@@ -230,7 +244,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
         Example : -T1,0,10,50,70,95,100  '(([0-9]+)% .*)'
         Example : -T1,0:2b,10:2g,50:2y,70:3y,95:3r,100:3R  '(([0-9]+)% .*)'
   -t  : Colorize string according to time periods
-        Syntax for time periods option : -tp[R][:num][:spec][,c1c2...c10]
+        Syntax for time periods option : -tp[0][R][:num][:spec][,c1c2...c10]
          where :
            p is a time period specifier in [YmwdHMSun]
              with the following meaning :
@@ -243,6 +257,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
                S : second
                u : micro-second
                n : nano-second
+           0 tells that the date must be framed at the beginning of the period
            R is an optional flag telling to use an optional time reference
              instead of the current time. The optional time reference must be
              specified before the regex argument
@@ -267,7 +282,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
   -P  : display configuration(s) matching regexp
   -x  : display options count for each config (with -vH options)
 Buffer size = 64 Ko
-Environment variable HL_CONF         =  "/home/machine/mb/.hl.cfg:/DATA3/projets/hl/config_files:/home/machine/mb/hl_conf:/etc/default/hl"
+Environment variable HL_CONF         =  "/home/machine/mb/.hl.cfg:/home/machine/mb/hl_conf:/DATA3/projets/hl/config_files"
 Environment variable HL_CONF_GLOB    =  "eh_hl_*.cfg:hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg"
 Environment variable HL_DOW_SPEC     is undefined. Default value = "Y2m3d4".
 Environment variable HL_DOW_REGEX    is undefined. Default value = "(([0-9]{4})-([0-9]{2})-([0-9]{2}))".
