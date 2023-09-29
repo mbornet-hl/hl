@@ -65,7 +65,7 @@ Usage
 
 ```
 hl: version 1.169
-Usage: ./hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -159,7 +159,7 @@ Usage: ./hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] rege
 You can get a more verbose version of the usage with the '-v' option :
 ```
 hl: version 1.169
-Usage: ./hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
