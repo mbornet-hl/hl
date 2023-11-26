@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.169 du 23/09/28 - 
+ *   @(#)  [MB] cr_main.c Version 1.170 du 23/11/14 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -4452,14 +4452,18 @@ CR_DEBUG("_option = [%s]\n", _option);
      for (_state = CR_STATE_INITIAL; _state != CR_STATE_FINAL; ) {
           cr_set_opt_pointers(root_args, &_p, &_regexp);
 
+#if 1
           if (_get_next_char) {
                _c                       = cr_getopt(root_args);
           }
+#endif    /* 0 */
+
           _get_next_char           = TRUE;
 
           CR_DEBUG("CHAR    = '%s'\n", cr_char_to_str(_c));
           CR_DEBUG("_regexp = %p\n", _regexp);
           CR_DEBUG("_regexp = %s\n", _regexp == 0 ? "nil" : _regexp);
+          CR_DEBUG("State   = %s\n", cr_state_to_str(_state));
 
           switch (_state) {
           
@@ -4647,6 +4651,9 @@ X
                else if (_c == ':') {
                     cr_transition(_c, &_state, CR_STATE_W_FMT_SPEC);
                }
+               else if (_c == ',') {
+                    cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
+               }
                else if (_c == '\0') {
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                }
@@ -4656,6 +4663,7 @@ X
                break;
 
           case CR_STATE_W_FMT_SPEC:
+CR_DEBUG("state_W_FMT_SPEC\n");
                if (strchr(CR_PERIOD_SPEC_CHARS, _c)) {
                     /* Switch to a new state with the same character
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -4665,6 +4673,8 @@ X
                break;
 
           case CR_STATE_M_FMT_SPEC:
+CR_DEBUG("state_M_FMT_SPEC\n");
+CR_DEBUG("_c = 0x%02X\n", _c);
                switch (_c) {
 
                case 'Y':
@@ -4706,6 +4716,7 @@ X
                case '\0':
                     /* No date format specification
                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+CR_DEBUG("==> STATE_FINAL\n");
                     _regexp                  = _possible_RE;
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                     break;
@@ -4714,7 +4725,9 @@ X
                     cr_error_syntax(root_args);
                     break;
                }
-               cr_transition(_c, &_state, CR_STATE_W_FMT_POS);
+               if (_state != CR_STATE_FINAL) {
+                    cr_transition(_c, &_state, CR_STATE_W_FMT_POS);
+               }
                break;
 
           case CR_STATE_W_FMT_POS:
@@ -4728,6 +4741,7 @@ X
                break;
 
           case CR_STATE_W_SEPARATOR_3:
+CR_DEBUG("========================================================================\n");
                if (isdigit(_c)) {
                     *_ref_date_elt           *= 10;
                     *_ref_date_elt           += _c - '0';
@@ -4743,6 +4757,7 @@ X
                     cr_transition(_c, &_state, CR_STATE_M_FMT_SPEC);
                }
                else if (_c == '\0') {
+CR_DEBUG("======================================================================== NUL\n");
                     cr_transition(_c, &_state, CR_STATE_FINAL);
                }
                else {
@@ -4783,6 +4798,10 @@ X
                     cr_error_invalid_color(_c);
                     cr_error_syntax(root_args);
                }
+               break;
+
+          case CR_STATE_FINAL:
+CR_DEBUG("==================> STATE FINAL\n");
                break;
 
           default:
@@ -5706,7 +5725,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.169");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.170");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5881,7 +5900,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.169");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.170");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -5929,15 +5948,15 @@ void cr_usage(bool disp_config)
           fprintf(G.usage_out, "        Example : -I1 '^([^:]*:[^:]*:([^:]*)[:]*.*)'\n");
      }
      fprintf(G.usage_out, "        Alternate colors implies extended regular expressions (-e)\n");
-	fprintf(G.usage_out, "        Syntax for the use of a 2nd colorset triggered by another option :\n");
-	fprintf(G.usage_out, "         -{A|I}#a:s,c11c12...c1n:c21c22...c2p\n");
+     fprintf(G.usage_out, "        Syntax for the use of a 2nd colorset triggered by another option :\n");
+     fprintf(G.usage_out, "         -{A|I}#a:s,c11c12...c1n:c21c22...c2p\n");
      fprintf(G.usage_out, "         where s is a number from 0 to 9 indicating the selection regexp number,\n");
-	fprintf(G.usage_out, "         a is the number of the option that triggers the use of the 2nd colorset,\n");
-	fprintf(G.usage_out, "         c11c12...c1n are the colors of the 1st colorset, and\n");
-	fprintf(G.usage_out, "         c21c22...c2p are the colors of the 2nd colorset\n");
+     fprintf(G.usage_out, "         a is the number of the option that triggers the use of the 2nd colorset,\n");
+     fprintf(G.usage_out, "         c11c12...c1n are the colors of the 1st colorset, and\n");
+     fprintf(G.usage_out, "         c21c22...c2p are the colors of the 2nd colorset\n");
      if (G.verbose) {
           fprintf(G.usage_out, "        Example : -A0,2B3c '^[^ ]+ +([^ ]+) ' -A#1:0,2G3g:3r2R '^([^ ]+) '\n");
-	}
+     }
      fprintf(G.usage_out, "  -s  : alternate colors when the string matched by the selection regex is the image\n");
      fprintf(G.usage_out, "        by a simple function (+, -, * or /) of the value of the previous matching string\n");
      fprintf(G.usage_out, "        Syntax for sequential control option : -s[[-+*/]p[%s]:][n],c1c2...cn]\n",

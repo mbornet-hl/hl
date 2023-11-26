@@ -3,15 +3,20 @@
 #	Launch all tests for option -t of "hl"
 #	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-#	@(#)	[MB] ek_all_tests_-t	Version 1.7 du 22/09/04 - 
+#	@(#)	[MB] ek_all_tests_-t	Version 1.8 du 23/11/26 - 
 #
 
 readonly REF_DATE='2000-06-23 12:34:56.123456789'
 
+# Initialize default HL value, if necessary {{{
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if [ "$HL" = '' ]; then
 	export HL='hl'
 fi
 
+# }}}
+# Function label() {{{
+# ~~~~~~~~~~~~~~~~
 label()
 {
 	case "$1" in
@@ -56,6 +61,22 @@ label()
 	esac
 }
 
+# }}}
+# Initialize HL_TIME_[0-9] variables from default "hl" values {{{
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+eval $(hl -vh 2>&1  | sed -n '/HL_TIME_[0-9]/s/.* \(HL_TIME_[0-9]\).*"\([^"]*\)".*/\1="\2"/p')
+
+# }}}
+# Initialize "colors" variable from HL_TIME_[0-9] variables {{{
+
+colors=','
+for i in {0..9}
+do
+	colors="${colors}$(eval echo "\$HL_TIME_$i")"
+done
+
+# }}}
+
 for opt in Y m w d H M S u n
 do
 	label "$opt" > /dev/null
@@ -66,11 +87,12 @@ do
 		do
 			echo "========== `label "$opt"` =========="
 			echo "[$(date '+%Y-%m-%d %H:%M:%S')]"
-			echo "./dates_gen -$opt | $HL -t${opt}${zero}:${coeff}"
-			./dates_gen -"$opt" | "$HL" -t"${opt}${zero}:${coeff}"
+			echo "./dates_gen -$opt | $HL -t${opt}${zero}:${coeff}${colors}"
+			./dates_gen -"$opt" | "$HL" -t"${opt}${zero}:${coeff}${colors}"
+
 			echo "---------- `label "$opt"` with reference date $REF_DATE ----------"
-			echo "./dates_gen -$opt '$REF_DATE' | $HL -t${opt}${zero}R:${coeff} '$REF_DATE'"
-			./dates_gen -"$opt" "$REF_DATE" | "$HL" -t"${opt}${zero}"R:${coeff} "$REF_DATE"
+			echo "./dates_gen -$opt '$REF_DATE' | $HL -t${opt}${zero}R:${coeff}${colors} '$REF_DATE'"
+			./dates_gen -"$opt" "$REF_DATE" | "$HL" -t"${opt}${zero}"R:${coeff}${colors} "$REF_DATE"
 			echo
 		done
 	done
