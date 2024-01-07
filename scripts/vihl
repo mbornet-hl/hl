@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+#	Edit files containing the specified "hl" configurations
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_vihl	Version 1.1 du 24/01/07 - 
+#
+
+vi $(hl -op "$@" | awk '{ print $1 }' | sort -u)
