@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *   @(#)  [MB] cr_main.c Version 1.170 du 23/11/14 - 
+ *   @(#)  [MB] cr_main.c Version 1.171 du 24/01/28 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -5618,7 +5618,7 @@ int main(int argc, char *argv[])
      /* Decoding of arguments
         ~~~~~~~~~~~~~~~~~~~~~ */
      _root_args          = cr_set_args(_argc, _argv,
-                                       "oOhHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei1234%.!NA{I{s{J{K{T{t{P!p!x",
+                                       "oOhHuVvEr!g!y!b!m!c!w!R!G!Y!B!M!C!W!n!DLdei12345%.!NA{I{s{J{K{T{t{P!p!x",
                                        &G.configs);
      while ((_opt = cr_getopt(_root_args)) != -1) {
           switch (_opt) {
@@ -5725,7 +5725,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.170");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.171");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -5733,6 +5733,7 @@ int main(int argc, char *argv[])
           case '2':
           case '3':
           case '4':
+          case '5':
                G.intensity    = _opt - '0';
                break;
 
@@ -5900,8 +5901,8 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.170");
-     fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.171");
+     fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL12345][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
      fprintf(G.usage_out, "  -O  : debug messages will be displayed on stdout (default = stderr)\n");
@@ -5937,6 +5938,7 @@ void cr_usage(bool disp_config)
      fprintf(G.usage_out, "  -2  : color brightness (normal : default)\n");
      fprintf(G.usage_out, "  -3  : color brightness (bright)\n");
      fprintf(G.usage_out, "  -4  : color brightness (underscore)\n");
+     fprintf(G.usage_out, "  -5  : color brightness (blink, on some terminals)\n");
      fprintf(G.usage_out, "  -A  : alternate colors when string matched by selection regex changes\n");
      fprintf(G.usage_out, "  -I  : alternate colors when string matched by selection regex does not change\n");
      fprintf(G.usage_out, "        Syntax for alternate options : -{A|I}[[s],c1c2...cn]\n");
@@ -7291,6 +7293,10 @@ void cr_start_color(struct cr_color *col)
                     fprintf(_out, "\033[07;04;%dm", 30 + _col_num - 8);
                     break;
 
+               case 5:
+                    fprintf(_out, "\033[07;05;%dm", 30 + _col_num - 8);
+                    break;
+
                default:
                     fprintf(stderr, "%s: invalid color brightness ! (col = %p : (%d, %d))\n",
                             G.prgname, col, col->col_num, col->intensity);
@@ -7321,6 +7327,10 @@ void cr_start_color(struct cr_color *col)
 
           case 4:
                fprintf(_out, "\033[04;%dm", 30 + _col_num);    // Underscore
+               break;
+
+          case 5:
+               fprintf(_out, "\033[05;%dm", 30 + _col_num);    // Blink
                break;
 
           default:
