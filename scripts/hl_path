@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+#	Colorize the pathname, in the PATH variable, of a script or a command
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_hl_path	Version 1.1 du 24/05/28 - 
+#
+
+path=$(type -p "$1" 2> /dev/null)
+if [ "$path" = '' ]; then
+	echo "$0: $1 not found !"
+	exit 1
+fi
+
+dir=$(dirname "$path")
+
+echo "$PATH" | hl -e -3g "$dir\>"
