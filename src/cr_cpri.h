@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2023.
+ *   (C) Copyright Martial Bornet, 2015-2025.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *   @(#)  [MB] cr_cpri.h Version 1.87 du 23/08/01 -  
+ *	@(#)	[MB] cr_cpri.h	Version 1.88 du 25/04/30 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -67,6 +67,11 @@
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 #define   CR_ENV_ALTERNATE_1            "HL_A1"
 #define   CR_ENV_ALTERNATE_2            "HL_A2"
+
+/* Environment variables for alternate_str options
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_ENV_ALTERNATE_STR1         "HL_A_STR1"
+#define   CR_ENV_ALTERNATE_STR2         "HL_A_STR2"
 
 /* Environment variables for days of the week
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -328,6 +333,13 @@
 #define   CR_DEFLT_ALT_COLOR_1          'B'
 #define   CR_DEFLT_ALT_INTENSITY_2      (3)
 #define   CR_DEFLT_ALT_COLOR_2          'c'
+
+/* Default values for 'alternate_str' variables
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#define   CR_DEFLT_ALT_STR_INTENSITY_1  (3)
+#define   CR_DEFLT_ALT_STR_COLOR_1      'c'
+#define   CR_DEFLT_ALT_STR_INTENSITY_2  (3)
+#define   CR_DEFLT_ALT_STR_COLOR_2      'y'
 
 /* Default values for DOW variables
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -665,6 +677,13 @@ struct cr_##name *cr_new_##name(void)                                      \
 #define   CR_STATE_W_SELECTOR           (38)
 #define   CR_STATE_W_END_2              (39)
 #define   CR_STATE_W_COLOR_2            (40)
+#define   CR_STATE_W_ID                 (41)
+#define   CR_STATE_W_RE_ID              (42)
+#define   CR_STATE_W_E_1                (43)
+#define   CR_STATE_W_S                  (44)
+#define   CR_STATE_W_E_2                (45)
+#define   CR_STATE_W_T                  (46)
+
 
 #define   CR_UNINITIALIZED              (-1)
 #define   CR_MAX_DAYS                   ( 7)
@@ -821,10 +840,12 @@ struct cr_re_desc {
      char                               *matching_str;           /* String matching the        */
                                                                  /* selector regex             */
      bool                                alternate,              /* Alternate                  */
+                                         alternate_str,          /* Alternate on string        */
                                          sequential,             /* Sequential                 */
                                          ind_color;              /* Indirect color             */
      bool                                change_on_diff;         /* Change on difference       */
      bool                                change_on_bad_next;     /* Change on bad next value   */
+     bool                                alternate_col;          /* Change colors on line      */
      long                                val;                    /* Last value for seq control */
      long                                param;                  /* Parameter for seq control  */
      int                                 op;                     /* Operation for seq control  */
@@ -956,6 +977,8 @@ struct cr_global {
                                         *deflt_color,
                                         *deflt_alt_col_1,
                                         *deflt_alt_col_2,
+                                        *deflt_alt_str_col_1,
+                                        *deflt_alt_str_col_2,
                                         *deflt_dow[7],
                                         *deflt_t[CR_SUM(10)],
                                         *deflt_time[CR_MAX_PERIODS];

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *   (C) Copyright Martial Bornet, 2015-2022.
+ *   (C) Copyright Martial Bornet, 2015-2025.
  *
  *   Author       :     Martial BORNET (MB) - 3rd of January, 2015
  *
@@ -22,7 +22,7 @@
  *
  *   File         :     cr_gpri.c
  *
- *   @(#)  [MB] cr_gpri.c Version 1.29 du 22/09/02 - 
+ *	@(#)	[MB] cr_gpri.c	Version 1.30 du 25/04/30 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -145,6 +145,11 @@ struct cr_env_var_desc                             cr_env_vars[] = {
        CR_ENV_ALTERNATE_1,          CR_DEFLT_ALT_INTENSITY_1,          CR_DEFLT_ALT_COLOR_1,           0,   0    },
      { &G.deflt_alt_col_2,          FALSE,
        CR_ENV_ALTERNATE_2,          CR_DEFLT_ALT_INTENSITY_2,          CR_DEFLT_ALT_COLOR_2,           0,   0    },
+
+     { &G.deflt_alt_str_col_1,      TRUE,
+       CR_ENV_ALTERNATE_STR1,       CR_DEFLT_ALT_STR_INTENSITY_1,      CR_DEFLT_ALT_STR_COLOR_1,       0,   0    },
+     { &G.deflt_alt_str_col_2,      FALSE,
+       CR_ENV_ALTERNATE_STR2,       CR_DEFLT_ALT_STR_INTENSITY_2,      CR_DEFLT_ALT_STR_COLOR_2,       0,   0    },
 
      { &G.deflt_dow[0],             TRUE,
        CR_ENV_DOW_SUNDAY,           CR_DEFLT_DOW_SUNDAY_INTENS,        CR_DEFLT_DOW_SUNDAY_COLOR,      0,   0    },
