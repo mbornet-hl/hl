@@ -64,8 +64,8 @@ Usage
 -----
 
 ```
-hl: version 1.170
-Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
+hl: version 1.173
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL12345][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -100,6 +100,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
   -2  : color brightness (normal : default)
   -3  : color brightness (bright)
   -4  : color brightness (underscore)
+  -5  : color brightness (blink, on some terminals)
   -A  : alternate colors when string matched by selection regex changes
   -I  : alternate colors when string matched by selection regex does not change
         Syntax for alternate options : -{A|I}[[s],c1c2...cn]
@@ -112,6 +113,11 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
          a is the number of the option that triggers the use of the 2nd colorset,
          c11c12...c1n are the colors of the 1st colorset, and
          c21c22...c2p are the colors of the 2nd colorset
+  -a  : alternate colors at each match on a line
+        Syntax for alternate options : -a[[s],c1c2...cn]
+         where s is a number from 0 to 9 indicating the selection regexp number,
+         and c1, c2, ... cn are color specifiers to use
+        Alternate colors implies extended regular expressions (-e)
   -s  : alternate colors when the string matched by the selection regex is the image
         by a simple function (+, -, * or /) of the value of the previous matching string
         Syntax for sequential control option : -s[[-+*/]p[adox]:][n],c1c2...cn]
@@ -158,8 +164,8 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
 
 You can get a more verbose version of the usage with the '-v' option :
 ```
-hl: version 1.170
-Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
+hl: version 1.173
+Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL12345][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]
   -o  : usage will be displayed on stdout (default = stderr)
   -O  : debug messages will be displayed on stdout (default = stderr)
   -h  : help
@@ -194,6 +200,7 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
   -2  : color brightness (normal : default)
   -3  : color brightness (bright)
   -4  : color brightness (underscore)
+  -5  : color brightness (blink, on some terminals)
   -A  : alternate colors when string matched by selection regex changes
   -I  : alternate colors when string matched by selection regex does not change
         Syntax for alternate options : -{A|I}[[s],c1c2...cn]
@@ -210,6 +217,13 @@ Usage: hl [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp
          c11c12...c1n are the colors of the 1st colorset, and
          c21c22...c2p are the colors of the 2nd colorset
         Example : -A0,2B3c '^[^ ]+ +([^ ]+) ' -A#1:0,2G3g:3r2R '^([^ ]+) '
+  -a  : alternate colors at each match on a line
+        Syntax for alternate options : -a[[s],c1c2...cn]
+         where s is a number from 0 to 9 indicating the selection regexp number,
+         and c1, c2, ... cn are color specifiers to use
+        Example : -a2,2By  '(^([^ ]+ [0-9]{2} ..:..):..)'
+        Example : -a1 '(.*([12][0-9]{3}[-/][0-9]{2}[-/][0-9]{2})[   ]+.*)'
+        Alternate colors implies extended regular expressions (-e)
   -s  : alternate colors when the string matched by the selection regex is the image
         by a simple function (+, -, * or /) of the value of the previous matching string
         Syntax for sequential control option : -s[[-+*/]p[adox]:][n],c1c2...cn]
@@ -308,6 +322,9 @@ Environment variable HL_DEFAULT      is undefined. Default value = "3Y".
 
 Environment variable HL_A1           is undefined. Default value = "2B".
 Environment variable HL_A2           is undefined. Default value = "3c".
+
+Environment variable HL_A_STR1       is undefined. Default value = "3c".
+Environment variable HL_A_STR2       is undefined. Default value = "3y".
 
 Environment variable HL_SUNDAY       is undefined. Default value = "3R".
 Environment variable HL_MONDAY       is undefined. Default value = "2b".
@@ -600,3 +617,8 @@ $ man 5 acl | hl -ei -3c '\<acl_[^(]+\(3\)' | less -RX
 You can see that all strings colorized in high cyan have been extracted, sent to stderr, then post-processed to display them one per line.
 
 The **-E** option allows you to extract selected strings by redirecting them to **stderr**.
+
+Examples using the new option '-a' (alternate colors for strings matching regex on the same line) :
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/PATH.png)
+![Alternate](https://github.com/mbornet-hl/hl/blob/master/images/altdir.png)
+
