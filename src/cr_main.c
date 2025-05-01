@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *	@(#)	[MB] cr_main.c	Version 1.172 du 25/04/30 - 
+ *	@(#)	[MB] cr_main.c	Version 1.173 du 25/05/01 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -6224,7 +6224,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.172");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.173");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -6407,7 +6407,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.172");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.173");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL12345][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");
@@ -7204,13 +7204,6 @@ void cr_read_input(void)
 
                               }
 
-                              /* Color change : select next color from current set
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-                              _re->curr_alt->alt_idx++;
-                              if (_re->curr_alt->alt_cols[_re->curr_alt->alt_idx] == NULL) {
-                                   _re->curr_alt->alt_idx      = 0;
-                              }
-
                               /* Loop on substrings
                                  ~~~~~~~~~~~~~~~~~~ */
                               for (_j = 0; _j < _re->max_sub; _j++) {
@@ -7244,6 +7237,13 @@ void cr_read_input(void)
 //                                             fprintf(G.debug_out, "\n");
                                         }
                                    }
+                              }
+
+                              /* Color change : select next color from current set
+                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+                              _re->curr_alt->alt_idx++;
+                              if (_re->curr_alt->alt_cols[_re->curr_alt->alt_idx] == NULL) {
+                                   _re->curr_alt->alt_idx      = 0;
                               }
 
                               CR_DEBUG("***** CHANGE COLOR ***** : alt_idx = %d\n",
