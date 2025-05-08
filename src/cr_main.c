@@ -22,7 +22,7 @@
  *
  *   File         :     cr_main.c
  *
- *	@(#)	[MB] cr_main.c	Version 1.173 du 25/05/01 - 
+ *   @(#)  [MB] cr_main.c Version 1.174 du 25/05/08 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -4254,7 +4254,7 @@ X
 
 /******************************************************************************
 
-					CR_DECODE_FOLLOW
+                         CR_DECODE_FOLLOW
 
 ******************************************************************************/
 struct cd_re_desc *cr_decode_follow(cr_root_args *root_args)
@@ -4272,71 +4272,71 @@ struct cd_re_desc *cr_decode_follow(cr_root_args *root_args)
           switch (_state) {
 
           case CR_STATE_INITIAL:
-			if (_c == '#') {
+               if (_c == '#') {
                     cr_transition(_c, &_state, CR_STATE_W_ID);
-			}
-			else if (_c == ',') {
+               }
+               else if (_c == ',') {
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
-			}
-			else if (_c == ':') {
+               }
+               else if (_c == ':') {
                     cr_transition(_c, &_state, CR_STATE_W_RE_NUM);
-			}
-			else if (_c == '\0') {
+               }
+               else if (_c == '\0') {
                     cr_transition(_c, &_state, CR_STATE_W_FINAL);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_ID:
-			if (cr_is_id_char(_c)) {
-				cr_transition(_c, &_state, CR_STATE_W_COLUMN);
-			}
-			else {
+          case CR_STATE_W_ID:
+               if (cr_is_id_char(_c)) {
+                    cr_transition(_c, &_state, CR_STATE_W_COLUMN);
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_COLUMN:
-			if (_c == ':') {
+          case CR_STATE_W_COLUMN:
+               if (_c == ':') {
                     cr_transition(_c, &_state, CR_STATE_W_RE_NUM);
-			}
-			else if (cr_is_id_char(_c)) {
-				/* XXX CONTROLER LA TAILLE DE l'ID */
-				cr_transition(_c, &_state, CR_STATE_W_COLUMN);
-			}
-			else {
+               }
+               else if (cr_is_id_char(_c)) {
+                    /* XXX CONTROLER LA TAILLE DE l'ID */
+                    cr_transition(_c, &_state, CR_STATE_W_COLUMN);
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_RE_NUM:
+          case CR_STATE_W_RE_NUM:
                if (cr_is_int(_c)) {
                     _selector      = _c - '0';
                     cr_transition(_c, &_state, CR_STATE_W_COMMA);
                }
-			else if (_c == 'r') {
+               else if (_c == 'r') {
                     cr_transition(_c, &_state, CR_STATE_W_E_1);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_COMMA:
-			if (_c == ',') {
+          case CR_STATE_W_COMMA:
+               if (_c == ',') {
                     cr_transition(_c, &_state, CR_STATE_W_INTENSITY);
-			}
-			else if (_c == '\0') {
+               }
+               else if (_c == '\0') {
                     cr_transition(_c, &_state, CR_STATE_W_FINAL);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_INTENSITY:
+          case CR_STATE_W_INTENSITY:
                if (cr_is_intensity(_c)) {
                     G.intensity    = _c - '0';
                     cr_transition(_c, &_state, CR_STATE_W_COLOR);
@@ -4348,9 +4348,9 @@ struct cd_re_desc *cr_decode_follow(cr_root_args *root_args)
                else {
                     cr_error_syntax(root_args);
                }
-			break;
+               break;
 
-		case CR_STATE_W_COLOR:
+          case CR_STATE_W_COLOR:
                if (cr_is_a_color(_c)) {
                     _alt_colors[_curr_col_idx++]  = cr_decode_color(_c, G.intensity);
                     cr_transition(_c, &_state, CR_STATE_W_END);
@@ -4359,61 +4359,61 @@ struct cd_re_desc *cr_decode_follow(cr_root_args *root_args)
                     cr_error_invalid_color(_c);
                     cr_error_syntax(root_args);
                }
-			break;
+               break;
 
-		case CR_STATE_W_E_1:
-			if (_c == 'e') {
+          case CR_STATE_W_E_1:
+               if (_c == 'e') {
                     cr_transition(_c, &_state, CR_STATE_W_S);
-			}
-			else if (_c == '\0') {
+               }
+               else if (_c == '\0') {
                     cr_transition(_c, &_state, CR_STATE_W_END);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_S:
-			if (_c == 's') {
+          case CR_STATE_W_S:
+               if (_c == 's') {
                     cr_transition(_c, &_state, CR_STATE_W_E_2);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_E_2:
-			if (_c == 'e') {
+          case CR_STATE_W_E_2:
+               if (_c == 'e') {
                     cr_transition(_c, &_state, CR_STATE_W_T);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_T:
-			if (_c == 't') {
+          case CR_STATE_W_T:
+               if (_c == 't') {
                     cr_transition(_c, &_state, CR_STATE_W_END);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
-		case CR_STATE_W_END:
-			if (_c == '\0') {
+          case CR_STATE_W_END:
+               if (_c == '\0') {
                     cr_transition(_c, &_state, CR_STATE_W_FINAL);
-			}
-			else {
+               }
+               else {
                     cr_error_syntax(root_args);
-			}
-			break;
+               }
+               break;
 
                 default:
                     cr_error_syntax(root_args);
                     break;
                 }
-	}
+     }
 }
 
 /* }}} */
@@ -5704,7 +5704,9 @@ void cr_disp_env_vars(struct cr_env_var_conf *vconfs, struct cr_env_var_desc *va
                fprintf(G.usage_out, "\n");
           }
           if ((_env_val = getenv(_pvar->name)) == NULL) {
-               sprintf(_deflt, "%d%c", _pvar->deflt_intens, _pvar->deflt_color);
+               _deflt[0]      = _pvar->deflt_intens + '0';
+               _deflt[1]      = _pvar->deflt_color;
+               _deflt[2]      = '\0';
                fprintf(G.usage_out, _undefined, _sz, _pvar->name, _deflt);
           }
           else {
@@ -6224,7 +6226,7 @@ int main(int argc, char *argv[])
                break;
 
           case 'V':
-               fprintf(stderr, "%s: version %s\n", G.prgname, "1.173");
+               fprintf(stderr, "%s: version %s\n", G.prgname, "1.174");
                exit(CR_EXIT_ERR_VERSION);
                break;
 
@@ -6407,7 +6409,7 @@ void cr_usage(bool disp_config)
                                _deflt_alt_1[4],     _deflt_alt_2[4],
                                _deflt_conf[128];
 
-     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.173");
+     fprintf(G.usage_out, "%s: version %s\n", G.prgname, "1.174");
      fprintf(G.usage_out, "Usage: %s [-oO][-h|-H|-V|-[[%%.]eiuvdDEL12345][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...] ]\n",
              G.prgname);
      fprintf(G.usage_out, "  -o  : usage will be displayed on stdout (default = stderr)\n");

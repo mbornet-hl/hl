@@ -22,7 +22,7 @@
  *
  *   File         :     cr_cpri.h
  *
- *	@(#)	[MB] cr_cpri.h	Version 1.88 du 25/04/30 - 
+ *	@(#)	[MB] cr_cpri.h	Version 1.89 du 25/05/08 - 
  *
  * Sources from the original hl command are available on :
  * https://github.com/mbornet-hl/hl
@@ -234,11 +234,11 @@
 #define   CR_DEFLT_TIME_RE_Y            "(([0-9]{4}))"
 #define   CR_DEFLT_TIME_RE_m            "(([0-9]{4})-([0-9]{2}))"
 #define   CR_DEFLT_TIME_RE_d            "(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
-#define   CR_DEFLT_TIME_RE_H            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}))"
-#define   CR_DEFLT_TIME_RE_M            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}))"
-#define   CR_DEFLT_TIME_RE_S            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}))"
-#define   CR_DEFLT_TIME_RE_u            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{6}))"
-#define   CR_DEFLT_TIME_RE_n            "(([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{9}))"
+#define   CR_DEFLT_TIME_RE_H            "(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_M            "(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_S            "(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2}))"
+#define   CR_DEFLT_TIME_RE_u            "(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{6}))"
+#define   CR_DEFLT_TIME_RE_n            "(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2})\\.([0-9]{9}))"
 
 #define   CR_DEFLT_TIME_POS_Y           (2)
 #define   CR_DEFLT_TIME_POS_m           (3)
