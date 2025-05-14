@@ -1,10 +1,10 @@
-.\" 	@(#)	[MB] cr_hl.1	Version 1.19 du 23/09/22 - 
-.TH "HL" "1" "September 2023" "" "User Commands"
+.\" 	@(#)	[MB] cr_hl.1	Version 1.20 du 25/05/14 - 
+.TH "HL" "1" "May 2025" "" "User Commands"
 .SH "NAME" 
 hl - Colorize strings matching regular expressions
 .SH "VERSION"
 .PP
-Version 1.168
+Version 1.174
 .SH "SYNOPSIS" 
 .PP 
 \fBhl\fP \fB [-oO][-h|-H|-V|-[[%.]eiuvdDEL1234][-[rgybmcwRGYBMCWnAIsNpPxJTt] regexp ...][--config_name ...]\fP
@@ -100,6 +100,8 @@ Changes the brightness of all the following colors, until another brightness is 
 .IP "\fB-4\fP " 10
 color brightness (underscore).
 Changes the brightness of all the following colors, until another brightness is specified.
+.IP "\fB-5\fP " 10
+color brightness (blink, on some terminals).
 .IP "\fB-A\fP " 10
 Specifies parameters to alternate colors when matching string changes.
 .IP "\fB-I\fP " 10
@@ -115,6 +117,12 @@ by this -A (or -I) option but not by another -A (or -I) option whose number is g
  (See example 11 for more explanation).
 
 Alternate colors implies extended regular expressions (-e)
+.IP "\fB-a\fP " 10
+Specify parameters to alternate colors at each match on a line.
+.TP
+		Syntax for alternate options : -a[[s],c1c2...cn]
+where s is a number from 0 to 9 indicating the selection regexp number,
+and c1, c2, ... cn are color specifiers to use
 .IP "\fB-s\fP " 10
 Alternate colors when the string matched by the selection regex is the image by a simple
 function (+, -, * or /) of the value of the previous matching string
@@ -691,8 +699,8 @@ hl		:
 hl(5)
 
 .SH "MAN PAGE VERSION"
-The version of this man page is 1.19.
-It is compatible with hl version 1.168 and upper.
+The version of this man page is 1.20.
+It is compatible with hl version 1.174 and upper.
 
 .SH "AUTHOR" 
 .PP 
