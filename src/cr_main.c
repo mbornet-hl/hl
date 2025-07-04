@@ -36,9 +36,9 @@
 #define _GNU_SOURCE
 #endif    /* HL_BACKTRACE */
 
-#if ! defined(__APPLE__)
+#if ! defined(__APPLE__) && ! defined(__FreeBSD__)
 #define _POSIX_C_SOURCE 199309L
-#endif    /* __APPLE__ */
+#endif    /* ! __APPLE__ && ! __FreeBSD__ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -5779,7 +5779,7 @@ void cr_disp_regex()
 
 /* cr_disp_regex() }}} */
 /* print_trace() {{{ */
-
+#if ! defined(__APPLE__) && ! defined(__FreeBSD__)
 #if defined(HL_BACKTRACE)
 /******************************************************************************
 
@@ -5814,6 +5814,7 @@ void print_trace(int signum)
      exit(CR_EXIT_ERR_SEGV);
 }
 #endif    /* HL_BACKTRACE */
+#endif    /* ! __APPLE__ && ! __FreeBSD__ */
 
 /* print_trace() }}} */
 /* cr_display_config() {{{ */
@@ -6051,7 +6052,7 @@ int main(int argc, char *argv[])
      char                     *_env_var_name, *_env_deflt, _deflt_color_opt[4],
                               **_argv, *_argv_deflt[4];
 
-#if ! defined(__APPLE__)
+#if ! defined(__APPLE__) && ! defined(__FreeBSD__)
 #if defined(HL_BACKTRACE)
      sighandler_t              _previous_handler;
      
@@ -6061,7 +6062,7 @@ int main(int argc, char *argv[])
      }
 
 #endif    /* HL_BACKTRACE */
-#endif    /* ! __APPLE__ */
+#endif    /* ! __APPLE__ && ! __FreeBSD__*/
 
      G.prgname           = argv[0];
      G.selector_string   = CR_SELECTOR_STRING;
