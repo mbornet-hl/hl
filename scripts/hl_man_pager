@@ -1,3 +1,9 @@
 #!/bin/bash
+#
+#	Man pager for hl
+#	~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_hl_man_pager	Version 1.1 du 25/12/16 - 
+#
 
-hl --man | more
+col -b | hl --man | less -RX
