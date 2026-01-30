@@ -1,0 +1,12 @@
+Package: hl
+Version: 1.176-2
+Architecture: amd64
+Maintainer: Martial Bornet <mbornet.pro@wanadoo.fr>
+Installed-Size: 382
+Depends: libc6 (>= 2.34), bash-completion
+Section: utils
+Priority: optional
+Homepage: https://github.com/mbornet-hl/hl
+Description: Highlight (colorize) text data using regular expressions
+ hl is a C program able to colorize commands output or text files
+ according to regular expressions.

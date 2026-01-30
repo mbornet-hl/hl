@@ -1,0 +1,12 @@
+Package: hl-dbgsym
+Source: hl
+Version: 1.176-2
+Auto-Built-Package: debug-symbols
+Architecture: amd64
+Maintainer: Martial Bornet <mbornet.pro@wanadoo.fr>
+Installed-Size: 153
+Depends: hl (= 1.176-2)
+Section: debug
+Priority: optional
+Description: debug symbols for hl
+Build-Ids: bb77c5f0cba1e74d8841ca15fea605c1dc873ddc

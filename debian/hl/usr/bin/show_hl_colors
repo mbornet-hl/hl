@@ -1,0 +1,14 @@
+#!/bin/bash
+#
+#	@(#)	[MB] aj_show_hl_colors	Version 1.1 du 20/07/05 - 
+#
+
+# The following command only works when the 'colors' configuration can be found
+# in $HOME/.hl.cfg or /etc/default/hl :
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# sed -n '/^colors[ \t]/,/^[ \t]*$/p' < $HOME/hl.cfg /etc/default/hl | hl --colors
+
+# The current command works as long as the 'colors' configuration can be found
+# in any of the configuration files, but needs at least hl 1.92 :
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+hl -ovvH | sed -n '/:[ \t][ \t]*colors$/,/^[ \t]*$/p' | hl --colors

@@ -1,5 +1,12 @@
-hl (1.93) unstable; urgency=medium
+hl (1.176-2) stable; urgency=medium
+
+  * Ajout de hl_bin
+
+ -- Martial Bornet <mbornet.pro@wanadoo.fr>  Fri, 30 Jan 2026 12:34:56 +0000
+
+hl (1.176-1) stable; urgency=medium
 
   * Initial release.
 
- -- Otto Kekäläinen <otto@debian.org>  Tue, 10 Nov 2020 20:51:15 +0200
+ -- Martial Bornet <mbornet.pro@wanadoo.fr>  Fri, 30 Jan 2026 00:00:00 +0000
+

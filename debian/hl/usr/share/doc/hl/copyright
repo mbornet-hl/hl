@@ -1,0 +1,7 @@
+Format: http://debhelper.alioth.debian.org/doc/copyright/
+Source: https://github.com/mbornet-hl/hl
+
+Files: *
+Copyright: (C) Copyright Martial Bornet, 2015-2026
+License: GPLv3
+

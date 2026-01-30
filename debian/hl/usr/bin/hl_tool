@@ -1,0 +1,521 @@
+#!/bin/bash
+#
+#	hl_tool : do various operations on hl configurations files
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_hl_tool	Version 1.23 du 23/08/01 - 
+#
+
+# usage {{{
+usage()
+{
+	# Is the "hl_tool" config available ?
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	hl -op hl_tool | grep -q '\<hl_tool\>'
+	if [ $? = 0 ]; then
+		# Yes : colorize the usage output
+		# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		FILTER='hl --hl_tool'
+	else
+		# No : don't colorize
+		# ~~~~~~~~~~~~~~~~~~~
+		FILTER='cat'
+	fi
+
+	cat <<- EOF | $FILTER
+		Usage: $PROGNAME [-h|-A|-C|-c|-D|-d|-f|-L|-l|-M|-m|-s|-x] [args]
+		Version 1.23
+
+		  -h : help (this message)
+
+		  -A : list one letter options used and unused by hl
+		       $(usage_list_1_letter_opts)
+
+		  -C : list configurations files pathnames
+		       $(usage_list_config_files)
+
+		  -c : count configurations occurrences in configurations files
+		       $(usage_config_occurrences)
+
+		  -d : differences between a specified configuration in two configurations files
+		       $(usage_diff_config)
+
+		  -D : list configuration directories from \$HL_CONF
+		       $(usage_list_dirs)
+
+		  -f : list configuration names from a specified configurations file
+		       $(usage_configs_from)
+
+		  -L : list files containing a specified configuration
+		       $(usage_list_files)
+
+		  -l : list all configurations
+		       $(usage_list_configs)
+
+		  -M : compute MD5 checksum from all configurations
+		       $(usage_all_md5_configs)
+
+		  -m : compute MD5 checksum from a specific configuration
+		       $(usage_all_md5_config)
+
+		  -s : show configurations specific to a specified configurations file
+		       $(usage_specific_to)
+
+		  -x : display options counts for all configurations
+		       $(usage_opts_count)
+
+		HL_CONF="$HL_CONF"
+		HL_CONF_GLOB="$HL_CONF_GLOB"
+	EOF
+}
+# usage }}}
+# usage_list_1_letter_opts {{{
+
+usage_list_1_letter_opts()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -A
+	EOF
+}
+
+# usage_list_1_letter_opts }}}
+# usage_list_config_files {{{
+
+usage_list_config_files()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -C
+	EOF
+}
+
+# usage_list_config_files }}}
+# usage_config_occurrences {{{
+
+usage_config_occurrences()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -c
+	EOF
+}
+
+# usage_config_occurrences }}}
+# usage_diff_config {{{
+
+usage_diff_config()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -d config_name config_path1 config_path2
+	EOF
+}
+
+# usage_diff_config }}}
+# usage_configs_from {{{
+
+usage_configs_from()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -f config_pathname
+	EOF
+}
+
+# usage_configs_from }}}
+# usage_list_configs {{{
+
+usage_list_configs()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -l
+	EOF
+}
+
+# usage_list_configs }}}
+# usage_list_dirs {{{
+
+usage_list_dirs()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -D
+	EOF
+}
+
+# usage_list_dirs }}}
+# usage_all_md5_config {{{
+
+usage_all_md5_config()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -m config_name
+	EOF
+}
+
+# usage_all_md5_config }}}
+# usage_all_md5_configs {{{
+
+usage_all_md5_configs()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -M
+	EOF
+}
+
+# usage_all_md5_configs }}}
+# usage_specific_to {{{
+
+usage_specific_to()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -s config_pathname
+	EOF
+}
+
+# usage_specific_to }}}
+# usage_opts_count {{{
+
+usage_opts_count()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -x
+EOF
+}
+
+# usage_opts_count }}}
+# usage_list_files {{{
+
+usage_list_files()
+{
+	cat <<- EOF
+		Usage: $PROGNAME -L config_name
+EOF
+}
+
+# usage_list_files }}}
+# list_config_files {{{
+
+list_config_files()
+{
+	hl -op '*' | awk '{ print $1 }' | sort -u
+}
+
+# list_config_files }}}
+# list_config_dirs {{{
+
+list_config_dirs()
+{
+	echo "$HL_CONF" | sed 's/:/\
+/g'
+}
+
+# list_config_dirs }}}
+# config_occurrences {{{
+
+config_occurrences()
+{
+	(
+	#	for cfg in $(HL_CONF=/DATA3/projets/hl/config_files/hl.cfg hl -op '*' | awk '{ print $3 }')
+		for cfg in $(hl -op '*' | awk '{ print $3 }' | sort -u)
+		do
+			nb=$(hl -oP "^$cfg$" | wc -l)
+			printf "%-20s : %3d\n" "$cfg" "$nb"
+		done
+	) | sort -k3,3g
+}
+
+# config_occurrences }}}
+# configs_from {{{
+
+configs_from()
+{
+	if [ "$1" = '' ]; then
+		usage_configs_from
+		exit 1
+	fi
+
+	config_file="$1"
+
+	HL_CONF="$config_file" hl -op '*' | awk '{ print $3 }' | sort
+}
+
+# configs_from }}}
+# md5 {{{
+
+md5()
+{
+	_cfg="$1"
+	_cfg_file="$2"
+
+	MD5=$(HL_CONF="$_cfg_file" hl -v -oP "\<$_cfg\>" | sed '1d' | md5sum | sed 's/ .*//')
+	printf "%-32s %-20s %s\n" "$MD5" "$_cfg" "$_cfg_file"
+}
+
+# md5 }}}
+# configs_specific_to {{{
+
+configs_specific_to()
+{
+	TMP1="/tmp/hl_tmp_1.$$"
+	TMP2="/tmp/hl_tmp_2.$$"
+
+	PROGNAME=`basename "$0"`
+
+	if [ "$1" = '' ]; then
+		usage_specific_to
+		exit 1
+	fi
+
+	config_file="$1"
+
+	(
+		(
+			# Generate MD5 checksums for all configurations in the specified configuration file
+			# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			for cfg in $(HL_CONF="$config_file" hl -op '*' | awk '{ print $3 }')
+			do
+				md5 "$cfg" "$config_file"
+			done
+		) | sort -k1,1 > "$TMP1"
+
+		(
+			# Generate MD5 checksums for all configurations in all configuration files
+			# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			for cfg_file in $(hl -op '*' | awk '{ print $1 }' | sort -u)
+			do
+				if [ "$cfg_file" != "$config_file" ]; then
+					for cfg in $(HL_CONF="$cfg_file" hl -op '*' | awk '{ print $3 }')
+					do
+						md5 "$cfg" "$cfg_file"
+					done
+				fi
+			done
+		) | sort -k1,1 > "$TMP2"
+	)
+
+	join -a 1 -a 2 -j 1 -e '---' -o '0 1.2 2.2 1.3 2.3' "$TMP2" "$TMP1" | hl -e \
+		-3R '\--- '"$config_file"	\
+		-3c '([^ ]+) +\--- '"$config_file"	\
+		-3g "$config_file" | less -RX
+
+	rm -f "$TMP1" "$TMP2"
+}
+
+# configs_specific_to }}}
+# opts_count {{{
+opts_count()
+{
+	if [ "$1" != '' ]; then
+		usage_opts_cout
+		exit 1
+	fi
+
+	hl -ox | LANG=C sort -k3,3g -k4,4 -k1,1
+}
+
+# opts_count }}}
+# diff_config {{{
+
+diff_config()
+{
+	if [ "$3" = '' -o "$4" != '' ]; then
+		usage_diff_config
+		exit 1
+	fi
+
+	config_name="$1"
+	config_path1="$2"
+	config_path2="$3"
+
+	diff <(HL_CONF="$config_path1" hl -v -oP "\<$config_name\>") <(HL_CONF="$config_path2" hl -v -oP "\<$config_name\>")
+}
+
+# diff_config }}}
+# list_configs {{{
+
+list_configs()
+{
+	hl -op '*' | sort -k3,3 -s | hl --dupA3 | less -RX
+}
+
+# list_configs }}}
+# all_md5_config {{{
+
+all_md5_config()
+{
+	#	Compute MD5 checksums of configurations whose name is specified
+	#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	export HL_A2='3c'
+
+	cfg="$1"
+	(
+		for file in $(hl -oP "\<$cfg\>" | awk '{ print $1}' | sort -u)
+		do
+			# echo "$file" > /dev/tty
+			# args HL_CONF='/DATA3/projets/hl/config_files/hl_HW.cfg' hl -v -oP "\<$cfg\>" > /dev/tty
+			# HL_CONF="$file" hl -v -oP "\<$cfg\>" > /dev/tty
+
+			MD5=$(HL_CONF="$file" hl -v -oP "\<$cfg\>" | sed '1d' | md5sum)
+			printf "%s  %s\n" "$MD5" "$file"
+		done
+	) | sort -k1,1 | hl --dupA1
+}
+
+# all_md5_config }}}
+# all_md5_configs {{{
+
+all_md5_configs()
+{
+	if [ "$1" != '' ]; then
+		usage_all_md5_configs
+		exit 1
+	fi
+
+	for cfg in $(hl -op '*' | awk '{ print $(NF) }' | sort -k3,3 | uniq)
+	do
+		for file in $(hl -oP "^$cfg\$" | awk '{ print $1}' | sort -u)
+		do
+			# echo "$file" > /dev/tty
+			# args HL_CONF='/DATA3/projets/hl/config_files/hl_HW.cfg' hl -v -oP "\<$cfg\>" > /dev/tty
+			# HL_CONF="$file" hl -v -oP "\<$cfg\>" > /dev/tty
+
+			MD5=$(HL_CONF="$file" hl -v -oP "^$cfg\$" | sed '1d' | md5sum | sed 's/ -.*//')
+			printf "%s %-30s %s\n" "$MD5" "$cfg" "$file"
+		done | sort -k1,1
+		echo
+
+	done | hl								\
+		-A0,2B3c '^[^ ]+ +([^ ]+) '			\
+		-A#1:0,2G3g:3r2R '^([^ ]+) '			\
+		-A#1:0,1B3b:3m3M '^[^ ]+ +[^ ]+ +([^ ]+)'
+
+#	-A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A0,2G3g '^([^ ]+) '
+#	done | hl -A0,2B3c '^[^ ]+ +([^ ]+) +([^ ]+)' -A#1:0,2G3r2R:2 '^([^ ]+) '
+}
+
+# all_md5_configs }}}
+# list_files {{{
+
+list_files()
+{
+	if [ "$1" = '' -o "$2" != '' ]; then
+		usage_list_files
+		exit 1
+	fi
+	config_name="$1"
+
+	ls -ltr $(hl -op "$config_name" | awk '{ print $1 }')
+}
+# list_files }}}
+# list_1 letter_opts {{{
+list_1_letter_opts()
+{
+	[ "$HL_A1" != '' ] || HL_A1='3c'
+	[ "$HL_A2" != '' ] || HL_A2='3y'
+
+	echo "Used options :" | hl --hi_blue
+	hl -oh | sed -n 's/^[ 	]*\(-[a-zA-Z]\)[ 	].*/\1/p' | LANG=C sort | hl -sa:1,3c3y '^-([a-zA-Z])'
+
+	echo
+	echo "Unused options :" | hl --hi_blue
+	LANG=C comm -3 <(hl -oh | sed -n 's/^[ 	]*\(-[a-zA-Z]\)[ 	].*/\1/p' | LANG=C sort) <(for l in {A..Z} {a..z}; do printf "%s\n" '-'$l; done) | sed 's/^[ 	]*//' | hl --hi_green
+}
+
+# list_1_letter_opts }}}
+# hl_conf {{{
+hl_conf()
+{
+	if [ "$1" = '' ]; then
+		hl --hl_conf
+	else
+		hl -vop "$@" | hl --hl_conf
+	fi
+}
+#hl_conf }}}
+# MAIN PROGRAM {{{
+
+PROGNAME=`basename "$0"`
+
+case "$PROGNAME" in
+	hl_tool)		;;
+
+	hl_conf)		hl_conf "$@"
+				exit $?
+				;;
+esac
+
+if [ "$1" = '' ]; then
+	usage
+	exit 1
+fi
+
+while getopts 'AhCcDdfLlMmsx' opt
+do
+	case "$opt" in
+		A)		shift
+				list_1_letter_opts "$@"
+				exit
+				;;
+
+		c)		shift
+				config_occurrences "$@"
+				exit
+				;;
+
+		C)		shift
+				list_config_files "$@"
+				exit
+				;;
+
+		d)		shift
+				diff_config "$@"
+				exit
+				;;
+
+		D)		shift
+				list_config_dirs "$@"
+				exit
+				;;
+
+		f)		shift
+				configs_from "$@"
+				exit
+				;;
+
+		L)		shift
+				list_files "$@"
+				exit
+				;;
+
+		l)		shift
+				list_configs "$@"
+				exit
+				;;
+
+		M)		shift
+				all_md5_configs "$@"
+				exit
+				;;
+
+		m)		shift
+				all_md5_config "$@"
+				exit
+				;;
+
+		s)		shift
+				configs_specific_to "$@"
+				exit
+				;;
+
+		x)		shift
+				opts_count "$@"
+				exit
+				;;
+
+		h|*)		usage
+				exit 1
+				;;
+	esac
+done
+
+usage
+exit 1
+
+# MAIN PROGRAM }}}

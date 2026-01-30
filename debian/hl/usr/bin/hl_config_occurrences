@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+#	Count hl configurations occurrences
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] 	Version 1.1 du 21/05/29 - 
+#
+
+(
+#	for cfg in $(HL_CONF=/DATA3/projets/hl/config_files/hl.cfg hl -op '*' | awk '{ print $3 }')
+	for cfg in $(hl -op '*' | awk '{ print $3 }' | sort -u)
+	do
+		nb=$(hl -oP "\<$cfg\>" | wc -l)
+		printf "%-20s : %3d\n" "$cfg" "$nb"
+	done
+) | sort -k3,3g

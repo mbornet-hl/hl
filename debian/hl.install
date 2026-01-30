@@ -1,0 +1,5 @@
+hl                     usr/bin/
+config_files/*.cfg     usr/share/hl/config/
+completion/complete_hl usr/share/hl/completions/hl
+scripts/*              usr/bin/
+hl_bin/*               usr/share/hl/hl_bin/

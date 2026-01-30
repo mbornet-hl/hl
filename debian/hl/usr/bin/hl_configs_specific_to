@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+#	List configurations specific to a specified hl configuration file
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] 	Version 1.1 du 21/05/29 - 
+#
+
+TMP1="/tmp/hl_tmp_1.$$"
+TMP2="/tmp/hl_tmp_2.$$"
+
+# Function: usage
+# ~~~~~~~~~~~~~~~
+usage()
+{
+	cat <<- EOF
+		Usage: $PROGNAME hl_config_filename
+	EOF
+}
+
+md5()
+{
+	_cfg="$1"
+	_cfg_file="$2"
+
+	MD5=$(HL_CONF="$_cfg_file" hl -v -oP "\<$_cfg\>" | sed '1d' | md5sum | sed 's/ .*//')
+	printf "%-32s %-20s %s\n" "$MD5" "$_cfg" "$_cfg_file"
+}
+
+PROGNAME=`basename "$0"`
+
+if [ "$1" = '' ]; then
+	usage
+	exit 1
+fi
+
+config_file="$1"
+
+(
+	(
+		# Generate MD5 checksums for all configurations in the specified configuration file
+		# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		for cfg in $(HL_CONF="$config_file" hl -op '*' | awk '{ print $3 }')
+		do
+			md5 "$cfg" "$config_file"
+		done
+	) | sort -k1,1 > "$TMP1"
+
+	(
+		# Generate MD5 checksums for all configurations in all configuration files
+		# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+		for cfg_file in $(hl -op '*' | awk '{ print $1 }' | sort -u)
+		do
+			if [ "$cfg_file" != "$config_file" ]; then
+				for cfg in $(HL_CONF="$cfg_file" hl -op '*' | awk '{ print $3 }')
+				do
+					md5 "$cfg" "$cfg_file"
+				done
+			fi
+		done
+	) | sort -k1,1 > "$TMP2"
+)
+
+join -a 1 -a 2 -j 1 -e '---' -o '0 1.2 2.2 1.3 2.3' "$TMP2" "$TMP1" | hl -3R '\--- '"$config_file" -3g "$config_file" | less -RX
+
+rm -f "$TMP1" "$TMP2"

@@ -1,0 +1,34 @@
+Format: 1.8
+Date: Fri, 30 Jan 2026 12:34:56 +0000
+Source: hl
+Binary: hl hl-dbgsym
+Architecture: source amd64
+Version: 1.176-2
+Distribution: stable
+Urgency: medium
+Maintainer: Martial Bornet <mbornet.pro@wanadoo.fr>
+Changed-By: Martial Bornet <mbornet.pro@wanadoo.fr>
+Description:
+ hl         - Highlight (colorize) text data using regular expressions
+Changes:
+ hl (1.176-2) stable; urgency=medium
+ .
+   * Ajout de hl_bin
+Checksums-Sha1:
+ 33d37863266396df92430dcb82435882647b27a7 549 hl_1.176-2.dsc
+ d57b60ecf0ed7546f24936dae3c216cdd7e358c4 16853749 hl_1.176-2.tar.gz
+ 90fe3e4994c8c85a6aa2394e9cbc9358605bca6e 135248 hl-dbgsym_1.176-2_amd64.deb
+ 291ff395b5c842443e2b11eac088a5a8632a9e8d 5991 hl_1.176-2_amd64.buildinfo
+ acf9ed5dc3ef4c1e40de0516140cdff68955d121 89708 hl_1.176-2_amd64.deb
+Checksums-Sha256:
+ 0c6fbcfd8b2818abb89a57c4ec08310a74dd01550544c2d46b67b9914ad1b5c7 549 hl_1.176-2.dsc
+ d6cb3fe7a50c4495bef4e03bb2b0a32933137b028878b55f8a22394348c7f302 16853749 hl_1.176-2.tar.gz
+ 7f2453e7e180600e15f3e94029c06ae65a721bde29ec34c1e2b89ae163c8cb3c 135248 hl-dbgsym_1.176-2_amd64.deb
+ 816296b82d0e3b4e2c76a8b0a612b2286a41b2b7e4bef237e577c88006a9172f 5991 hl_1.176-2_amd64.buildinfo
+ 44fdd42d67f62fe2003f9bfaf07573a06c93b8f1d812c9b7fb349aa00001fe93 89708 hl_1.176-2_amd64.deb
+Files:
+ 990900d95a24d990697fcb0378d52e47 549 utils optional hl_1.176-2.dsc
+ 37793fd686d2027e7b232e8ef6c1f2da 16853749 utils optional hl_1.176-2.tar.gz
+ 7e5951744a8b23191c488d15a10d1e12 135248 debug optional hl-dbgsym_1.176-2_amd64.deb
+ 6be54cad48abc751659ca199c2885e2e 5991 utils optional hl_1.176-2_amd64.buildinfo
+ d814aa3e394cf5993cde68603fda54a2 89708 utils optional hl_1.176-2_amd64.deb

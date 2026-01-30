@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+#	Script for the creation of command substitutes
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] cr_make_hl_links	Version 1.2 du 15/10/01 - 
+#
+
+HL_BIN="hl_bin"
+
+CURR_DIR="$(/bin/pwd)"
+CURR_DIR_BASE=$(basename $(readlink -f "$CURR_DIR"))
+
+run_command()
+{
+	echo "$@"
+	"$@"
+}
+
+if [ "$CURR_DIR_BASE" != "$HL_BIN" ]; then
+	echo "$0: refuses to create links in \"$CURR_DIR\" !"
+	exit 1
+fi
+
+HL_GENERIC="hl_generic"
+if [ ! -e "$HL_GENERIC" ]; then
+	echo "$%: \"$HL_GENERIC\" does not exist !" >&2
+	exit 1
+fi
+INUM_HL_GENERIC=$(stat -c "%i" "$HL_GENERIC")
+
+egrep -v '^#|^[ 	]*$' <<-EOF | while read cmd
+	cal
+	df
+	diff
+	dpkg-query
+	ethtool
+	fdisk
+	free
+	ifconfig
+	iostat
+	iptables
+	man
+	namei
+	netstat
+	ps
+	strace
+	tcpdump
+	w
+	xxd
+
+#	cm
+#	hl
+#	rc
+#	ref_list
+#	show_all_disks
+
+EOF
+do
+	# Be sure that filenames are local
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	cmd=$(basename "$cmd")
+
+	if [ ! -e "$cmd" ]; then
+		ln "$HL_GENERIC" "$cmd"
+	else
+		INUM=$(stat -c "%i" "$cmd")
+		if [ "$INUM" != "$INUM_HL_GENERIC" ]; then
+			rm -f "$cmd"
+			run_command ln "$HL_GENERIC" "$cmd"
+		fi
+	fi
+done

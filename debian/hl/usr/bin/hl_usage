@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+#	Display colorized hl usage
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_hl_usage	Version 1.2 du 22/08/21 - 
+#
+
+if [ "$HL" = '' ]; then
+	export HL='hl'
+fi
+
+"$HL" -ovh | "$HL" --hl_usage
