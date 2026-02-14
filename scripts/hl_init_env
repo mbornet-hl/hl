@@ -1,0 +1,160 @@
+#!/bin/bash
+#
+#	Initialize environment variables for hl
+#	~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+#	@(#)	[MB] ek_hl_init_env	Version 1.1 du 26/02/14 - 
+#
+#	This script may be modified and read in .bash_profile (or equivalent)
+#	using :
+#		. hl_init_env
+#	or :
+#		source hl_init_env
+#
+#	The commented lines below use default hl values.
+#
+
+# Global config (files, directories and patterns)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+export HL_CONF="$HOME/.hl.cfg:$HOME/hl_conf:/usr/share/hl/config"
+export HL_CONF_GLOB=':hl_*.cfg:hl.cfg:.hl_*.cfg:.hl.cfg'
+
+# Day Of Week configuration (regex and specifier)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_DOW_SPEC="Y2m3d4"
+# export HL_DOW_REGEX="(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
+
+# Time configuration (regex and specifiers)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_TIME_REGEX_Y="(([0-9]{4}))"
+# export HL_TIME_REGEX_m="(([0-9]{4})-([0-9]{2}))"
+# export HL_TIME_REGEX_d="(([0-9]{4})-([0-9]{2})-([0-9]{2}))"
+# export HL_TIME_REGEX_H="(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}))"
+# export HL_TIME_REGEX_M="(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}))"
+# export HL_TIME_REGEX_S="(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2}))"
+# export HL_TIME_REGEX_u="(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2})\.([0-9]{6}))"
+# export HL_TIME_REGEX_n="(([0-9]{4})-([0-9]{2})-([0-9]{2})[ T]([0-9]{2}):([0-9]{2}):([0-9]{2})\.([0-9]{9}))"
+# export HL_TIME_SPEC_Y="Y2"
+# export HL_TIME_SPEC_m="Y2m3"
+# export HL_TIME_SPEC_d="Y2m3d4"
+# export HL_TIME_SPEC_H="Y2m3d4H5"
+# export HL_TIME_SPEC_M="Y2m3d4H5M6"
+# export HL_TIME_SPEC_S="Y2m3d4H5M6S7"
+# export HL_TIME_SPEC_u="Y2m3d4H5M6S7u8"
+# export HL_TIME_SPEC_n="Y2m3d4H5M6S7n8"
+# export HL_THRES_REGEX="([0-9]+)"
+
+# Default configuration (default color when no color option is specified but only a regex)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_DEFAULT="3Y"
+
+# Default Alternate configuration for lines (colors)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_A1="2B"
+# export HL_A2="3c"
+
+# Default Alternate configuration for strings (colors)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_A_STR1="3c"
+# export HL_A_STR2="3y"
+
+# Default Day configuration (colors)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_SUNDAY="3R"
+# export HL_MONDAY="2b"
+# export HL_TUESDAY="2c"
+# export HL_WEDNESDAY="2g"
+# export HL_THURSDAY="3g"
+# export HL_FRIDAY="3y"
+# export HL_SATURDAY="3r"
+
+# Default Time configuration (colors)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_TIME_0="3w"
+# export HL_TIME_1="3m"
+# export HL_TIME_2="3r"
+# export HL_TIME_3="2y"
+# export HL_TIME_4="3y"
+# export HL_TIME_5="3g"
+# export HL_TIME_6="2g"
+# export HL_TIME_7="3c"
+# export HL_TIME_8="3b"
+# export HL_TIME_9="2b"
+
+# Default Thresholds configuration (colors)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_T_2_1="3g"
+# export HL_T_2_2="3r"
+
+# export HL_T_3_1="3g"
+# export HL_T_3_2="3y"
+# export HL_T_3_3="3r"
+
+# export HL_T_4_1="3b"
+# export HL_T_4_2="3g"
+# export HL_T_4_3="3y"
+# export HL_T_4_4="3r"
+
+# export HL_T_5_1="3b"
+# export HL_T_5_2="3g"
+# export HL_T_5_3="3y"
+# export HL_T_5_4="2r"
+# export HL_T_5_5="3r"
+
+# export HL_T_6_1="3b"
+# export HL_T_6_2="3c"
+# export HL_T_6_3="3g"
+# export HL_T_6_4="3y"
+# export HL_T_6_5="3r"
+# export HL_T_6_6="3w"
+
+# export HL_T_7_1="3b"
+# export HL_T_7_2="3c"
+# export HL_T_7_3="3g"
+# export HL_T_7_4="3y"
+# export HL_T_7_5="3r"
+# export HL_T_7_6="3m"
+# export HL_T_7_7="3w"
+
+# export HL_T_8_1="2b"
+# export HL_T_8_2="3b"
+# export HL_T_8_3="3c"
+# export HL_T_8_4="3g"
+# export HL_T_8_5="3y"
+# export HL_T_8_6="3r"
+# export HL_T_8_7="3m"
+# export HL_T_8_8="3w"
+
+# export HL_T_9_1="2b"
+# export HL_T_9_2="3b"
+# export HL_T_9_3="3c"
+# export HL_T_9_4="2g"
+# export HL_T_9_5="3g"
+# export HL_T_9_6="3y"
+# export HL_T_9_7="3r"
+# export HL_T_9_8="3m"
+# export HL_T_9_9="3w"
+
+# export HL_T_10_1="2b"
+# export HL_T_10_2="3b"
+# export HL_T_10_3="3c"
+# export HL_T_10_4="2g"
+# export HL_T_10_5="3g"
+# export HL_T_10_6="3y"
+# export HL_T_10_7="2y"
+# export HL_T_10_8="3r"
+# export HL_T_10_9="3m"
+# export HL_T_10_10="3w"
+
+# Default Thresholds configuration (values)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# export HL_T_V_1=0
+# export HL_T_V_2=10
+# export HL_T_V_3=20
+# export HL_T_V_4=30
+# export HL_T_V_5=40
+# export HL_T_V_6=50
+# export HL_T_V_7=60
+# export HL_T_V_8=70
+# export HL_T_V_9=80
+# export HL_T_V_10=100
