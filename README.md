@@ -13,7 +13,7 @@ There are no need to add plug-ins when you want to colorize a new syntax : you j
 
 Contributing
 ------------
-If your Linux distro is able to install Debian packages, you can use the package on this site ([hl\_1.176-2\_amd64.deb](https://github.com/mbornet-hl/hl/blob/master/packages/deb/1.176-2/hl_1.176-2_amd64.deb). Else, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. **hl** would be more widely spread if it can be installed using **rpm**, or **dnf**. So if you want to create such packages, you are welcome !
+If your Linux distro is able to install Debian packages, you can use the package on this site ([hl\_1.176-2\_amd64.deb](https://github.com/mbornet-hl/hl/blob/master/packages/deb/1.176-2/hl_1.176-2_amd64.deb)). Else, you'll have to compile it for your system (which is very easy) or just use the binary on this web site. **hl** would be more widely spread if it can be installed using **rpm**, or **dnf**. So if you want to create such packages, you are welcome !
 
 Another way to contribute is to **share the configurations that you have created that could help other people**. To do so, please add a small comment above your configuration to specify your name, the creation date of your configuration and its purpose, and add an example of the data (as a separate file : 50 lines max) that your configuration colorizes. You also can add a screenshot of the result of the colorization of your data. Those files will be located in a sub-directory of the *examples* directory.
 
